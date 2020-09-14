@@ -1,0 +1,45 @@
+# Much of the items listed in this file aren't stuff I use,
+# but it's there in case I do use it in the future.
+
+# intellij
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# eclipse
+/.classpath
+/.project
+/.settings
+
+## netbeans
+/nbproject
+/nb-configuration.xml
+
+## maven
+/build.xml
+/target
+
+## vim
+.*.sw[a-p]
+
+## various other potentially unwanted files and directories
+# ignore my custom configuration files
+/config
+# ignore any data created by the server
+/data
+# ignore core, it's not ready yet
+/core
+# ignore this, it's just logs in swedish about what I've been working on
+/school
+# ignore the folder with compiled plugins
+/trustedPlugins
+# ignore builds and outputs
+/out
+/build
+/bin
+/dist
+/manifest.mf
+# ignore backups
+*~
+.*~

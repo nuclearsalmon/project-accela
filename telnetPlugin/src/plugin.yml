@@ -1,0 +1,4 @@
+name: 'telnet'
+version: '2.0'
+author: 'gustavdersjo'
+main: 'net.accela.telnetplugin.Main'
