@@ -70,7 +70,7 @@ public final class TelnetSessionServer extends Thread {
 
     // A temporary cache of the sequence being received from the client
     TelnetSequence tmpReceivedSequence = new TelnetSequence();
-    // A temporary chance of the sequence arguments being received from the client
+    // A temporary cache of the sequence arguments being received from the client
     List<Byte> tmpReceivedArguments = new ArrayList<>();
 
     public TelnetSessionServer(@NotNull TelnetSession session,
