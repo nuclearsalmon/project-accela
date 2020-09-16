@@ -4,7 +4,7 @@ A modular framework for building plugin-driven virtual networks - for hackers to
 ## Notes
 * The 'core' will be uploaded at a later date, as it's not quite ready yet.
 * The 'core' consists of multiple parts, including the following:
-  * A terminal-based window manager API, which is somewhat similar to curses. 
+  * A terminal-based window manager API, which is somewhat similar to [curses](https://en.wikipedia.org/wiki/Curses_(programming_library)). 
   This is intended to be used by plugins as a means of providing text-based output to users, 
   as well as receiving input from said users without the plugins interfering with each other.
   * A system for loading and unloading plugins at runtime,
