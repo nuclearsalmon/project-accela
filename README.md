@@ -22,7 +22,7 @@ A plugin that adds support for communication through the telnet protocol.
 It provides users a means of connecting to the system and interacting with it.
 The telnet server supports proper telnet negotiation, and can intelligently negotiate 
 for features that the server and client both share, for example character sets. 
-Since it's a plugin it can through config files be configured to start any amount of telnet servers, with custom port numbers for each one.
+Since it's a plugin, it can through config files be configured to start any amount of telnet servers, with custom port numbers for each one.
 
 The telnet server builds on top of a few classes and interfaces provided by the 'core', 
 so that any future protocols can be easily implemented and interacted with in a standardized fashion.
