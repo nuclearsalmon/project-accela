@@ -50,7 +50,7 @@ session creator (such as the [Telnet Provider][telnet_plugin] plugin).
 
 
 
-[module_server]: ./server/src/ "Server/"Core" module"
+[module_server]: ./server/src/ "Server/\"Core\" module"
 [library_ansi]: ./server/src/net/accela/ansi/ "ANSI Escape Sequences library"
 [plugin_prismawm]: ./prismaPlugin/src/ "\"PrismaWM\" Window Manager plugin module"
 [plugin_telnet]: ./telnetPlugin/src/ "Telnet Provider plugin module"
