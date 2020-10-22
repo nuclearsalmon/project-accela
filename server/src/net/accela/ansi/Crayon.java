@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link Crayon} is a somewhat more high level API than the {@link SGRSequence} API it builds upon.
- * They are (somewhat) inter-compatible, and the programmer may use whichever one
+ * {@link Crayon} is a somewhat more high level framework than the {@link SGRSequence} framework that it builds upon.
+ * They are inter-compatible, and the programmer may use whichever one
  * she or he prefers. The functionality provided is more or less the same,
  * the syntax for {@link Crayon} is just shorter and easier to use.
  */
