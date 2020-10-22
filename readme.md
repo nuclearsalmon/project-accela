@@ -18,8 +18,6 @@ I have plenty of plans for this "game", but that is outside the scope of this RE
 as it's not quite ready yet and I'm disstatisfied with the current code quality.
 * I plan on adding support for more protocols than simply telnet, as well as implementing encryption for all protocols. Telnet will do for now though.
 
----
-
 # Modules and Plugins
 ## [Server/"Core" module][module_server]
 This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
@@ -46,7 +44,7 @@ the session introducer will attempt to load a window manager into the session.
 Having a window manager makes it possible for other plugins to facilitate graphical communication with the client.
 The reason this is a standalone plugin rather than having this functionality bundled in the telnet provider is due to modularity.
 I want the SysOp to be able to pick which window manager to load, without neccesarily having to modify the code of a 
-session creator (such as the [Telnet Provider][telnet_plugin] plugin).
+session creator (such as the [Telnet Provider][plugin_telnet] plugin).
 
 
 
