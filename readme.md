@@ -1,23 +1,36 @@
 # Project Accela
-A modular framework for building plugin-driven virtual networks - for hackers to explore and exploit.
+A modular framework for building plugin-driven virtual networks - for hackers to explore and exploit. Enjoy ;)
+
+## The concept
+The basic idea is that any user can write a plugin and load it into the network, 
+providing additional features and experiences for anyone to access. 
+The plugins run in a sandboxed environment where the plugins only have access to certain exposed parts of the system.
+
+## The purpose / end goal
+My end goal with the project is to utilize it to create a sandboxed network for hackers to play around in, explore and exploit.
+It will be almost like a game, though I dislike calling it such. I want it to be highly strategic and to reward those that think out of the box.
+<br>
+The plugins that will make up this network will be publicly availible along with the rest of the project, 
+and I have plenty of plans for it, but that is outside the scope of this README.
 
 ## Notes
-* The 'core' will be uploaded at a later date, as it's not quite ready yet.
-* The 'core' consists of multiple parts, including the following:
-  * A terminal-based window manager API, which is somewhat similar to [curses](https://en.wikipedia.org/wiki/Curses_(programming_library)). 
-  This is intended to be used by plugins as a means of providing text-based output to users, 
-  as well as receiving input from said users without the plugins interfering with each other.
-  * A system for loading and unloading plugins at runtime,
-  as well as managing the communication between plugins and the system.
-  The idea is that any user can write a plugin and load it into the network, 
-  providing additional features and experiences for anyone to access. 
-  The plugins run in a sandboxed environment where the plugins only have access 
-  to certain exposed parts of the system.
-* I plan on adding support for more protocols than telnet, 
-as well as implementing encryption for all protocols. Telnet will do for now though.
+* The full code for the [Server/"Core" module][module_server] and the window manager will be uploaded at a later date,
+as it's not quite ready yet and I'm disstatisfied with the current code quality.
+* I plan on adding support for more protocols than simply telnet, as well as implementing encryption for all protocols. Telnet will do for now though.
 
-## Plugins
-### telnetPlugin
+---
+
+# Modules and Plugins
+## [Server/"Core" Module][module_server]
+This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
+and standards for creating "providers", that add network connectivity and new protocols (See: [Telnet Provider][telnet_plugin]).
+It also includes my own library for crafting [ANSI Escape Code][out_ansi] sequences, along with related utilities.
+
+## ["PrismaWM" Window Manager][plugin_prismawm]
+This is to be used by plugins as a means of providing text-based output to users, 
+as well as receiving input from said users without the plugins interfering with each other.
+
+## [Telnet Provider][plugin_telnet]
 A plugin that adds support for communication through the telnet protocol.
 It provides users a means of connecting to the system and interacting with it.
 The telnet server supports proper telnet negotiation, and can intelligently negotiate 
@@ -26,3 +39,20 @@ Since it's a plugin, it can through config files be configured to start any amou
 
 The telnet server builds on top of a few classes and interfaces provided by the 'core', 
 so that any future protocols can be easily implemented and interacted with in a standardized fashion.
+
+## [Session Introducer][plugin_session_introducer]
+A simple plugin that listens for creation events for graphical sessions. Once such an event gets called,
+the session introducer will attempt to load a window manager into the session.
+Having a window manager makes it possible for other plugins to facilitate graphical communication with the client.
+The reason this is a standalone plugin rather than having this functionality bundled in the telnet provider is due to modularity.
+I want the SysOp to be able to pick which window manager to load, without neccesarily having to modify the code of a 
+session creator (such as the [Telnet Provider][telnet_plugin] plugin).
+
+
+
+[module_server]: ./server/ "Server module"
+[plugin_prismawm]: ./prismaPlugin/ "\"PrismaWM\" Window Manager plugin module"
+[plugin_telnet]: ./telnetPlugin/ "Telnet Provider plugin module"
+[plugin_session_introducer]: ./sessionIntroducerPlugin/ "Session Introducer plugin module"
+
+[out_ansi]: https://en.wikipedia.org/wiki/ANSI_escape_code "ANSI Escape Codes"
