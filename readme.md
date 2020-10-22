@@ -23,7 +23,7 @@ as it's not quite ready yet and I'm dissatisfied with the current code quality.
 ---
 # Modules and Plugins
 In this context, when I say modules I'm referring to IntelliJ IDEA modules. 
-Plugins are loadable modules that provide additional functionality on top of the [server][module_server].
+Plugins are loadable modules that provide additional functionality on top of the server.
 
 ## [Server (core)][module_server]
 This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
