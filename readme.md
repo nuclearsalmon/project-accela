@@ -25,7 +25,7 @@ as it's not quite ready yet and I'm dissatisfied with the current code quality.
 In this context, when I say modules I'm referring to IntelliJ IDEA modules. 
 Plugins are loadable modules that provide additional functionality on top of the [server][module_server].
 
-## [Server/"Core"][module_server]
+## [Server (core)][module_server]
 This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
 and standards for creating "providers", that add network connectivity and new protocols (See: [Telnet Provider plugin][plugin_telnet]).
 It also includes my own library for crafting [ANSI Escape Sequences][out_ansi], along with related utilities.
