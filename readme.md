@@ -18,7 +18,13 @@ I have plenty of plans for this "game", but that is outside the scope of this RE
 as it's not quite ready yet and I'm disstatisfied with the current code quality.
 * I plan on adding support for more protocols than simply telnet, as well as implementing encryption for all protocols. Telnet will do for now though.
 
+<br>
+
+---
 # Modules and Plugins
+In this context, when I say modules I'm referring to IntelliJ IDEA modules. 
+Plugins are loadable modules that provide additional functionality on top of the [Server/"Core"][module_server].
+
 ## [Server/"Core" module][module_server]
 This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
 and standards for creating "providers", that add network connectivity and new protocols (See: [Telnet Provider plugin][plugin_telnet]).
