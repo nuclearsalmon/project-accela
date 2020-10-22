@@ -6,12 +6,12 @@ The basic idea is that any user can write a plugin and load it into the network,
 providing additional features and experiences for anyone to access. 
 The plugins run in a sandboxed environment where the plugins only have access to certain exposed parts of the system.
 
-## The purpose / end goal
+## The purpose
 My end goal with the project is to utilize it to create a sandboxed network for hackers to play around in, explore and exploit.
 It will be almost like a game, though I dislike calling it such. I want it to be highly strategic and to reward those that think out of the box.
-<br>
+<br><br>
 The plugins that will make up this network will be publicly availible along with the rest of the project, 
-and I have plenty of plans for it, but that is outside the scope of this README.
+and I have plenty of plans for this "game", but that is outside the scope of this README.
 
 ## Notes
 * The full code for the [Server/"Core" module][module_server] and the window manager will be uploaded at a later date,
