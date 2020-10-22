@@ -1,15 +1,20 @@
-package net.accela.telnetplugin.server;
+package net.accela.telnet.server;
 
-import net.accela.telnetplugin.exception.InvalidTelnetSequenceException;
-import net.accela.telnetplugin.exception.TerminationException;
-import net.accela.telnetplugin.util.TelnetByteTranslator;
-import net.accela.util.ArrayUtil;
+import net.accela.prisma.PrismaWM;
+import net.accela.prisma.util.CharsetDecoder;
+import net.accela.telnet.exception.InvalidTelnetSequenceException;
+import net.accela.telnet.exception.TerminationException;
+import net.accela.telnet.session.InputParser;
+import net.accela.telnet.session.TelnetSession;
+import net.accela.telnet.util.ArrayUtil;
+import net.accela.telnet.util.TelnetByteTranslator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
+import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
@@ -18,50 +23,96 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
-import static net.accela.telnetplugin.util.TelnetBytes.*;
+import static net.accela.telnet.util.TelnetBytes.*;
 
 public final class TelnetSessionServer extends Thread {
     // The session this TelnetSessionServer is serving
     final TelnetSession session;
     final InputStream inputStream;
     final OutputStream outputStream;
-    final InputStream fromEngine;
-    final OutputStream toEngine;
-    final Thread fromEngineReaderThread;
+    public @Nullable InputStream fromWindowManager;
+    public @Nullable OutputStream toWindowManager;
+
+    // FIXME: 10/21/20 If there are better ways of doing this, please let me know.
+    public void setWindowManagerStreams(@Nullable InputStream fromWindowManager,
+                                        @Nullable OutputStream toWindowManager) {
+        // Set values
+        this.fromWindowManager = fromWindowManager;
+        this.toWindowManager = toWindowManager;
+
+        // Start a new reader thread or interrupt the old one if the new stream is null
+        if (fromWindowManager == null) {
+            if (fromWMReaderThread != null) fromWMReaderThread.interrupt();
+        } else newWMReaderThread();
+    }
+
+    @Nullable Thread fromWMReaderThread;
+
+    public void newWMReaderThread() {
+        // Interrupt first if needed
+        if (fromWMReaderThread != null && !fromWMReaderThread.isInterrupted()) fromWMReaderThread.interrupt();
+
+        // Create the new thread
+        fromWMReaderThread = new Thread(() -> {
+            Thread.currentThread().setName(TelnetSession.class.getSimpleName()
+                    + ":" + session.getUUID() + ":fromEngineReader");
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    int read = fromWindowManager.read();
+                    if (read == -1) throw new IOException("End of stream");
+                    // Note that this is not just just forcibly sent, writeToTerminal uses a lock mechanism.
+                    // It cannot interrupt ongoing negotiation as far as I'm aware.
+                    writeToClient((byte) read);
+                }
+            } catch (IOException ex) {
+                session.getLogger().log(Level.WARNING, "Exception in fromWMReaderThread", ex);
+            }
+        });
+        // Start the new thread
+        fromWMReaderThread.start();
+    }
 
     // Charset configuration
-    public final static Charset UTF_8_CHARSET = StandardCharsets.UTF_8;
-    public final static Charset UTF_16_CHARSET = StandardCharsets.UTF_16;
+    public final static Charset UTF8_CHARSET = StandardCharsets.UTF_8;
     public final static Charset ASCII_CHARSET = StandardCharsets.US_ASCII;
-    public final static Charset IBM437_CHARSET = Charset.forName("437");
-    public final List<Charset> supportedCharsets = new ArrayList<>(){{
-        add(UTF_8_CHARSET);
-        add(UTF_16_CHARSET);
+    public final static Charset IBM437_CHARSET = Charset.forName("IBM437");
+    public final List<Charset> supportedCharsets = new ArrayList<>() {{
+        add(UTF8_CHARSET);
         add(ASCII_CHARSET);
         add(IBM437_CHARSET);
     }};
+    @NotNull Charset currentCharset = UTF8_CHARSET;
+    // CharsetDecoder
+    CharsetDecoder charsetDecoder = new CharsetDecoder() {
+        @Override
+        protected @NotNull Charset getCurrentCharset() {
+            return currentCharset;
+        }
+    };
 
     /**
      * The current state of negotiation
      */
     enum NegotiationState {
-        NOT_NEGOTIATING,
-        WAITING_FOR_COMMAND,
-        WAITING_FOR_ARGUMENTS,
-        SUBNEGOTIATION_INTERRUPTED
+        WAITING_FOR_IAC_OR_CHR,    // When waiting for IAC or a character
+        DECODING_CHR,              // When currently decoding a character (ignores IAC)
+        WAITING_FOR_COMMAND,       // When waiting for a telnet sequence command
+        WAITING_FOR_ARGUMENTS,     // When waiting for a telnet sequence argument
+        SUBNEGOTIATION_INTERRUPTED // When subnegotiation was interrupted
     }
-    @NotNull NegotiationState negotiationState = NegotiationState.NOT_NEGOTIATING;
+
+    @NotNull NegotiationState negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
 
     // Synchronization lock
     final Object terminalWriteLock = new Object();
 
-    // Flags
+    // Default negotiation result flags
     boolean echoEnabled = true;
     boolean suppressGoAheadEnabled = false;
     boolean transmitBinaryEnabled = false;
 
     // The Key is the received byte trigger (not a full sequence), and the Value is a list of responses
-    final HashMap<Byte, List<Response>> negotiationFlow = new HashMap<>();
+    final HashMap<Byte, List<TelnetResponse>> negotiationFlow = new HashMap<>();
 
     // Sequences pending to be sent
     // When adding a sequence to be sent, you may also supply it with a few response sequences,
@@ -73,47 +124,27 @@ public final class TelnetSessionServer extends Thread {
     // A temporary cache of the sequence arguments being received from the client
     List<Byte> tmpReceivedArguments = new ArrayList<>();
 
-    public TelnetSessionServer(@NotNull TelnetSession session,
-                               InputStream inputStream,
-                               OutputStream outputStream,
-                               InputStream fromEngine,
-                               OutputStream toEngine){
+    // Responsible for relaying input to the Engine
+    final InputParser inputParser;
+
+    public TelnetSessionServer(@NotNull TelnetSession session, @NotNull Socket socket) throws IOException {
         this.session = session;
-        this.inputStream = inputStream;
-        this.outputStream = outputStream;
-        this.fromEngine = fromEngine;
-        this.toEngine = toEngine;
+        this.inputStream = socket.getInputStream();
+        this.outputStream = socket.getOutputStream();
+        this.inputParser = new InputParser(session, this);
 
         // Register default negotiation for logout
         registerNegotiationFlow(LOGOUT, fullTrigger -> {
             sendSequenceWhenNotNegotiating(new TelnetSequence(WILL, LOGOUT));
-            session.close("The client requested logout");
+            session.close("Logout requested by the client");
         });
-
-        // Start the reader thread
-        fromEngineReaderThread = new Thread(() -> {
-            Thread.currentThread().setName(TelnetSession.class.getSimpleName()
-                    + ":" + session.getUUID() + ":fromEngineReader");
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    int read = fromEngine.read();
-                    if (read == -1) break;
-                    writeToTerminal((byte) read);
-                }
-            }
-            catch (IOException ex) {
-                session.getLogger().log(Level.WARNING, "Exception when reading from engine: ", ex);
-                // Stop the TelnetSessionServer too
-                this.interrupt();
-            }
-        });
-        fromEngineReaderThread.start();
     }
 
     @Override
     public void run() {
         Thread.currentThread().setName(TelnetSessionServer.class.getSimpleName() + ":" + session.getUUID());
 
+        String terminationReason = null;
         try {
             // Start negotiating basic functionality
             negotiateEcho(false);
@@ -123,85 +154,69 @@ public final class TelnetSessionServer extends Thread {
 
             // Start reader thread
             while (!isInterrupted()) {
+                // Send pending sequences, if any
                 sendPendingSequence();
 
                 // Proceed to parse
-                byte command = (byte) readFromTerminal();
-
-                if(negotiationState == NegotiationState.NOT_NEGOTIATING){
-                    if(command == IAC){
-                        negotiationState = NegotiationState.WAITING_FOR_COMMAND;
-                    } else {
-                        parseCharacter(command);
-                    }
-                } else {
-                    parseNegotiation(command);
-                }
+                parse();
             }
-        } catch (IOException e){
-            if(!isInterrupted()) session.getLogger().log(Level.WARNING, "IOException in TelnetSessionServer", e);
-        } catch (TerminationException ignored){}
+        } catch (IOException ex) {
+            // If it was interrupted then this exception is safe to ignore
+            // However, if it wasn't interrupted then it's actually a bug and we need to log this.
+            if (!isInterrupted()) {
+                session.getLogger().log(Level.WARNING, "IOException in TelnetSessionServer", ex);
+            }
+        } catch (TerminationException ex) {
+            // If intentionally terminated, we need to know why
+            terminationReason = ex.getMessage();
+        }
 
-        fromEngineReaderThread.interrupt();
+        // Close the Session if there's a reason for it, otherwise just stop this thread by letting it complete.
+        if (terminationReason != null) session.close(terminationReason);
     }
 
     //
     // --- PARSING ---
     //
-    void parseCharacter(byte by) throws IOException, TerminationException {
-        Charset sessionCharset = session.getCharset();
-        // Figure out how many bytes to read
-        if (sessionCharset.equals(UTF_8_CHARSET)) {
-            /*
-                Binary    Hex          Comments
-                0xxxxxxx  0x00..0x7F   Only byte of a 1-byte character encoding
-                10xxxxxx  0x80..0xBF   Continuation byte: one of 1-3 bytes following the first
-                110xxxxx  0xC0..0xDF   First byte of a 2-byte character encoding
-                1110xxxx  0xE0..0xEF   First byte of a 3-byte character encoding
-                11110xxx  0xF0..0xF7   First byte of a 4-byte character encoding
-            */
-            byte[] charBytes;
-            int numberOfBytes = 1;
-            if (by >= (byte) 0xC0 && by <= (byte) 0xDF) numberOfBytes = 2;
-            else if (by <= (byte) 0xEF) numberOfBytes = 3;
-            else if (by <= (byte) 0xF7) numberOfBytes = 4;
+    void parse() throws IOException, TerminationException {
+        byte by = readFromTerminal();
 
-            charBytes = new byte[numberOfBytes];
-            charBytes[0] = by;
+        switch (negotiationState) {
+            case WAITING_FOR_IAC_OR_CHR:
+                // If it's the start of a telnet sequence
+                if (by == IAC) {
+                    negotiationState = NegotiationState.WAITING_FOR_COMMAND;
+                    break;
+                }
+                // Else it's a character
+                else {
+                    negotiationState = NegotiationState.DECODING_CHR;
+                }
+                // Continue down, don't break
+            case DECODING_CHR:
+                while (true) {
+                    // Attempt to decode the byte we got
+                    String decodedString = charsetDecoder.decodeByte(by);
 
-            for (int i = 1; i < numberOfBytes; i++) {
-                charBytes[i] = (byte) readFromTerminal();
-            }
-
-            writeToEngine(charBytes);
-        } else if (sessionCharset.equals(UTF_16_CHARSET)) {
-            byte[] charBytes = new byte[4];
-            charBytes[0] = by;
-            charBytes[1] = (byte) readFromTerminal();
-
-            ByteBuffer bb = ByteBuffer.allocate(2);
-            bb.put(charBytes[0]);
-            bb.put(charBytes[1]);
-            int tmp = bb.getInt();
-
-            if(tmp >= 0xD800 && tmp <= 0xDBFF){
-                charBytes[2] = (byte) readFromTerminal();
-                charBytes[3] = (byte) readFromTerminal();
-            }
-
-            writeToEngine(charBytes);
-        } else if(sessionCharset.equals(ASCII_CHARSET) || sessionCharset.equals(IBM437_CHARSET)){
-            writeToEngine(by);
-        } else {
-            throw new UnsupportedCharsetException(sessionCharset.name());
-        }
-    }
-
-    void parseNegotiation(byte command) throws IOException {
-        switch (negotiationState){
+                    // If we did not decode a character yet
+                    if (decodedString == null) {
+                        // Read a new byte and let it loop until it returns a character
+                        by = readFromTerminal();
+                    }
+                    // If we decoded a character
+                    else {
+                        // Reset state
+                        negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
+                        // Send to engine
+                        writeToEngine(decodedString);
+                        // Break the loop
+                        break;
+                    }
+                }
+                break;
             case WAITING_FOR_COMMAND:
-                tmpReceivedSequence.setCommandByte(command);
-                switch (command){
+                tmpReceivedSequence.setCommandByte(by);
+                switch (by) {
                     case SB:
                     case WILL:
                     case WONT:
@@ -210,68 +225,70 @@ public final class TelnetSessionServer extends Thread {
                         negotiationState = NegotiationState.WAITING_FOR_ARGUMENTS;
                         break;
                     case IP:
-                        parseReceivedSequence();
-                        negotiationState = NegotiationState.NOT_NEGOTIATING;
+                        parseCompleteSequence();
+                        negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
                         break;
                     case IAC:
                         break;
                     default:
                         // Did not receive a valid command, so stop expecting further input.
-                        negotiationState = NegotiationState.NOT_NEGOTIATING;
+                        negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
                         session.getLogger().log(Level.INFO, "Received unknown telnet command: "
-                                + TelnetByteTranslator.byteToString(command));
+                                + TelnetByteTranslator.byteToString(by));
                 }
                 break;
             case WAITING_FOR_ARGUMENTS:
                 //noinspection ConstantConditions
-                if(tmpReceivedSequence.getCommandByte() == SB){
-                    if(command == IAC) negotiationState = NegotiationState.SUBNEGOTIATION_INTERRUPTED;
-                    else tmpReceivedArguments.add(command);
+                if (tmpReceivedSequence.getCommandByte() == SB) {
+                    if (by == IAC) negotiationState = NegotiationState.SUBNEGOTIATION_INTERRUPTED;
+                    else tmpReceivedArguments.add(by);
                 } else {
-                    tmpReceivedSequence.setOptionByte(command);
+                    tmpReceivedSequence.setOptionByte(by);
                     // Finished
-                    parseReceivedSequence();
+                    parseCompleteSequence();
                 }
                 break;
             case SUBNEGOTIATION_INTERRUPTED:
-                switch (command){
+                switch (by) {
                     case IAC:
-                        tmpReceivedArguments.add(command);
+                        // IAC was escaped, so add it to the arguments and return to listening for arguments
+                        tmpReceivedArguments.add(by);
                         negotiationState = NegotiationState.WAITING_FOR_ARGUMENTS;
                         break;
                     case SE:
+                        // The sequence has completed
+                        // Set the argument bytes
                         tmpReceivedSequence.setArgumentBytes(tmpReceivedArguments.toArray(new Byte[0]));
 
                         // Reset
                         tmpReceivedArguments = new ArrayList<>();
                         // Finished
-                        parseReceivedSequence();
+                        parseCompleteSequence();
                         break;
                     default:
                         // Will throw an error, but not break out of subnegotiation. Only SE can do that.
-                        throw new InvalidTelnetSequenceException("Subnegotiation was interrupted by " + command);
+                        throw new InvalidTelnetSequenceException("Subnegotiation was interrupted by " + by);
                 }
                 break;
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
-    void parseReceivedSequence() throws IOException {
+    void parseCompleteSequence() throws IOException {
         // Parse
-        if(tmpReceivedSequence.isValid()){
+        if (tmpReceivedSequence.isValid()) {
             // Compare against registered triggers
-            List<Response> responseList;
-            if(tmpReceivedSequence.getOptionByte() != null){
+            List<TelnetResponse> responseList;
+            if (tmpReceivedSequence.getOptionByte() != null) {
                 responseList = negotiationFlow.get(tmpReceivedSequence.getOptionByte());
             } else {
                 responseList = negotiationFlow.get(tmpReceivedSequence.getCommandByte());
             }
-            if(responseList == null) return;
+            if (responseList == null) return;
 
-            for (Response response:responseList) {
-                if(response != null){
+            for (TelnetResponse response : responseList) {
+                if (response != null) {
                     // Reset state before applying the response
-                    negotiationState = NegotiationState.NOT_NEGOTIATING;
+                    negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
 
                     // trigger (and response) found
                     response.run(tmpReceivedSequence);
@@ -282,11 +299,15 @@ public final class TelnetSessionServer extends Thread {
 
                     // Inform the client that the server does not expect the client to perform,
                     // or that the server refuses to perform, the request.
-                    if(tmpReceivedSequence.getOptionByte() != null){
-                        writeToTerminal(IAC);
-                        if(tmpReceivedSequence.getCommandByte() == WILL) writeToTerminal(DONT);
-                        else if(tmpReceivedSequence.getCommandByte() == DO) writeToTerminal(WONT);
-                        writeToTerminal(tmpReceivedSequence.getOptionByte());
+                    if (tmpReceivedSequence.getOptionByte() != null) {
+                        // IAC
+                        writeToClient(IAC);
+                        // The action, inverted so that it becomes negative indicating refusal
+                        //noinspection ConstantConditions
+                        if (tmpReceivedSequence.getCommandByte() == WILL) writeToClient(DONT);
+                        else if (tmpReceivedSequence.getCommandByte() == DO) writeToClient(WONT);
+                        // The option
+                        writeToClient(tmpReceivedSequence.getOptionByte());
                     }
                 }
             }
@@ -301,20 +322,25 @@ public final class TelnetSessionServer extends Thread {
     //
     // --- MODE SETTERS ---
     //
-    void setCharset(Charset charset){
-        if(supportedCharsets.contains(charset)){
+    public void setCharset(@NotNull Charset charset) {
+        if (supportedCharsets.contains(charset)) {
             session.getLogger().log(Level.INFO, "Changed charset to " + charset.name());
-            session.setCharset(charset);
+            currentCharset = charset;
+        } else {
+            throw new UnsupportedCharsetException(charset.name());
         }
+    }
+
+    public @NotNull Charset getCharset() {
+        return currentCharset;
     }
 
     //
     // --- NEGOTIATION FLOW ---
     //
-
     // This method name... is rather, hm, verbose..
     public void sendSequenceWhenNotNegotiating(TelnetSequence sequence) throws IOException {
-        if(sequence != null && sequence.isValid()){
+        if (sequence != null && sequence.isValid()) {
             pendingSequences.add(sequence);
             // Attempt to send
             sendPendingSequence();
@@ -322,23 +348,25 @@ public final class TelnetSessionServer extends Thread {
     }
 
     void sendPendingSequence() throws IOException {
-        if(negotiationState != NegotiationState.NOT_NEGOTIATING) return;
+        if (negotiationState != NegotiationState.WAITING_FOR_IAC_OR_CHR) return;
 
-        synchronized (terminalWriteLock){
-            if(pendingSequences.size() == 0) return;
+        synchronized (terminalWriteLock) {
+            if (pendingSequences.size() == 0) return;
             TelnetSequence sequence = pendingSequences.remove(0);
             sequence.confirmValid();
-            if(!sequence.isValid()) return;
+            if (!sequence.isValid()) return;
 
-            writeToTerminal(ArrayUtil.byteObjectsToBytes(sequence.getByteSequence()));
+            writeToClient(ArrayUtil.byteObjectsToBytes(sequence.getByteSequence()));
         }
     }
 
-    public void registerNegotiationFlow(@NotNull Byte trigger, @NotNull Response response){
-        synchronized (negotiationFlow){
-            List<Response> responseList = negotiationFlow.get(trigger);
-            if(responseList == null){
-                negotiationFlow.putIfAbsent(trigger, new ArrayList<>() {{ add(response); }});
+    public void registerNegotiationFlow(@NotNull Byte trigger, @NotNull TelnetResponse response) {
+        synchronized (negotiationFlow) {
+            List<TelnetResponse> responseList = negotiationFlow.get(trigger);
+            if (responseList == null) {
+                negotiationFlow.putIfAbsent(trigger, new ArrayList<>() {{
+                    add(response);
+                }});
             } else {
                 responseList.add(response);
                 // fixme maybe unnecessary?
@@ -347,13 +375,14 @@ public final class TelnetSessionServer extends Thread {
         }
     }
 
-    public void deregisterNegotiationFlow(@NotNull Byte trigger){
+    public void deregisterNegotiationFlow(@NotNull Byte trigger) {
         negotiationFlow.remove(trigger);
     }
-    public void deregisterNegotiationFlow(@NotNull Byte trigger, @NotNull Response response){
-        synchronized (negotiationFlow){
-            List<Response> responseList = negotiationFlow.get(trigger);
-            if(responseList != null){
+
+    public void deregisterNegotiationFlow(@NotNull Byte trigger, @NotNull TelnetResponse response) {
+        synchronized (negotiationFlow) {
+            List<TelnetResponse> responseList = negotiationFlow.get(trigger);
+            if (responseList != null) {
                 responseList.remove(response);
                 // fixme maybe unnecessary?
                 negotiationFlow.replace(trigger, responseList);
@@ -364,7 +393,6 @@ public final class TelnetSessionServer extends Thread {
     //
     // --- BUILT-IN NEGOTIATIONS ---
     //
-
     /**
      * Attempts to negotiate for a specific charset to be used between the
      * client and server.
@@ -546,44 +574,44 @@ public final class TelnetSessionServer extends Thread {
     //
 
     /**
-     * Unsigned (0 - 255
      * @return -1 if closed, otherwise a value from 0 - 255.
      */
-    public int readFromTerminal() throws IOException, TerminationException {
+    public byte readFromTerminal() throws IOException, TerminationException {
+        // Unsigned (0 - 255)
         int by = inputStream.read();
-        //session.getLogger().log(Level.INFO, "Received: '" + TelnetByteTranslator.byteToString((byte) by) + "'");
 
         // ALWAYS check for disconnect
         if (by == -1) {
-            session.close("Connection terminated by client");
-            throw new TerminationException();
+            throw new TerminationException("Connection terminated by client");
         }
-        return by;
+        return (byte) by;
     }
 
-    public void writeToTerminal(byte outByte) throws IOException {
-        synchronized (terminalWriteLock){
+    public void writeToClient(byte outByte) throws IOException {
+        synchronized (terminalWriteLock) {
             outputStream.write(outByte);
             outputStream.flush();
             //session.getLogger().log(Level.INFO, "Sent: '" + outByte + "' (" + TelnetByteTranslator.byteToString(outByte) + ")");
         }
     }
-    
-    public void writeToTerminal(byte[] outBytes) throws IOException {
-        synchronized (terminalWriteLock){
+
+    public void writeToClient(byte[] outBytes) throws IOException {
+        synchronized (terminalWriteLock) {
             outputStream.write(outBytes);
             outputStream.flush();
             //session.getLogger().log(Level.INFO, "Sent: '" + TelnetByteTranslator.byteToString(outByte) + "'");
         }
     }
 
-    void writeToEngine(byte outByte) throws IOException {
-        toEngine.write(outByte);
-        toEngine.flush();
-    }
+    void writeToEngine(String decoded) throws IOException {
+        // Check if the WM wishes to receive bytes, if yes then send.
+        PrismaWM windowManager = session.getWindowManager();
+        if (windowManager != null && windowManager.wantsInputAsStream() && toWindowManager != null) {
+            toWindowManager.write(decoded.getBytes(session.getCharset()));
+            toWindowManager.flush();
+        }
 
-    void writeToEngine(byte[] outBytes) throws IOException {
-        toEngine.write(outBytes);
-        toEngine.flush();
+        // Pass along the input
+        inputParser.processDecoded(decoded);
     }
 }

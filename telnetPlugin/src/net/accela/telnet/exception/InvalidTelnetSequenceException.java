@@ -1,6 +1,6 @@
-package net.accela.telnetplugin.exception;
+package net.accela.telnet.exception;
 
-import net.accela.telnetplugin.server.TelnetSequence;
+import net.accela.telnet.server.TelnetSequence;
 
 /**
  * Thrown when attempting to use a {@link TelnetSequence} that's invalid.

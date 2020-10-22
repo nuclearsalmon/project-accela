@@ -1,0 +1,5 @@
+name: 'SessionIntroducer'
+main: 'net.accela.sessionIntroducer.Main'
+version: '1.0'
+author: 'gustavdersjo'
+depend: [ 'PrismaWM' ]

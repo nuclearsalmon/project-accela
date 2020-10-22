@@ -1,13 +1,13 @@
-package net.accela.telnetplugin.server;
+package net.accela.telnet.server;
 
-import net.accela.telnetplugin.exception.InvalidTelnetSequenceException;
-import net.accela.telnetplugin.util.TelnetByteTranslator;
+import net.accela.telnet.exception.InvalidTelnetSequenceException;
+import net.accela.telnet.util.TelnetByteTranslator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
-import static net.accela.telnetplugin.util.TelnetBytes.*;
+import static net.accela.telnet.util.TelnetBytes.*;
 
 public final class TelnetSequence {
     private Byte commandByte;

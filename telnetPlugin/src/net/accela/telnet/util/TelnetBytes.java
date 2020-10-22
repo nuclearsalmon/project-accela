@@ -1,4 +1,4 @@
-package net.accela.telnetplugin.util;
+package net.accela.telnet.util;
 
 /**
  * Telnet commands, based off of RFC854.

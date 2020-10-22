@@ -1,11 +1,11 @@
-package net.accela.telnetplugin.util;
+package net.accela.telnet.util;
 
-import net.accela.telnetplugin.server.TelnetSequence;
+import net.accela.telnet.server.TelnetSequence;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-import static net.accela.telnetplugin.util.TelnetBytes.*;
+import static net.accela.telnet.util.TelnetBytes.*;
 
 public class TelnetByteTranslator {
     public static String byteToString(Byte by){
