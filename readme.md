@@ -15,7 +15,7 @@ I have plenty of plans for this "game", but that is outside the scope of this RE
 
 ## Notes
 * The full code for the [server module][module_server] and [PrismaWM][plugin_prismawm] will be uploaded at a later date,
-as it's not quite ready yet and I'm disstatisfied with the current code quality.
+as it's not quite ready yet and I'm dissatisfied with the current code quality.
 * I plan on adding support for more protocols than simply telnet, as well as implementing encryption for all protocols. Telnet will do for now though.
 
 <br>
@@ -23,7 +23,7 @@ as it's not quite ready yet and I'm disstatisfied with the current code quality.
 ---
 # Modules and Plugins
 In this context, when I say modules I'm referring to IntelliJ IDEA modules. 
-Plugins are loadable modules that provide additional functionality on top of the [Server/"Core"][module_server].
+Plugins are loadable modules that provide additional functionality on top of the [server][module_server].
 
 ## [Server/"Core" module][module_server]
 This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
