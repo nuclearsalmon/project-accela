@@ -14,33 +14,33 @@ The plugins that will make up this network will be publicly availible along with
 I have plenty of plans for this "game", but that is outside the scope of this README.
 
 ## Notes
-* The full code for the [module_server] and the window manager will be uploaded at a later date,
+* The full code for the [server module][module_server] and [PrismaWM][plugin_prismawm] will be uploaded at a later date,
 as it's not quite ready yet and I'm disstatisfied with the current code quality.
 * I plan on adding support for more protocols than simply telnet, as well as implementing encryption for all protocols. Telnet will do for now though.
 
 ---
 
 # Modules and Plugins
-## [module_server]
+## [Server/"Core" module][module_server]
 This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
-and standards for creating "providers", that add network connectivity and new protocols (See: [telnet_plugin]).
-It also includes my own library for crafting [out_ansi] sequences, along with related utilities.
+and standards for creating "providers", that add network connectivity and new protocols (See: [Telnet Provider plugin][telnet_plugin]).
+It also includes my own library for crafting [ANSI Escape Sequences][out_ansi], along with related utilities.
 
-## [plugin_prismawm]
+## [PrismaWM Window Manager][plugin_prismawm]
 This is to be used by plugins as a means of providing text-based output to users, 
 as well as receiving input from said users without the plugins interfering with each other.
 
-## [plugin_telnet]
+## [Telnet Provider][plugin_telnet]
 A plugin that adds support for communication through the telnet protocol.
 It provides users a means of connecting to the system and interacting with it.
 The telnet server supports proper telnet negotiation, and can intelligently negotiate 
 for features that the server and client both share, for example character sets. 
 Since it's a plugin, it can through config files be configured to start any amount of telnet servers, with custom port numbers for each one.
 
-The telnet server builds on top of a few classes and interfaces provided by the 'core', 
+The telnet server builds on top of a few classes and interfaces provided by the [core][module_server],
 so that any future protocols can be easily implemented and interacted with in a standardized fashion.
 
-## [plugin_session_introducer]
+## [Session Introducer][plugin_session_introducer]
 A simple plugin that listens for creation events for graphical sessions. Once such an event gets called,
 the session introducer will attempt to load a window manager into the session.
 Having a window manager makes it possible for other plugins to facilitate graphical communication with the client.
