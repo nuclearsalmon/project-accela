@@ -37,7 +37,7 @@ public class Main extends JavaPlugin {
     public void createServer(int port) throws IOException {
         // Register it
         TelnetSocketServer telnetSocketServer;
-        synchronized (telnetSocketServers){
+        synchronized (telnetSocketServers) {
             telnetSocketServer = new TelnetSocketServer(this, String.valueOf(telnetSocketServers.size()), port);
             telnetSocketServers.add(telnetSocketServer);
         }
@@ -46,11 +46,11 @@ public class Main extends JavaPlugin {
         telnetSocketServer.runTaskAsynchronously(this);
     }
 
-    public void destroyServer(String name){
-        if(name == null) return;
-        synchronized (telnetSocketServers){
+    public void destroyServer(String name) {
+        if (name == null) return;
+        synchronized (telnetSocketServers) {
             for (TelnetSocketServer telnetSocketServer : telnetSocketServers) {
-                if(telnetSocketServer.getName().equals(name)){
+                if (telnetSocketServer.getName().equals(name)) {
                     telnetSocketServer.close();
                     telnetSocketServers.remove(telnetSocketServer);
                     break;
@@ -59,8 +59,8 @@ public class Main extends JavaPlugin {
         }
     }
 
-    public void destroyAll(){
-        synchronized (telnetSocketServers){
+    public void destroyAll() {
+        synchronized (telnetSocketServers) {
             for (TelnetSocketServer telnetSocketServer : telnetSocketServers) {
                 telnetSocketServer.close();
                 telnetSocketServers.remove(telnetSocketServer);

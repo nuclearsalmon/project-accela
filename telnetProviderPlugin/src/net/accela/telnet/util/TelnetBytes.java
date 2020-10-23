@@ -65,57 +65,57 @@ public final class TelnetBytes {
     /**
      * SE - End of subnegotiation parameters.
      */
-    public static final byte SE   = (byte) 0xF0;
+    public static final byte SE = (byte) 0xF0;
 
     /**
      * NOP - No operation
      */
-    public static final byte NOP  = (byte) 0xF1;
+    public static final byte NOP = (byte) 0xF1;
 
     /**
      * Data Mark - The data stream portion of a Synch.
      */
-    public static final byte DMA  = (byte) 0xF2;
+    public static final byte DMA = (byte) 0xF2;
 
     /**
      * Break - NVT character BRK
      */
-    public static final byte BRK  = (byte) 0xF3;
+    public static final byte BRK = (byte) 0xF3;
 
     /**
      * Interrupt Process - The function IP.
      */
-    public static final byte IP  = (byte) 0xF4;
+    public static final byte IP = (byte) 0xF4;
 
     /**
      * Abort output - The function AO.
      */
-    public static final byte AO  = (byte) 0xF5;
+    public static final byte AO = (byte) 0xF5;
 
     /**
      * Are You There - The function AYT.
      */
-    public static final byte AYT  = (byte) 0xF6;
+    public static final byte AYT = (byte) 0xF6;
 
     /**
      * Erase character - The function EC.
      */
-    public static final byte EC  = (byte) 0xF7;
+    public static final byte EC = (byte) 0xF7;
 
     /**
      * Erase line - The function EL.
      */
-    public static final byte EL  = (byte) 0xF8;
+    public static final byte EL = (byte) 0xF8;
 
     /**
      * Go ahead - The GA signal
      */
-    public static final byte GA   = (byte) 0xF9;
+    public static final byte GA = (byte) 0xF9;
 
     /**
      * Subnegotiation - Indicates that what follows is subnegotiation of the indicated option
      */
-    public static final byte SB   = (byte) 0xFA;
+    public static final byte SB = (byte) 0xFA;
 
     /**
      * Will - Indicates the desire to begin performing,
@@ -133,7 +133,7 @@ public final class TelnetBytes {
      * Do - Indicates the request that the other party perform,
      * or confirmation that you are expecting the other party to perform, the indicated option.
      */
-    public static final byte DO   = (byte) 0xFD;
+    public static final byte DO = (byte) 0xFD;
 
     /**
      * Don't - Indicates the demand that the other party stop performing,
@@ -145,5 +145,5 @@ public final class TelnetBytes {
      * Interpret as Command - What follows will be byteerpreted as a command sequence.
      * IAC needs to be doubled to be sent as data rather than a command. Other options should not be doubled.
      */
-    public static final byte IAC  = (byte) 0xFF;
+    public static final byte IAC = (byte) 0xFF;
 }

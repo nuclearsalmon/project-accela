@@ -8,11 +8,11 @@ import java.nio.ByteBuffer;
 import static net.accela.telnet.util.TelnetBytes.*;
 
 public class TelnetByteTranslator {
-    public static String byteToString(Byte by){
-        if(by == null) return "JAVA_NULL";
+    public static String byteToString(Byte by) {
+        if (by == null) return "JAVA_NULL";
 
         String plaintext;
-        switch (by){
+        switch (by) {
             case NUL:
                 plaintext = "NUL";
                 break;
@@ -69,11 +69,11 @@ public class TelnetByteTranslator {
     }
 
     @NotNull
-    public static String bytesToString(Byte[] bytes){
-        if(bytes == null) return "";
+    public static String bytesToString(Byte[] bytes) {
+        if (bytes == null) return "";
 
         StringBuilder sb = new StringBuilder();
-        for (Byte by:bytes) {
+        for (Byte by : bytes) {
             sb.append(byteToString(by)).append(", ");
         }
         sb.delete(sb.length() - 2, sb.length());
@@ -82,7 +82,7 @@ public class TelnetByteTranslator {
     }
 
     @NotNull
-    public static String bytesToString(TelnetSequence telnetSequence){
+    public static String bytesToString(TelnetSequence telnetSequence) {
         // Allocate a buffer
         ByteBuffer byteBuffer = ByteBuffer.allocate(telnetSequence.getByteSequence().length);
         Byte[] bytesToBeTranslated = new Byte[]{telnetSequence.getCommandByte(), telnetSequence.getOptionByte()};
@@ -92,9 +92,9 @@ public class TelnetByteTranslator {
         sb.append(bytesToString(bytesToBeTranslated));
         // If there are arguments these should be treated as literal bytes,
         // rather than telnet commands or options
-        if(telnetSequence.getArgumentBytes() != null){
+        if (telnetSequence.getArgumentBytes() != null) {
             sb.append(", ");
-            for (Byte by:telnetSequence.getArgumentBytes()) {
+            for (Byte by : telnetSequence.getArgumentBytes()) {
                 sb.append(by).append(" ");
             }
             sb.delete(sb.length() - 2, sb.length());

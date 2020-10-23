@@ -350,6 +350,7 @@ public final class TelnetSessionServer extends Thread {
     //
     // --- BUILT-IN NEGOTIATIONS ---
     //
+
     /**
      * Attempts to negotiate for a specific charset to be used between the
      * client and server.
@@ -358,7 +359,7 @@ public final class TelnetSessionServer extends Thread {
      * it supports any of the charsets in the array. The first charset
      * provided in the array will be preferred, and the others treated as
      * fallback alternatives. If all fails, then nothing will change.
-     *
+     * <p>
      * For charset negotiation to be performed Binary Mode must
      * first be enabled, as many charsets tend to utilize bytes with
      * a value > 127, and binary mode provides full support up to 255.
@@ -373,15 +374,15 @@ public final class TelnetSessionServer extends Thread {
         final byte ACCEPTED = (byte) 0x02;
 
         // Check for binary mode?
-        if(!transmitBinaryEnabled) negotiateTransmitBinary(true);
+        if (!transmitBinaryEnabled) negotiateTransmitBinary(true);
 
         List<Charset> validCharsets = new ArrayList<>();
         StringBuilder validCharsetsString = new StringBuilder();
 
         // Filter charsetArray so that only supported charsets can be requested
-        for (Charset charset:charsetArray) {
+        for (Charset charset : charsetArray) {
             // First ensure the charset is supported, then ensure it's not already added
-            if(supportedCharsets.contains(charset) && !validCharsets.contains(charset)){
+            if (supportedCharsets.contains(charset) && !validCharsets.contains(charset)) {
                 validCharsets.add(charset);
                 validCharsetsString.append(";").append(charset.name());
             }
@@ -398,10 +399,10 @@ public final class TelnetSessionServer extends Thread {
         deregisterNegotiationFlow(CHARSET);
         registerNegotiationFlow(CHARSET, trigger -> {
             // Don't attempt to parse an invalid trigger
-            if(!trigger.isValid()) return;
+            if (!trigger.isValid()) return;
 
             //noinspection ConstantConditions
-            switch (trigger.getCommandByte()){
+            switch (trigger.getCommandByte()) {
                 // Just in case the client initiates the request
                 case WILL:
                     // Reply to client
@@ -417,9 +418,9 @@ public final class TelnetSessionServer extends Thread {
                     // Parse
                     byte[] argBytes = ArrayUtil.byteObjectsToBytes(trigger.getArgumentBytes());
 
-                    if(argBytes[0] == ACCEPTED){
+                    if (argBytes[0] == ACCEPTED) {
                         byte[] argStringBytes = new byte[argBytes.length - 1];
-                        if (argBytes.length - 2 >= 0){
+                        if (argBytes.length - 2 >= 0) {
                             System.arraycopy(argBytes, 1, argStringBytes, 0, argBytes.length - 2);
                         }
                         String argString = new String(
@@ -427,10 +428,10 @@ public final class TelnetSessionServer extends Thread {
                                 ASCII_CHARSET
                         );
 
-                        for (Charset charset:charsetArray) {
+                        for (Charset charset : charsetArray) {
                             // If there's a match, send a reply that we're now using that charset,
                             // and change the current charset to match
-                            if(argString.contains(charset.name())){
+                            if (argString.contains(charset.name())) {
                                 Byte[] replyBytes = ArrayUtil.mergeArrays(new Byte[]{0x2},
                                         ArrayUtil.bytesToByteObjects(charset.name().getBytes(session.getCharset()))
                                 );
@@ -454,7 +455,7 @@ public final class TelnetSessionServer extends Thread {
      */
     @SuppressWarnings("SameParameterValue")
     void negotiateEcho(boolean enable) throws IOException {
-        if(enable){
+        if (enable) {
             deregisterNegotiationFlow(ECHO);
             registerNegotiationFlow(ECHO, trigger -> echoEnabled = false);
 
@@ -478,8 +479,8 @@ public final class TelnetSessionServer extends Thread {
     void negotiateSuppressGoAhead(boolean enable) throws IOException {
         deregisterNegotiationFlow(SUPPRESS_GO_AHEAD);
         registerNegotiationFlow(SUPPRESS_GO_AHEAD, trigger -> {
-            if(!trigger.isValid()) return;
-            switch (trigger.getCommandByte()){
+            if (!trigger.isValid()) return;
+            switch (trigger.getCommandByte()) {
                 case WILL:
                     sendSequenceWhenNotNegotiating(new TelnetSequence(DO, SUPPRESS_GO_AHEAD));
                 case DO:
@@ -494,15 +495,16 @@ public final class TelnetSessionServer extends Thread {
 
         // Ask the client politely to stop suppressing go ahead
         byte command;
-        if(enable) command = WILL; else command = DONT;
+        if (enable) command = WILL;
+        else command = DONT;
         sendSequenceWhenNotNegotiating(new TelnetSequence(command, SUPPRESS_GO_AHEAD));
     }
 
     @SuppressWarnings("SameParameterValue")
     void negotiateTransmitBinary(boolean enable) throws IOException {
-        if(!negotiationFlow.containsKey(TRANSMIT_BINARY)){
+        if (!negotiationFlow.containsKey(TRANSMIT_BINARY)) {
             registerNegotiationFlow(TRANSMIT_BINARY, trigger -> {
-                if(!trigger.isValid()) return;
+                if (!trigger.isValid()) return;
                 //noinspection ConstantConditions
                 switch (trigger.getCommandByte()) {
                     case WILL:
@@ -517,7 +519,7 @@ public final class TelnetSessionServer extends Thread {
             });
         }
 
-        if(enable){
+        if (enable) {
             sendSequenceWhenNotNegotiating(new TelnetSequence(DO, TRANSMIT_BINARY));
             sendSequenceWhenNotNegotiating(new TelnetSequence(WILL, TRANSMIT_BINARY));
         } else {

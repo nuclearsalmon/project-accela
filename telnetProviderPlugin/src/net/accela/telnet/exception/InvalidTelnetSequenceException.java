@@ -29,7 +29,7 @@ public class InvalidTelnetSequenceException extends RuntimeException {
      * Constructs a new InvalidTelnetSequenceException based on the given
      * Exception
      *
-     * @param message Brief message explaining the cause of the exception
+     * @param message   Brief message explaining the cause of the exception
      * @param throwable Exception that triggered this Exception
      */
     public InvalidTelnetSequenceException(final Throwable throwable, final String message) {

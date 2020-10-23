@@ -14,15 +14,19 @@ public final class TelnetSequence {
     private Byte optionByte;
     private Byte[] argumentBytes;
 
-    public TelnetSequence(){}
-    public TelnetSequence(@NotNull Byte commandByte){
+    public TelnetSequence() {
+    }
+
+    public TelnetSequence(@NotNull Byte commandByte) {
         this.commandByte = commandByte;
     }
-    public TelnetSequence(@NotNull Byte commandByte, @NotNull Byte optionByte){
+
+    public TelnetSequence(@NotNull Byte commandByte, @NotNull Byte optionByte) {
         this.commandByte = commandByte;
         this.optionByte = optionByte;
     }
-    public TelnetSequence(@NotNull Byte commandByte, @NotNull Byte optionByte, @NotNull Byte[] argumentBytes){
+
+    public TelnetSequence(@NotNull Byte commandByte, @NotNull Byte optionByte, @NotNull Byte[] argumentBytes) {
         this.commandByte = commandByte;
         this.optionByte = optionByte;
         this.argumentBytes = argumentBytes;
@@ -39,7 +43,7 @@ public final class TelnetSequence {
     }
 
     @Nullable
-    public Byte[] getArgumentBytes(){
+    public Byte[] getArgumentBytes() {
         return argumentBytes;
     }
 
@@ -47,26 +51,27 @@ public final class TelnetSequence {
      * Will not set the commandByte if one is already present
      */
     public void setCommandByte(@NotNull Byte commandByte) {
-        if(this.commandByte == null) this.commandByte = commandByte;
+        if (this.commandByte == null) this.commandByte = commandByte;
     }
 
     /**
      * Will not set the optionByte if one is already present
      */
-    public void setOptionByte(@NotNull Byte optionByte){
-        if(this.optionByte == null) this.optionByte = optionByte;
+    public void setOptionByte(@NotNull Byte optionByte) {
+        if (this.optionByte == null) this.optionByte = optionByte;
     }
 
     /**
      * Will not set the argumentBytes if one is already present
      */
-    public void setArgumentBytes(Byte[] argumentBytes){
-        if(this.argumentBytes == null && argumentBytes.length > 0) this.argumentBytes = argumentBytes;
+    public void setArgumentBytes(Byte[] argumentBytes) {
+        if (this.argumentBytes == null && argumentBytes.length > 0) this.argumentBytes = argumentBytes;
     }
 
     /**
      * Prefixes with IAC automatically and combines all the bytes present into a valid sequence.
      * Also suffixes any SB statement with IAC SE.
+     *
      * @return A valid telnet sequence in bytes, or null if it is invalid.
      */
     @Nullable
@@ -85,18 +90,18 @@ public final class TelnetSequence {
         result[result.length - 1] = optionByte;
 
         // Add the argumentBytes (if any)
-        if(argumentBytes != null && argumentBytes.length != 0){
+        if (argumentBytes != null && argumentBytes.length != 0) {
             int beginning = result.length;
 
             // Extend the array size
             result = Arrays.copyOf(result, result.length + argumentBytes.length - 1);
 
             // Append modifier bytes
-            for (byte by: argumentBytes) result[beginning++] = by;
+            for (byte by : argumentBytes) result[beginning++] = by;
         }
 
         // Suffix with IAC SE (if necessary)
-        if(commandByte == SB){
+        if (commandByte == SB) {
             result = Arrays.copyOf(result, result.length + 1);
             result[result.length - 2] = IAC;
             result[result.length - 1] = SE;
@@ -111,11 +116,11 @@ public final class TelnetSequence {
      *
      * @return true if this TelnetSequence is valid.
      */
-    public boolean isValid(){
-        try{
+    public boolean isValid() {
+        try {
             confirmValid();
             return true;
-        } catch (InvalidTelnetSequenceException ignored){
+        } catch (InvalidTelnetSequenceException ignored) {
             return false;
         }
     }
@@ -126,20 +131,20 @@ public final class TelnetSequence {
      * See {@link this.isValid} if you wish to validate but not throw any exceptions.
      */
     public void confirmValid() throws InvalidTelnetSequenceException {
-        if(commandByte == null){
+        if (commandByte == null) {
             throw new InvalidTelnetSequenceException("A commandByte is required");
         }
 
-        switch (commandByte){
+        switch (commandByte) {
             case SB:
-                if(argumentBytes == null || argumentBytes.length < 1){
+                if (argumentBytes == null || argumentBytes.length < 1) {
                     throw new InvalidTelnetSequenceException("Too few arguments");
                 }
             case WILL:
             case WONT:
             case DO:
             case DONT:
-                if(optionByte == null){
+                if (optionByte == null) {
                     throw new InvalidTelnetSequenceException("An optionByte is required");
                 }
                 break;
@@ -153,13 +158,13 @@ public final class TelnetSequence {
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return Arrays.hashCode(getByteSequence());
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
         return this.getByteSequence().equals(o);
     }
 }

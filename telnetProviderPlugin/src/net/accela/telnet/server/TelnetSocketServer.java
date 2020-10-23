@@ -108,9 +108,9 @@ public class TelnetSocketServer extends SessionCreator {
     @Override
     public void close() {
         // First close all sessions
-        for (TelnetSession session:telnetSessions) {
+        for (TelnetSession session : telnetSessions) {
             telnetSessions.remove(session);
-            if(session.isAlive()) session.close("Provider closed");
+            if (session.isAlive()) session.close("Provider closed");
         }
 
         // Then close the ServerSocket, freeing the port
@@ -124,15 +124,15 @@ public class TelnetSocketServer extends SessionCreator {
     class SessionEventListener implements Listener {
         final TelnetSocketServer socketServer;
 
-        public SessionEventListener(@NotNull TelnetSocketServer socketServer){
+        public SessionEventListener(@NotNull TelnetSocketServer socketServer) {
             this.socketServer = socketServer;
         }
 
         @EventHandler
-        public void onSessionClosed(@NotNull SessionClosedEvent event){
-            if(event.getSession() instanceof TelnetSession){
+        public void onSessionClosed(@NotNull SessionClosedEvent event) {
+            if (event.getSession() instanceof TelnetSession) {
                 TelnetSession session = ((TelnetSession) event.getSession());
-                if(session.getCreator() == socketServer) telnetSessions.remove(session);
+                if (session.getCreator() == socketServer) telnetSessions.remove(session);
 
                 getLogger().log(Level.INFO, "Session '" + session.getUUID()
                         + "'@" + Arrays.toString(session.getSocket().getInetAddress().getAddress())
