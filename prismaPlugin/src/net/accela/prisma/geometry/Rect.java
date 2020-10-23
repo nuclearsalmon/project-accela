@@ -1,6 +1,6 @@
 package net.accela.prisma.geometry;
 
-import net.accela.prisma.exception.RectOutOfBoundsException;
+import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
 import org.jetbrains.annotations.NotNull;
 
 public class Rect implements Shape {

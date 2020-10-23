@@ -1,4 +1,4 @@
-package net.accela.prisma.util.securetree;
+package net.accela.prisma.util.tree;
 
 import net.accela.prisma.Drawable;
 import net.accela.prisma.DrawableContainer;
@@ -16,17 +16,17 @@ public class Branch extends Node {
 
     /**
      * DO NOT instantiate manually.
-     * Let a {@link Branch} or {@link SecureTree} instantiate this using the
-     * {@link Branch#newNode(Drawable)} or {@link SecureTree#newNode(Drawable)} method.
+     * Let a {@link Branch} or {@link DrawableTree} instantiate this using the
+     * {@link Branch#newNode(Drawable)} or {@link DrawableTree#newNode(Drawable)} method.
      *
-     * @param stack  The {@link SecureTree} to connect to
-     * @param root   The {@link Branch} that's at the bottom of the {@link SecureTree}
+     * @param stack  The {@link DrawableTree} to connect to
+     * @param root   The {@link Branch} that's at the bottom of the {@link DrawableTree}
      * @param parent The {@link Branch} that created this Node
      * @param data   The {@link Drawable} data this Node represents
-     * @see SecureTree
+     * @see DrawableTree
      * @see Node
      */
-    public Branch(@NotNull SecureTree stack,
+    public Branch(@NotNull DrawableTree stack,
                   @Nullable Branch root,
                   @Nullable Branch parent,
                   @NotNull DrawableContainer data) {

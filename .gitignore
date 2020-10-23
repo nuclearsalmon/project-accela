@@ -1,5 +1,5 @@
 # Much of the items listed in this file aren't stuff I use,
-# but it's there in case I do use it in the future. Better safe than sorry.
+# but it's there in case I do opt to use it in the future. Better safe than sorry.
 
 # intellij
 .idea/
@@ -41,7 +41,7 @@
 /config
 # data created by the server
 /data
-# core is not ready for release yet
-/core
 # just logs in swedish about what I've been working on
 /school
+# don't include libraries, that would be against copyright
+/lib

@@ -1,9 +1,9 @@
 package net.accela.prisma.util;
 
-import net.accela.prisma.exception.RectOutOfBoundsException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
+import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

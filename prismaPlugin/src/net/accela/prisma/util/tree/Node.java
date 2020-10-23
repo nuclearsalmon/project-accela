@@ -1,4 +1,4 @@
-package net.accela.prisma.util.securetree;
+package net.accela.prisma.util.tree;
 
 import net.accela.prisma.Drawable;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 public class Node {
     // This needs to be hidden from outside classes
     @NotNull
-    final SecureTree stack;
+    final DrawableTree stack;
 
     // These are openly accessible, do whatever you want with them
     public final Branch root;
@@ -23,17 +23,17 @@ public class Node {
 
     /**
      * DO NOT instantiate manually.
-     * Let a {@link Branch} or {@link SecureTree} instantiate this using the
-     * {@link Branch#newNode(Drawable)} or {@link SecureTree#newNode(Drawable)} method.
+     * Let a {@link Branch} or {@link DrawableTree} instantiate this using the
+     * {@link Branch#newNode(Drawable)} or {@link DrawableTree#newNode(Drawable)} method.
      *
-     * @param stack  The {@link SecureTree} to connect to
-     * @param root   The {@link Branch} that's at the bottom of the {@link SecureTree}
+     * @param stack  The {@link DrawableTree} to connect to
+     * @param root   The {@link Branch} that's at the bottom of the {@link DrawableTree}
      * @param parent The {@link Branch} that created this Node
      * @param data   The {@link Drawable} data this Node represents
-     * @see SecureTree
+     * @see DrawableTree
      * @see Branch
      */
-    public Node(@NotNull SecureTree stack,
+    public Node(@NotNull DrawableTree stack,
                 @Nullable Branch root,
                 @Nullable Branch parent,
                 @NotNull Drawable data) {
@@ -44,7 +44,7 @@ public class Node {
     }
 
     /**
-     * Figuratively "kills" this Node, removing it from the parent {@link Branch} and {@link SecureTree} Node sets.
+     * Figuratively "kills" this Node, removing it from the parent {@link Branch} and {@link DrawableTree} Node sets.
      * From the perspective of the stack, this node no longer exists.
      */
     public void kill() {
