@@ -48,10 +48,6 @@ public class InputParser {
     }
 
     public void processDecoded(@NotNull String decoded) {
-        // Check if the session has a WindowManager
-        PrismaWM windowManager = session.getWindowManager();
-        if (windowManager == null) return;
-
         // Try to turn it into an InputEvent
         InputEvent inputEvent = ansiParser.parse(decoded);
         if (inputEvent == null) return;
@@ -59,9 +55,11 @@ public class InputParser {
         // Send or parse the InputEvent
         switch (mode) {
             case NORMAL:
-                // Check if it wishes to receive Events, if yes then send.
-                if (windowManager.wantsInputAsEvents()) {
+                // Check if the session has a WindowManager
+                PrismaWM windowManager = session.getWindowManager();
+                if (windowManager != null) {
                     AccelaAPI.getPluginManager().callEvent(inputEvent, windowManager.getBroadcastChannel());
+                    System.out.println("Sent event '" + inputEvent + "'");
                 }
                 break;
             case DETECT_SIZE:
@@ -70,7 +68,7 @@ public class InputParser {
                     PointInputEvent PointInputEvent = (PointInputEvent) inputEvent;
 
                     // Update the size
-                    windowManager.getSession().setTerminalSize(
+                    session.setTerminalSize(
                             new Size(PointInputEvent.getPoint().getX(), PointInputEvent.getPoint().getY())
                     );
 
@@ -85,9 +83,9 @@ public class InputParser {
 
                     // See https://ryobbs.com/doku/terminal.php for info on the logic behind this.
                     // I probably butchered the idea... but my implementation seems to work *shrug*
-                    windowManager.getSession().setUnicodeSupport(PointInputEvent.getPoint().getX() == 7);
+                    session.setUnicodeSupport(PointInputEvent.getPoint().getX() == 7);
 
-                    windowManager.getSession().getLogger().log(Level.INFO, "point: " + PointInputEvent);
+                    session.getLogger().log(Level.INFO, "point: " + PointInputEvent);
 
                     // Change mode back to normal and unlock
                     reset();

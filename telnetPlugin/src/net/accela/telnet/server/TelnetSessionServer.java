@@ -1,6 +1,5 @@
 package net.accela.telnet.server;
 
-import net.accela.prisma.PrismaWM;
 import net.accela.prisma.util.CharsetDecoder;
 import net.accela.telnet.exception.InvalidTelnetSequenceException;
 import net.accela.telnet.exception.TerminationException;
@@ -9,7 +8,6 @@ import net.accela.telnet.session.TelnetSession;
 import net.accela.telnet.util.ArrayUtil;
 import net.accela.telnet.util.TelnetByteTranslator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,47 +28,6 @@ public final class TelnetSessionServer extends Thread {
     final TelnetSession session;
     final InputStream inputStream;
     final OutputStream outputStream;
-    public @Nullable InputStream fromWindowManager;
-    public @Nullable OutputStream toWindowManager;
-
-    // FIXME: 10/21/20 If there are better ways of doing this, please let me know.
-    public void setWindowManagerStreams(@Nullable InputStream fromWindowManager,
-                                        @Nullable OutputStream toWindowManager) {
-        // Set values
-        this.fromWindowManager = fromWindowManager;
-        this.toWindowManager = toWindowManager;
-
-        // Start a new reader thread or interrupt the old one if the new stream is null
-        if (fromWindowManager == null) {
-            if (fromWMReaderThread != null) fromWMReaderThread.interrupt();
-        } else newWMReaderThread();
-    }
-
-    @Nullable Thread fromWMReaderThread;
-
-    public void newWMReaderThread() {
-        // Interrupt first if needed
-        if (fromWMReaderThread != null && !fromWMReaderThread.isInterrupted()) fromWMReaderThread.interrupt();
-
-        // Create the new thread
-        fromWMReaderThread = new Thread(() -> {
-            Thread.currentThread().setName(TelnetSession.class.getSimpleName()
-                    + ":" + session.getUUID() + ":fromEngineReader");
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    int read = fromWindowManager.read();
-                    if (read == -1) throw new IOException("End of stream");
-                    // Note that this is not just just forcibly sent, writeToTerminal uses a lock mechanism.
-                    // It cannot interrupt ongoing negotiation as far as I'm aware.
-                    writeToClient((byte) read);
-                }
-            } catch (IOException ex) {
-                session.getLogger().log(Level.WARNING, "Exception in fromWMReaderThread", ex);
-            }
-        });
-        // Start the new thread
-        fromWMReaderThread.start();
-    }
 
     // Charset configuration
     public final static Charset UTF8_CHARSET = StandardCharsets.UTF_8;
@@ -611,14 +568,7 @@ public final class TelnetSessionServer extends Thread {
         }
     }
 
-    void writeToEngine(String decoded) throws IOException {
-        // Check if the WM wishes to receive bytes, if yes then send.
-        PrismaWM windowManager = session.getWindowManager();
-        if (windowManager != null && windowManager.wantsInputAsStream() && toWindowManager != null) {
-            toWindowManager.write(decoded.getBytes(session.getCharset()));
-            toWindowManager.flush();
-        }
-
+    void writeToEngine(String decoded) {
         // Pass along the input
         inputParser.processDecoded(decoded);
     }
