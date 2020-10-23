@@ -27,7 +27,7 @@ Plugins are loadable modules that provide additional functionality on top of the
 
 ## [Server (core)][module_server]
 This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
-and standards for creating "providers", that add network connectivity and new protocols (See: [Telnet Provider plugin][plugin_telnet]).
+and standards for creating "providers", that add network connectivity and new protocols (See: [Telnet Provider][plugin_telnet]).
 It also includes my own library for crafting [ANSI Escape Sequences][out_ansi], along with related utilities.
 
 ## [PrismaWM Window Manager][plugin_prismawm]
@@ -56,8 +56,8 @@ session creator (such as the [Telnet Provider][plugin_telnet] plugin).
 
 [module_server]: ./server/src/ "Server/\"Core\""
 [library_ansi]: ./server/src/net/accela/ansi/ "ANSI EscSeq library"
-[plugin_prismawm]: ./prismaPlugin/src/ "\"PrismaWM\" Window Manager"
-[plugin_telnet]: ./telnetPlugin/src/ "Telnet Provider"
+[plugin_prismawm]: ./prismaPlugin/src/ "PrismaWM"
+[plugin_telnet]: ./telnetProviderPlugin/src/ "Telnet Provider"
 [plugin_session_introducer]: ./sessionIntroducerPlugin/src/ "Session Introducer"
 
 [out_ansi]: https://en.wikipedia.org/wiki/ANSI_escape_code "ANSI Escape Code"
