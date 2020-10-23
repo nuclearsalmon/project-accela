@@ -50,7 +50,12 @@ public final class TelnetSession extends TextGraphicsSession {
     }
 
     @Override
-    public void swapWM(Class<? extends PrismaWM> engineClass) {
+    public void writeToClient(@NotNull String str) {
+        sessionServer.writeToClient(str);
+    }
+
+    @Override
+    public void swapWM(@NotNull Class<? extends PrismaWM> engineClass) {
         final String exceptionString = "Exception when creating WindowManager instance";
         boolean success = true;
         // Attempt to instantiate a new WindowManager

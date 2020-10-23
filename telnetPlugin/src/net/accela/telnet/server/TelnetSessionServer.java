@@ -587,6 +587,14 @@ public final class TelnetSessionServer extends Thread {
         return (byte) by;
     }
 
+    public void writeToClient(@NotNull String str) {
+        try {
+            writeToClient(str.getBytes(currentCharset));
+        } catch (IOException ex) {
+            session.getLogger().log(Level.WARNING, "Exception when writing to client", ex);
+        }
+    }
+
     public void writeToClient(byte outByte) throws IOException {
         synchronized (terminalWriteLock) {
             outputStream.write(outByte);
