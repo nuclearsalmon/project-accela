@@ -20,7 +20,7 @@ Steps to reproduce the behavior:
 #### **Expected behavior**
 A clear and concise description of what you expected to happen instead of the bug.
 
-#### **Environment / Setup**
+#### **Environment**
 - OS: [e.g. Linux, Windows]
 - Terminal: [e.g. syncterm, kitty, gnome terminal]
 - Session protocol: [e.g. telnet, ssh]
