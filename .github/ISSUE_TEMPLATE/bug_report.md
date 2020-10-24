@@ -7,32 +7,26 @@ assignees: gustavdersjo
 
 ---
 
-**Describe the bug**
-
+#### **Bug Description**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-
+#### **To Reproduce**
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Enable '....' feature
 3. Press '...' key
 (and so on)
 
-**Expected behavior**
-
+#### **Expected behavior**
 A clear and concise description of what you expected to happen instead of the bug.
 
-**Envíronment / Setup**
-
+#### **Environment / Setup**
 - OS: [e.g. Linux, Windows]
- - Terminal: [e.g. syncterm, kitty, gnome terminal]
- - Session protocol: [e.g. telnet, ssh]
+- Terminal: [e.g. syncterm, kitty, gnome terminal]
+- Session protocol: [e.g. telnet, ssh]
 
-**Additional context**
-
+#### **Additional context**
 Add any other context about the problem here.
 
-**Screenshots**
-
+#### **Screenshots**
 If applicable, add screenshots to help explain your problem.
