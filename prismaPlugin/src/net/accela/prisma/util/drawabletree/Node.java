@@ -48,6 +48,11 @@ public abstract class Node {
     }
 
     /**
+     * @return The data that this {@link Node} represents
+     */
+    public abstract @NotNull Drawable getData();
+
+    /**
      * @return The root branch
      */
     public final @Nullable Branch getRoot() {

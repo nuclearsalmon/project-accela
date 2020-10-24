@@ -46,6 +46,7 @@ public class Leaf extends Node {
     /**
      * @return The data that this {@link Node} represents
      */
+    @Override
     public final @NotNull Drawable getData() {
         return data;
     }
