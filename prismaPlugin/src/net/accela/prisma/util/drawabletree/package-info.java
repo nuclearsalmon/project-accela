@@ -3,6 +3,6 @@
  * in a tree structure.<br>
  * It was designed mainly with security in mind,
  * such that {@link net.accela.prisma.Drawable}s by different plugins cannot interfere with each other.
- * Thanks to the simplicity of the design, it is both fast, powerful and very easy to use.
+ * Thanks to the simplicity of the design, it is both fast, powerful and easy to use.
  */
-package net.accela.prisma.util.tree;
+package net.accela.prisma.util.drawabletree;

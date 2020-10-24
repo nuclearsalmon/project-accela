@@ -1,22 +1,21 @@
-package net.accela.prisma.util.tree;
+package net.accela.prisma.util.drawabletree;
 
 import net.accela.prisma.Drawable;
+import net.accela.prisma.PrismaWM;
+import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A Node represents {@link Drawable} data, and it's hierarchical position.
+ * Represents {@link Drawable} data, and it's hierarchical position in the {@link DrawableTree}.
  */
-public class Node {
+public abstract class Node {
     // This needs to be hidden from outside classes
-    @NotNull
-    final DrawableTree stack;
+    final @NotNull DrawableTree tree;
 
     // These are openly accessible, do whatever you want with them
-    public final Branch root;
-    public final Branch parent;
-    @NotNull
-    public final Drawable data;
+    public final @Nullable Branch root;
+    public final @Nullable Branch parent;
 
     // It needs to be impossible to resurrect a node, hence why this is a private variable
     private boolean alive = true;
@@ -24,23 +23,20 @@ public class Node {
     /**
      * DO NOT instantiate manually.
      * Let a {@link Branch} or {@link DrawableTree} instantiate this using the
-     * {@link Branch#newNode(Drawable)} or {@link DrawableTree#newNode(Drawable)} method.
+     * {@link Branch#newNode(Drawable)} or {@link DrawableTree#newNode(Drawable, Plugin)} method.
      *
-     * @param stack  The {@link DrawableTree} to connect to
+     * @param tree   The {@link DrawableTree} to connect to
      * @param root   The {@link Branch} that's at the bottom of the {@link DrawableTree}
      * @param parent The {@link Branch} that created this Node
-     * @param data   The {@link Drawable} data this Node represents
      * @see DrawableTree
      * @see Branch
      */
-    public Node(@NotNull DrawableTree stack,
+    public Node(@NotNull DrawableTree tree,
                 @Nullable Branch root,
-                @Nullable Branch parent,
-                @NotNull Drawable data) {
-        this.stack = stack;
+                @Nullable Branch parent) {
+        this.tree = tree;
         this.root = root;
         this.parent = parent;
-        this.data = data;
     }
 
     /**
@@ -49,29 +45,27 @@ public class Node {
      */
     public void kill() {
         alive = false;
-        if (parent != null) parent.nodes.remove(this);
-        stack.allNodes.remove(data, this);
     }
 
     /**
      * @return The root branch
      */
-    public final Branch getRoot() {
+    public final @Nullable Branch getRoot() {
         return root;
+    }
+
+    /**
+     * @return The root branch
+     */
+    public final @NotNull Node getDefinitiveRoot() {
+        return root == null ? this : root;
     }
 
     /**
      * @return The parent branch
      */
-    public final Branch getParent() {
+    public final @Nullable Branch getParent() {
         return parent;
-    }
-
-    /**
-     * @return The {@link Drawable} data that this Node represents
-     */
-    public final @NotNull Drawable getData() {
-        return data;
     }
 
     /**
@@ -79,5 +73,19 @@ public class Node {
      */
     public final boolean isAlive() {
         return alive;
+    }
+
+    /**
+     * @return The {@link PrismaWM} instance that was used to create this {@link DrawableTree}
+     */
+    public final @NotNull PrismaWM getWindowManager() {
+        return tree.getWindowManager();
+    }
+
+    /**
+     * @return The {@link Plugin} that was used to create the provided {@link Node}
+     */
+    public final @NotNull Plugin getPlugin() {
+        return tree.nodesPluginMap.get(this);
     }
 }

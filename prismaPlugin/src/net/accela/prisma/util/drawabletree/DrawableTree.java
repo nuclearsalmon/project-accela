@@ -1,6 +1,8 @@
-package net.accela.prisma.util.tree;
+package net.accela.prisma.util.drawabletree;
 
 import net.accela.prisma.Drawable;
+import net.accela.prisma.DrawableContainer;
+import net.accela.prisma.PrismaWM;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,9 +20,17 @@ import java.util.Map;
  */
 public final class DrawableTree {
     final List<Node> nodes = new ArrayList<>();
+    final Map<Node, Plugin> nodesPluginMap = new HashMap<>();
     final Map<Drawable, Node> allNodes = new HashMap<>();
 
-    final Map<Node, Plugin> nodePluginMap = new HashMap<>();
+    // This one is static so that we can do a lookup from anywhere. It's a bit hack-ish but probably fine.
+    final static Map<Drawable, Node> allNodesGlobally = new HashMap<>();
+
+    final PrismaWM windowManager;
+
+    public DrawableTree(@NotNull PrismaWM windowManager) {
+        this.windowManager = windowManager;
+    }
 
     /**
      * Creates a new {@link Node} in this {@link DrawableTree}
@@ -30,10 +40,17 @@ public final class DrawableTree {
      * @return A {@link Node} instance representing the provided data
      */
     public @NotNull Node newNode(@NotNull Drawable data, @NotNull Plugin plugin) {
-        Node node = new Node(this, null, null, data);
+        Node node;
+        if (data instanceof DrawableContainer) {
+            node = new Branch(this, null, null, (DrawableContainer) data);
+        } else {
+            node = new Leaf(this, null, null, data);
+        }
+
         nodes.add(node);
         allNodes.put(data, node);
-        nodePluginMap.put(node, plugin);
+        allNodesGlobally.put(data, node);
+        nodesPluginMap.put(node, plugin);
         return node;
     }
 
@@ -52,8 +69,8 @@ public final class DrawableTree {
      * @param drawable The data to search for
      * @return a {@link Node} representing the provided {@link Drawable} data, if found.
      */
-    public @Nullable Node getNode(@NotNull Drawable drawable) {
-        return allNodes.get(drawable);
+    public static @Nullable Node getNode(@NotNull Drawable drawable) {
+        return allNodesGlobally.get(drawable);
     }
 
     /**
@@ -71,10 +88,9 @@ public final class DrawableTree {
     }
 
     /**
-     * @param node The {@link Node} to look up
-     * @return The {@link Plugin} that was used to create the provided {@link Node}
+     * @return The {@link PrismaWM} instance that was used to create this {@link DrawableTree}
      */
-    public @Nullable Plugin getPlugin(@NotNull Node node) {
-        return nodePluginMap.get(node);
+    public @NotNull PrismaWM getWindowManager() {
+        return windowManager;
     }
 }
