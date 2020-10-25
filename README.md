@@ -4,7 +4,8 @@ A modular framework for building plugin-driven virtual networks - for hackers to
 ## The concept
 The basic idea is that any user can write a plugin and load it into the network, 
 providing additional features and experiences for anyone to access. 
-The plugins run in a sandboxed environment where the plugins only have access to certain exposed parts of the system.
+The plugins run in a sandboxed environment where the plugins only have access to certain exposed parts of the system,
+including a purpose built TUI window manager which I call [PrismaWM][plugin_prismawm].
 
 ## The purpose
 My end goal with the project is to utilize it to create a sandboxed network for hackers to play around in, explore and exploit.
@@ -16,7 +17,7 @@ I have plenty of plans for this "game", but that is outside the scope of this RE
 ## Notes
 * The full code for the [server module][module_server] and [PrismaWM][plugin_prismawm] will be uploaded at a later date,
 as it's not quite ready yet and I'm dissatisfied with the current code quality.
-* I plan on adding support for more protocols than simply telnet, as well as implementing encryption for all protocols. Telnet will do for now though.
+* I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. Telnet will do for now though.
 
 <br>
 
