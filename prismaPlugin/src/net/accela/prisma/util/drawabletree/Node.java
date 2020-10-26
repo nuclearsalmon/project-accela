@@ -55,14 +55,7 @@ public abstract class Node {
     /**
      * @return The root branch
      */
-    public final @Nullable Branch getRoot() {
-        return root;
-    }
-
-    /**
-     * @return The root branch
-     */
-    public final @NotNull Node getDefinitiveRoot() {
+    public final @NotNull Node getRoot() {
         return root == null ? this : root;
     }
 
