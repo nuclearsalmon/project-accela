@@ -1,5 +1,5 @@
 # Project Accela
-A modular framework for building plugin-driven virtual networks - for hackers to explore and exploit. Enjoy ;)
+A modular framework for building plugin-driven virtual networks and server software.
 
 ## The concept
 The basic idea is that any user can write a plugin and load it into the network, 
