@@ -24,7 +24,7 @@ public final class DrawableTree {
     final Map<Drawable, Node> allNodes = new HashMap<>();
 
     // This one is static so that we can do a lookup from anywhere. It's a bit hack-ish but probably fine.
-    final static Map<Drawable, Node> allNodesGlobally = new HashMap<>();
+    final static Map<Drawable, Node> staticAllNodes = new HashMap<>();
 
     final PrismaWM windowManager;
 
@@ -44,12 +44,12 @@ public final class DrawableTree {
         if (data instanceof DrawableContainer) {
             node = new Branch(this, null, null, (DrawableContainer) data);
         } else {
-            node = new Leaf(this, null, null, data);
+            node = new Node(this, null, null, data);
         }
 
         nodes.add(node);
         allNodes.put(data, node);
-        allNodesGlobally.put(data, node);
+        staticAllNodes.put(data, node);
         nodesPluginMap.put(node, plugin);
         return node;
     }
@@ -70,7 +70,7 @@ public final class DrawableTree {
      * @return a {@link Node} representing the provided {@link Drawable} data, if found.
      */
     public static @Nullable Node getNode(@NotNull Drawable drawable) {
-        return allNodesGlobally.get(drawable);
+        return staticAllNodes.get(drawable);
     }
 
     /**

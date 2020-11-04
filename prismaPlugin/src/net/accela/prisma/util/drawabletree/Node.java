@@ -9,16 +9,27 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents {@link Drawable} data, and it's hierarchical position in the {@link DrawableTree}.
  */
-public abstract class Node {
+public class Node {
     // This needs to be hidden from outside classes
     final @NotNull DrawableTree tree;
 
     // These are openly accessible, do whatever you want with them
+    /**
+     * The root {@link Node} of the whole branch
+     */
     public final @Nullable Branch root;
+    /**
+     * The parent of this {@link Node}
+     */
     public final @Nullable Branch parent;
 
     // It needs to be impossible to resurrect a node, hence why this is a private variable
     private boolean alive = true;
+
+    /**
+     * The {@link Drawable} data this {@link Node} represents
+     */
+    public final @NotNull Drawable data;
 
     /**
      * DO NOT instantiate manually.
@@ -33,10 +44,12 @@ public abstract class Node {
      */
     public Node(@NotNull DrawableTree tree,
                 @Nullable Branch root,
-                @Nullable Branch parent) {
+                @Nullable Branch parent,
+                @NotNull Drawable data) {
         this.tree = tree;
         this.root = root;
         this.parent = parent;
+        this.data = data;
     }
 
     /**
@@ -45,17 +58,22 @@ public abstract class Node {
      */
     public void kill() {
         alive = false;
+        if (parent != null) parent.nodes.remove(this);
+        tree.allNodes.remove(data, this);
+        DrawableTree.staticAllNodes.remove(data, this);
     }
 
     /**
      * @return The data that this {@link Node} represents
      */
-    public abstract @NotNull Drawable getData();
+    public @NotNull Drawable getData() {
+        return data;
+    }
 
     /**
-     * @return The root branch
+     * @return The root {@link Node}
      */
-    public final @NotNull Node getRoot() {
+    public @NotNull Node getRoot() {
         return root == null ? this : root;
     }
 
@@ -84,6 +102,12 @@ public abstract class Node {
      * @return The {@link Plugin} that was used to create the provided {@link Node}
      */
     public final @NotNull Plugin getPlugin() {
-        return tree.nodesPluginMap.get(this);
+        System.out.println("root: " + root);
+        System.out.println("getRoot: " + getRoot());
+        Plugin plugin = tree.nodesPluginMap.get(getRoot());
+        System.out.println("plugin: " + plugin);
+        System.out.println("nodesPluginMap:");
+        tree.nodesPluginMap.forEach((key, value) -> System.out.println(key + " : " + value));
+        return plugin;
     }
 }

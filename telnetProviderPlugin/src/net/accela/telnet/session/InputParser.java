@@ -5,6 +5,7 @@ import net.accela.ansi.Crayon;
 import net.accela.prisma.PrismaWM;
 import net.accela.prisma.event.InputEvent;
 import net.accela.prisma.event.PointInputEvent;
+import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
 import net.accela.prisma.session.TextGraphicsSession;
@@ -127,7 +128,7 @@ public class InputParser {
         return latch;
     }
 
-    public void builtinUpdateTerminalSize() throws IOException, InterruptedException {
+    public void builtinUpdateTerminalSize() throws IOException, InterruptedException, NodeNotFoundException {
         System.out.println("Updating terminal size");
 
         CountDownLatch latch = updateTerminalSize();
@@ -171,7 +172,7 @@ public class InputParser {
         return latch;
     }
 
-    public void builtinUpdateUnicodeSupport() throws IOException, InterruptedException {
+    public void builtinUpdateUnicodeSupport() throws IOException, InterruptedException, NodeNotFoundException {
         System.out.println("Updating terminal size");
 
         Charset oldCharset = session.getCharset();

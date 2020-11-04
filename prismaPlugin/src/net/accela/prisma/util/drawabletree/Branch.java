@@ -13,8 +13,6 @@ import java.util.List;
  * A simple {@link Node} implementation that can store other {@link Node}s.
  */
 public class Branch extends Node {
-    public final @NotNull DrawableContainer data;
-
     final List<Node> nodes = new ArrayList<>();
 
     /**
@@ -33,8 +31,7 @@ public class Branch extends Node {
                   @Nullable Branch root,
                   @Nullable Branch parent,
                   @NotNull DrawableContainer data) {
-        super(stack, root, parent);
-        this.data = data;
+        super(stack, root, parent, data);
     }
 
     /**
@@ -46,14 +43,14 @@ public class Branch extends Node {
     public @NotNull Node newNode(@NotNull Drawable data) {
         Node node;
         if (data instanceof DrawableContainer) {
-            node = new Branch(tree, null, null, (DrawableContainer) data);
+            node = new Branch(tree, getRoot(), this, (DrawableContainer) data);
         } else {
-            node = new Leaf(tree, null, null, data);
+            node = new Node(tree, getRoot(), this, data);
         }
 
         nodes.add(node);
         tree.allNodes.put(data, node);
-        DrawableTree.allNodesGlobally.put(data, node);
+        DrawableTree.staticAllNodes.put(data, node);
         return node;
     }
 
@@ -66,7 +63,7 @@ public class Branch extends Node {
         super.kill();
         if (parent != null) parent.nodes.remove(this);
         tree.allNodes.remove(data, this);
-        DrawableTree.allNodesGlobally.remove(data, this);
+        DrawableTree.staticAllNodes.remove(data, this);
     }
 
     /**
@@ -89,6 +86,14 @@ public class Branch extends Node {
     }
 
     /**
+     * @return The root {@link Node}
+     */
+    @Override
+    public @NotNull Branch getRoot() {
+        return (Branch) super.getRoot();
+    }
+
+    /**
      * @return the {@link Node}s that are immediately connected to this SecureTree
      */
     public @NotNull List<Node> getNodes() {
@@ -100,6 +105,6 @@ public class Branch extends Node {
      * @return The data that this {@link Branch} represents
      */
     public final @NotNull DrawableContainer getData() {
-        return data;
+        return (DrawableContainer) data;
     }
 }
