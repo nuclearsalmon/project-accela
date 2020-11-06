@@ -19,14 +19,21 @@ import java.util.Map;
  * it's not accessible from the outside.
  */
 public final class DrawableTree {
-    final List<Node> nodes = new ArrayList<>();
-    final Map<Node, Plugin> nodesPluginMap = new HashMap<>();
+    /**
+     * All immediate child {@link Node}s attached to this {@link DrawableTree}.
+     */
+    final List<Node> childNodes = new ArrayList<>();
+    /**
+     * All {@link Node}s in this {@link DrawableTree}
+     */
     final Map<Drawable, Node> allNodes = new HashMap<>();
 
     // This one is static so that we can do a lookup from anywhere. It's a bit hack-ish but probably fine.
-    final static Map<Drawable, Node> staticAllNodes = new HashMap<>();
+    final static Map<Drawable, Node> globalAllNodes = new HashMap<>();
 
     final PrismaWM windowManager;
+
+    Node focusedNode;
 
     public DrawableTree(@NotNull PrismaWM windowManager) {
         this.windowManager = windowManager;
@@ -42,15 +49,15 @@ public final class DrawableTree {
     public @NotNull Node newNode(@NotNull Drawable data, @NotNull Plugin plugin) {
         Node node;
         if (data instanceof DrawableContainer) {
-            node = new Branch(this, null, null, (DrawableContainer) data);
+            node = new Branch(this, null, null, (DrawableContainer) data, plugin);
         } else {
-            node = new Node(this, null, null, data);
+            node = new Node(this, null, null, data, plugin);
         }
 
-        nodes.add(node);
+        childNodes.add(node);
         allNodes.put(data, node);
-        staticAllNodes.put(data, node);
-        nodesPluginMap.put(node, plugin);
+        globalAllNodes.put(data, node);
+        setFocusedNode(node);
         return node;
     }
 
@@ -60,7 +67,7 @@ public final class DrawableTree {
      * @see Node#kill()
      */
     public void killNodes() {
-        for (Node node : nodes) {
+        for (Node node : childNodes) {
             node.kill();
         }
     }
@@ -70,14 +77,14 @@ public final class DrawableTree {
      * @return a {@link Node} representing the provided {@link Drawable} data, if found.
      */
     public static @Nullable Node getNode(@NotNull Drawable drawable) {
-        return staticAllNodes.get(drawable);
+        return globalAllNodes.get(drawable);
     }
 
     /**
      * @return the {@link Node}s that are immediately connected to this SecureTree
      */
-    public @NotNull List<Node> getNodes() {
-        return List.copyOf(nodes);
+    public @NotNull List<Node> getChildNodes() {
+        return List.copyOf(childNodes);
     }
 
     /**
@@ -92,5 +99,51 @@ public final class DrawableTree {
      */
     public @NotNull PrismaWM getWindowManager() {
         return windowManager;
+    }
+
+    /**
+     * @return The currently focused {@link Node}.
+     */
+    public @Nullable Node getFocusedNode() {
+        return focusedNode;
+    }
+
+    /**
+     * @param node The currently focused {@link Node}.
+     */
+    public void setFocusedNode(@Nullable Node node) {
+        if (node == null || (node.isAlive() && allNodes.containsValue(node))) focusedNode = node;
+    }
+
+    /**
+     * @param node The {@link Node} to collect from
+     * @return all {@link Node}s that are attached to the {@link Node} provided
+     */
+    public static @NotNull List<@NotNull Node> getAllChildNodes(@NotNull Node node) {
+        final List<Node> allChildNodes = new ArrayList<>();
+        recursiveCollectNodes(allChildNodes, node);
+        return allChildNodes;
+    }
+
+    static void recursiveCollectNodes(@NotNull List<@NotNull Node> allChildNodes, @NotNull Node node) {
+        if (node instanceof Branch) {
+            for (Node childNode : ((Branch) node).getImmediateChildNodes()) {
+                allChildNodes.add(childNode);
+                recursiveCollectNodes(allChildNodes, childNode);
+            }
+        }
+    }
+
+    /**
+     * @param node The {@link Node} to collect from
+     * @return all {@link Drawable}s that are attached to the {@link Node} provided
+     */
+    public static @NotNull List<@NotNull Drawable> getAllChildDrawables(@NotNull Node node) {
+        List<Node> childNodes = getAllChildNodes(node);
+        List<Drawable> childDrawables = new ArrayList<>();
+        for (Node childNode : childNodes) {
+            childDrawables.add(childNode.getData());
+        }
+        return childDrawables;
     }
 }

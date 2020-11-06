@@ -12,8 +12,9 @@ import java.util.List;
 /**
  * A simple {@link Node} implementation that can store other {@link Node}s.
  */
-public class Branch extends Node {
-    final List<Node> nodes = new ArrayList<>();
+public final class Branch extends Node {
+    final List<Node> immediateChildNodes = new ArrayList<>();
+
 
     /**
      * DO NOT instantiate manually.
@@ -30,8 +31,9 @@ public class Branch extends Node {
     public Branch(@NotNull DrawableTree stack,
                   @Nullable Branch root,
                   @Nullable Branch parent,
-                  @NotNull DrawableContainer data) {
-        super(stack, root, parent, data);
+                  @NotNull DrawableContainer data,
+                  @NotNull Plugin plugin) {
+        super(stack, root, parent, data, plugin);
     }
 
     /**
@@ -43,14 +45,14 @@ public class Branch extends Node {
     public @NotNull Node newNode(@NotNull Drawable data) {
         Node node;
         if (data instanceof DrawableContainer) {
-            node = new Branch(tree, getRoot(), this, (DrawableContainer) data);
+            node = new Branch(this.tree, getRoot(), this, (DrawableContainer) data, this.plugin);
         } else {
-            node = new Node(tree, getRoot(), this, data);
+            node = new Node(this.tree, getRoot(), this, data, this.plugin);
         }
 
-        nodes.add(node);
+        immediateChildNodes.add(node);
         tree.allNodes.put(data, node);
-        DrawableTree.staticAllNodes.put(data, node);
+        DrawableTree.globalAllNodes.put(data, node);
         return node;
     }
 
@@ -61,9 +63,6 @@ public class Branch extends Node {
     public void kill() {
         killNodes();
         super.kill();
-        if (parent != null) parent.nodes.remove(this);
-        tree.allNodes.remove(data, this);
-        DrawableTree.staticAllNodes.remove(data, this);
     }
 
     /**
@@ -72,7 +71,7 @@ public class Branch extends Node {
      * @see Node#kill()
      */
     public void killNodes() {
-        for (Node node : nodes) {
+        for (Node node : immediateChildNodes) {
             node.kill();
         }
     }
@@ -96,8 +95,8 @@ public class Branch extends Node {
     /**
      * @return the {@link Node}s that are immediately connected to this SecureTree
      */
-    public @NotNull List<Node> getNodes() {
-        return List.copyOf(nodes);
+    public @NotNull List<Node> getImmediateChildNodes() {
+        return List.copyOf(immediateChildNodes);
     }
 
 

@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 public class Node {
     // This needs to be hidden from outside classes
     final @NotNull DrawableTree tree;
+    // It needs to be impossible to resurrect a node, hence why this is a private variable
+    private boolean alive = true;
 
     // These are openly accessible, do whatever you want with them
     /**
@@ -23,13 +25,12 @@ public class Node {
      */
     public final @Nullable Branch parent;
 
-    // It needs to be impossible to resurrect a node, hence why this is a private variable
-    private boolean alive = true;
-
     /**
      * The {@link Drawable} data this {@link Node} represents
      */
     public final @NotNull Drawable data;
+
+    public final @NotNull Plugin plugin;
 
     /**
      * DO NOT instantiate manually.
@@ -45,11 +46,13 @@ public class Node {
     public Node(@NotNull DrawableTree tree,
                 @Nullable Branch root,
                 @Nullable Branch parent,
-                @NotNull Drawable data) {
+                @NotNull Drawable data,
+                @NotNull Plugin plugin) {
         this.tree = tree;
         this.root = root;
         this.parent = parent;
         this.data = data;
+        this.plugin = plugin;
     }
 
     /**
@@ -57,10 +60,16 @@ public class Node {
      * From the perspective of the stack, this node no longer exists.
      */
     public void kill() {
+        // First unfocus
+        if (tree.getFocusedNode() == this) tree.setFocusedNode(null);
+
+        // Change flag
         alive = false;
-        if (parent != null) parent.nodes.remove(this);
+
+        // Remove references
+        if (parent != null) parent.immediateChildNodes.remove(this);
         tree.allNodes.remove(data, this);
-        DrawableTree.staticAllNodes.remove(data, this);
+        DrawableTree.globalAllNodes.remove(data, this);
     }
 
     /**
@@ -102,12 +111,6 @@ public class Node {
      * @return The {@link Plugin} that was used to create the provided {@link Node}
      */
     public final @NotNull Plugin getPlugin() {
-        System.out.println("root: " + root);
-        System.out.println("getRoot: " + getRoot());
-        Plugin plugin = tree.nodesPluginMap.get(getRoot());
-        System.out.println("plugin: " + plugin);
-        System.out.println("nodesPluginMap:");
-        tree.nodesPluginMap.forEach((key, value) -> System.out.println(key + " : " + value));
         return plugin;
     }
 }
