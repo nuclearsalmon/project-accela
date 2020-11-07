@@ -2,6 +2,7 @@ package net.accela.prisma.util.drawabletree;
 
 import net.accela.prisma.Drawable;
 import net.accela.prisma.DrawableContainer;
+import net.accela.prisma.geometry.Rect;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +14,7 @@ import java.util.List;
  * A simple {@link Node} implementation that can store other {@link Node}s.
  */
 public final class Branch extends Node {
-    final List<Node> immediateChildNodes = new ArrayList<>();
+    final List<Node> childNodes = new ArrayList<>();
 
 
     /**
@@ -21,19 +22,19 @@ public final class Branch extends Node {
      * Let a {@link Branch} or {@link DrawableTree} instantiate this using the
      * {@link Branch#newNode(Drawable)} or {@link DrawableTree#newNode(Drawable, Plugin)} method.
      *
-     * @param stack  The {@link DrawableTree} to connect to
+     * @param tree   The {@link DrawableTree} to connect to
      * @param root   The {@link Branch} that's at the bottom of the {@link DrawableTree}
      * @param parent The {@link Branch} that created this Node
      * @param data   The {@link Drawable} data this Node represents
      * @see DrawableTree
      * @see Node
      */
-    public Branch(@NotNull DrawableTree stack,
+    public Branch(@NotNull DrawableTree tree,
                   @Nullable Branch root,
                   @Nullable Branch parent,
                   @NotNull DrawableContainer data,
                   @NotNull Plugin plugin) {
-        super(stack, root, parent, data, plugin);
+        super(tree, root, parent, data, plugin);
     }
 
     /**
@@ -50,7 +51,7 @@ public final class Branch extends Node {
             node = new Node(this.tree, getRoot(), this, data, this.plugin);
         }
 
-        immediateChildNodes.add(node);
+        childNodes.add(node);
         tree.allNodes.put(data, node);
         DrawableTree.globalAllNodes.put(data, node);
         return node;
@@ -71,7 +72,7 @@ public final class Branch extends Node {
      * @see Node#kill()
      */
     public void killNodes() {
-        for (Node node : immediateChildNodes) {
+        for (Node node : childNodes) {
             node.kill();
         }
     }
@@ -95,8 +96,8 @@ public final class Branch extends Node {
     /**
      * @return the {@link Node}s that are immediately connected to this SecureTree
      */
-    public @NotNull List<Node> getImmediateChildNodes() {
-        return List.copyOf(immediateChildNodes);
+    public @NotNull List<Node> getChildNodes() {
+        return List.copyOf(childNodes);
     }
 
 
@@ -105,5 +106,35 @@ public final class Branch extends Node {
      */
     public final @NotNull DrawableContainer getData() {
         return (DrawableContainer) data;
+    }
+
+    /**
+     * @param rect The {@link Rect} to look for {@link Node}s within. Relative.
+     * @return All {@link Node}s that are situated within the {@link Rect} provided
+     */
+    public @NotNull List<@NotNull Node> getIntersectingNodes(@NotNull Rect rect) {
+        List<Node> nodes = new ArrayList<>();
+        for (Node node : getChildNodes()) {
+            Drawable drawable = node.getData();
+            if (rect.intersects(drawable.getRelativeRect())) {
+                nodes.add(node);
+            }
+        }
+        return nodes;
+    }
+
+    /**
+     * @param rect The {@link Rect} to look for {@link Drawable}s within. Relative.
+     * @return All {@link Drawable}s that are situated within the {@link Rect} provided
+     */
+    public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
+        List<Drawable> drawables = new ArrayList<>();
+        for (Node node : getChildNodes()) {
+            Drawable drawable = node.getData();
+            if (rect.intersects(drawable.getRelativeRect())) {
+                drawables.add(drawable);
+            }
+        }
+        return drawables;
     }
 }

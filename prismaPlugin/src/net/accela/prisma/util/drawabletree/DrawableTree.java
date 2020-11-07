@@ -3,6 +3,7 @@ package net.accela.prisma.util.drawabletree;
 import net.accela.prisma.Drawable;
 import net.accela.prisma.DrawableContainer;
 import net.accela.prisma.PrismaWM;
+import net.accela.prisma.geometry.Rect;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -127,7 +128,7 @@ public final class DrawableTree {
 
     static void recursiveCollectNodes(@NotNull List<@NotNull Node> allChildNodes, @NotNull Node node) {
         if (node instanceof Branch) {
-            for (Node childNode : ((Branch) node).getImmediateChildNodes()) {
+            for (Node childNode : ((Branch) node).getChildNodes()) {
                 allChildNodes.add(childNode);
                 recursiveCollectNodes(allChildNodes, childNode);
             }
@@ -145,5 +146,35 @@ public final class DrawableTree {
             childDrawables.add(childNode.getData());
         }
         return childDrawables;
+    }
+
+    /**
+     * @param rect The {@link Rect} to look for {@link Node}s within. Relative.
+     * @return All {@link Node}s that are situated within the {@link Rect} provided
+     */
+    public @NotNull List<@NotNull Node> getIntersectingNodes(@NotNull Rect rect) {
+        List<Node> nodes = new ArrayList<>();
+        for (Node node : getChildNodes()) {
+            Drawable drawable = node.getData();
+            if (rect.intersects(drawable.getRelativeRect())) {
+                nodes.add(node);
+            }
+        }
+        return nodes;
+    }
+
+    /**
+     * @param rect The {@link Rect} to look for {@link Drawable}s within. Relative.
+     * @return All {@link Drawable}s that are situated within the {@link Rect} provided
+     */
+    public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
+        List<Drawable> drawables = new ArrayList<>();
+        for (Node node : getChildNodes()) {
+            Drawable drawable = node.getData();
+            if (rect.intersects(drawable.getRelativeRect())) {
+                drawables.add(drawable);
+            }
+        }
+        return drawables;
     }
 }

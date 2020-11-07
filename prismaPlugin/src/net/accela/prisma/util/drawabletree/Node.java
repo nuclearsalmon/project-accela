@@ -67,7 +67,7 @@ public class Node {
         alive = false;
 
         // Remove references
-        if (parent != null) parent.immediateChildNodes.remove(this);
+        if (parent != null) parent.childNodes.remove(this);
         tree.allNodes.remove(data, this);
         DrawableTree.globalAllNodes.remove(data, this);
     }
