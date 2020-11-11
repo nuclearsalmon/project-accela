@@ -373,6 +373,40 @@ public class AnsiInputParser {
 
     @Nullable
     MouseInputEvent.MouseInputType intToMouseInputEvent(int mouseButton) {
+        // TODO: 11/9/20 Confirm if this is according to the spec. "It works on my machine".
+        switch (mouseButton) {
+            case 0:
+                return MouseInputEvent.MouseInputType.LEFT;
+            case 1:
+                return MouseInputEvent.MouseInputType.MIDDLE;
+            case 2:
+                return MouseInputEvent.MouseInputType.RIGHT;
+            case 3:
+                return MouseInputEvent.MouseInputType.RELEASE;
+            case 4:
+                return MouseInputEvent.MouseInputType.MOTION;
+            case 5:
+                return MouseInputEvent.MouseInputType.SCROLL_UP;
+            case 6:
+                return MouseInputEvent.MouseInputType.SCROLL_DOWN;
+            case 7:
+                return MouseInputEvent.MouseInputType.SCROLL_LEFT;
+            case 8:
+                return MouseInputEvent.MouseInputType.SCROLL_RIGHT;
+            case 9:
+                return MouseInputEvent.MouseInputType.EXTRA_0;
+            case 10:
+                return MouseInputEvent.MouseInputType.EXTRA_1;
+            case 11:
+                return MouseInputEvent.MouseInputType.EXTRA_2;
+            case 12:
+                return MouseInputEvent.MouseInputType.EXTRA_3;
+            default:
+                return null;
+
+        }
+
+        /*
         switch (mouseButton) {
             case 0:
                 return MouseInputEvent.MouseInputType.LEFT;
@@ -402,6 +436,7 @@ public class AnsiInputParser {
                 return null;
 
         }
+        */
     }
 
     int xtermCharToInt(char chr) {

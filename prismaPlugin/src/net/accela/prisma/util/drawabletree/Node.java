@@ -28,7 +28,7 @@ public class Node {
     /**
      * The {@link Drawable} data this {@link Node} represents
      */
-    public final @NotNull Drawable data;
+    public final @NotNull Drawable drawable;
 
     public final @NotNull Plugin plugin;
 
@@ -46,12 +46,12 @@ public class Node {
     public Node(@NotNull DrawableTree tree,
                 @Nullable Branch root,
                 @Nullable Branch parent,
-                @NotNull Drawable data,
+                @NotNull Drawable drawable,
                 @NotNull Plugin plugin) {
         this.tree = tree;
         this.root = root;
         this.parent = parent;
-        this.data = data;
+        this.drawable = drawable;
         this.plugin = plugin;
     }
 
@@ -68,15 +68,15 @@ public class Node {
 
         // Remove references
         if (parent != null) parent.childNodes.remove(this);
-        tree.allNodes.remove(data, this);
-        DrawableTree.globalAllNodes.remove(data, this);
+        tree.allNodes.remove(drawable, this);
+        DrawableTree.globalAllNodes.remove(drawable, this);
     }
 
     /**
      * @return The data that this {@link Node} represents
      */
-    public @NotNull Drawable getData() {
-        return data;
+    public @NotNull Drawable getDrawable() {
+        return drawable;
     }
 
     /**

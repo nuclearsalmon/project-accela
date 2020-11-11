@@ -22,38 +22,38 @@ public final class Branch extends Node {
      * Let a {@link Branch} or {@link DrawableTree} instantiate this using the
      * {@link Branch#newNode(Drawable)} or {@link DrawableTree#newNode(Drawable, Plugin)} method.
      *
-     * @param tree   The {@link DrawableTree} to connect to
-     * @param root   The {@link Branch} that's at the bottom of the {@link DrawableTree}
-     * @param parent The {@link Branch} that created this Node
-     * @param data   The {@link Drawable} data this Node represents
+     * @param tree     The {@link DrawableTree} to connect to
+     * @param root     The {@link Branch} that's at the bottom of the {@link DrawableTree}
+     * @param parent   The {@link Branch} that created this {@link Node}
+     * @param drawable The {@link Drawable} ({@link DrawableContainer}) data this {@link Node} represents
      * @see DrawableTree
      * @see Node
      */
     public Branch(@NotNull DrawableTree tree,
                   @Nullable Branch root,
                   @Nullable Branch parent,
-                  @NotNull DrawableContainer data,
+                  @NotNull DrawableContainer drawable,
                   @NotNull Plugin plugin) {
-        super(tree, root, parent, data, plugin);
+        super(tree, root, parent, drawable, plugin);
     }
 
     /**
      * Creates a new {@link Node} on this Branch.
      *
-     * @param data The data that the {@link Node} will represent
-     * @return A {@link Node} instance representing the provided data
+     * @param drawable The {@link Drawable} data that the {@link Node} will represent
+     * @return A {@link Node} instance representing the provided drawable
      */
-    public @NotNull Node newNode(@NotNull Drawable data) {
+    public @NotNull Node newNode(@NotNull Drawable drawable) {
         Node node;
-        if (data instanceof DrawableContainer) {
-            node = new Branch(this.tree, getRoot(), this, (DrawableContainer) data, this.plugin);
+        if (drawable instanceof DrawableContainer) {
+            node = new Branch(this.tree, getRoot(), this, (DrawableContainer) drawable, this.plugin);
         } else {
-            node = new Node(this.tree, getRoot(), this, data, this.plugin);
+            node = new Node(this.tree, getRoot(), this, drawable, this.plugin);
         }
 
         childNodes.add(node);
-        tree.allNodes.put(data, node);
-        DrawableTree.globalAllNodes.put(data, node);
+        tree.allNodes.put(drawable, node);
+        DrawableTree.globalAllNodes.put(drawable, node);
         return node;
     }
 
@@ -94,18 +94,30 @@ public final class Branch extends Node {
     }
 
     /**
-     * @return the {@link Node}s that are immediately connected to this SecureTree
+     * @return A list of {@link Node}s that are immediately connected to this SecureTree
      */
-    public @NotNull List<Node> getChildNodes() {
+    public @NotNull List<@NotNull Node> getChildNodes() {
         return List.copyOf(childNodes);
+    }
+
+    /**
+     * @return A list of {@link Drawable}s,
+     * extracted from {@link Node}s that are immediately connected to this branch.
+     */
+    public @NotNull List<@NotNull Drawable> getChildDrawables() {
+        List<Drawable> childDrawables = new ArrayList<>();
+        for (Node childNode : childNodes) {
+            childDrawables.add(childNode.getDrawable());
+        }
+        return childDrawables;
     }
 
 
     /**
-     * @return The data that this {@link Branch} represents
+     * @return The {@link Drawable} data that this {@link Branch} represents
      */
-    public final @NotNull DrawableContainer getData() {
-        return (DrawableContainer) data;
+    public final @NotNull DrawableContainer getDrawable() {
+        return (DrawableContainer) drawable;
     }
 
     /**
@@ -115,7 +127,7 @@ public final class Branch extends Node {
     public @NotNull List<@NotNull Node> getIntersectingNodes(@NotNull Rect rect) {
         List<Node> nodes = new ArrayList<>();
         for (Node node : getChildNodes()) {
-            Drawable drawable = node.getData();
+            Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 nodes.add(node);
             }
@@ -130,7 +142,7 @@ public final class Branch extends Node {
     public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
         List<Drawable> drawables = new ArrayList<>();
         for (Node node : getChildNodes()) {
-            Drawable drawable = node.getData();
+            Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 drawables.add(drawable);
             }

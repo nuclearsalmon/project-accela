@@ -355,11 +355,11 @@ public class Rect implements Shape {
         return result;
     }
 
-    public Rect addition(@NotNull Rect addition) {
-        return addition(this, addition);
+    public Rect startPointAddition(@NotNull Rect addition) {
+        return startPointAddition(this, addition);
     }
 
-    public static Rect addition(@NotNull Rect relative, @NotNull Rect addition) {
+    public static Rect startPointAddition(@NotNull Rect relative, @NotNull Rect addition) {
         return new Rect(
                 relative.minX + addition.minX,
                 relative.minY + addition.minY,
@@ -368,11 +368,11 @@ public class Rect implements Shape {
         );
     }
 
-    public Rect subtraction(@NotNull Rect subtraction) {
-        return subtraction(this, subtraction);
+    public Rect startPointSubtraction(@NotNull Rect subtraction) {
+        return startPointSubtraction(this, subtraction);
     }
 
-    public static Rect subtraction(@NotNull Rect absolute, @NotNull Rect subtraction) {
+    public static Rect startPointSubtraction(@NotNull Rect absolute, @NotNull Rect subtraction) {
         return new Rect(
                 absolute.minX - subtraction.minX,
                 absolute.minY - subtraction.minY,

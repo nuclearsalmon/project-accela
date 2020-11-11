@@ -43,21 +43,21 @@ public final class DrawableTree {
     /**
      * Creates a new {@link Node} in this {@link DrawableTree}
      *
-     * @param data   The data that the {@link Node} will represent
-     * @param plugin The plugin registering this {@link Node}
+     * @param drawable The {@link Drawable} data that the {@link Node} will represent
+     * @param plugin   The {@link Plugin} registering this {@link Node}
      * @return A {@link Node} instance representing the provided data
      */
-    public @NotNull Node newNode(@NotNull Drawable data, @NotNull Plugin plugin) {
+    public @NotNull Node newNode(@NotNull Drawable drawable, @NotNull Plugin plugin) {
         Node node;
-        if (data instanceof DrawableContainer) {
-            node = new Branch(this, null, null, (DrawableContainer) data, plugin);
+        if (drawable instanceof DrawableContainer) {
+            node = new Branch(this, null, null, (DrawableContainer) drawable, plugin);
         } else {
-            node = new Node(this, null, null, data, plugin);
+            node = new Node(this, null, null, drawable, plugin);
         }
 
         childNodes.add(node);
-        allNodes.put(data, node);
-        globalAllNodes.put(data, node);
+        allNodes.put(drawable, node);
+        globalAllNodes.put(drawable, node);
         setFocusedNode(node);
         return node;
     }
@@ -143,7 +143,7 @@ public final class DrawableTree {
         List<Node> childNodes = getAllChildNodes(node);
         List<Drawable> childDrawables = new ArrayList<>();
         for (Node childNode : childNodes) {
-            childDrawables.add(childNode.getData());
+            childDrawables.add(childNode.getDrawable());
         }
         return childDrawables;
     }
@@ -155,7 +155,7 @@ public final class DrawableTree {
     public @NotNull List<@NotNull Node> getIntersectingNodes(@NotNull Rect rect) {
         List<Node> nodes = new ArrayList<>();
         for (Node node : getChildNodes()) {
-            Drawable drawable = node.getData();
+            Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 nodes.add(node);
             }
@@ -170,7 +170,7 @@ public final class DrawableTree {
     public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
         List<Drawable> drawables = new ArrayList<>();
         for (Node node : getChildNodes()) {
-            Drawable drawable = node.getData();
+            Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 drawables.add(drawable);
             }

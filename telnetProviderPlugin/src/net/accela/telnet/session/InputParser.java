@@ -25,6 +25,7 @@ import java.util.logging.Level;
  * Parses input and relays it to the sessions WindowManager, either as an Event or through an OutputStream,
  * depending on which one is preferred.
  */
+// FIXME: 11/9/20 Make this into a separate thread to prevent freezes
 public class InputParser {
     final TelnetSession session;
     final Plugin plugin;
@@ -59,8 +60,13 @@ public class InputParser {
                 // Check if the session has a WindowManager
                 PrismaWM windowManager = session.getWindowManager();
                 if (windowManager != null) {
+                    session.getLogger().log(Level.INFO, "Calling event via PluginManager... " + inputEvent);
+
                     AccelaAPI.getPluginManager().callEvent(inputEvent, windowManager.getBroadcastChannel());
-                    System.out.println("Sent event '" + inputEvent + "'");
+
+                    session.getLogger().log(Level.INFO, "Called an event via PluginManager... " + inputEvent);
+                } else {
+                    session.getLogger().log(Level.WARNING, "Engine down when trying to call an event via PluginManager");
                 }
                 break;
             case DETECT_SIZE:
