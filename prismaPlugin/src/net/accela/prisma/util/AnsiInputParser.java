@@ -291,7 +291,7 @@ public class AnsiInputParser {
         }
     }
 
-    InputEvent parseMouse(@NotNull final String sequence) {
+    MouseInputEvent parseMouse(@NotNull final String sequence) {
         // Netrunner spec (WHY CAN'T YOU JUST BE NORMAL AND FOLLOW THE STANDARD XTERM SPEC?!!?!!!!)
         if (sequence.charAt(1) == '0') {
             int x = netrunnerCharToInt(sequence.charAt(2));
@@ -305,24 +305,24 @@ public class AnsiInputParser {
             int y = xtermCharToInt(sequence.charAt(3)) - 1; // (-1) - Convert to a 0-based coordinate system
             int mod = xtermCharToInt(sequence.charAt(1));
 
-            // Mouse bits
-            // -----------
-            //               1
-            //              2|
-            //             4||
-            //            8|||
-            //          16||||
-            //         32|||||
-            //        64||||||
-            //      128|||||||
-            //        ||||||||
-            //        vvvvvvvv
-            //        00000000
-            //        --^--^-^
-            //          |  | |
-            //  more mods  | |
-            //     modifiers |
-            //          button
+            // Mouse mod bits
+            // --------------
+            //              1
+            //             2|
+            //            4||
+            //           8|||
+            //         16||||
+            //        32|||||
+            //       64||||||
+            //     128|||||||
+            //       ||||||||
+            //       vvvvvvvv
+            //       00000000
+            //     <---^--^-^
+            //         |  | |
+            // more mods  | |
+            //    modifiers |
+            //         button
 
             // Button options
             // 0 = MB1 pressed
@@ -363,9 +363,9 @@ public class AnsiInputParser {
             if (motion) {
                 return new MouseInputEvent(plugin, x, y, MouseInputEvent.MouseInputType.MOTION, shift, meta, control);
             } else {
-                MouseInputEvent.MouseInputType buttonObj = intToMouseInputEvent(button);
-                if (buttonObj == null) return null;
-                else return new MouseInputEvent(plugin, x, y, buttonObj, shift, meta, control);
+                MouseInputEvent.MouseInputType mouseInputType = intToMouseInputEvent(button);
+                if (mouseInputType == null) return null;
+                else return new MouseInputEvent(plugin, x, y, mouseInputType, shift, meta, control);
             }
         }
     }
@@ -373,7 +373,6 @@ public class AnsiInputParser {
 
     @Nullable
     MouseInputEvent.MouseInputType intToMouseInputEvent(int mouseButton) {
-        // TODO: 11/9/20 Confirm if this is according to the spec. "It works on my machine".
         switch (mouseButton) {
             case 0:
                 return MouseInputEvent.MouseInputType.LEFT;
@@ -403,40 +402,7 @@ public class AnsiInputParser {
                 return MouseInputEvent.MouseInputType.EXTRA_3;
             default:
                 return null;
-
         }
-
-        /*
-        switch (mouseButton) {
-            case 0:
-                return MouseInputEvent.MouseInputType.LEFT;
-            case 1:
-                return MouseInputEvent.MouseInputType.RIGHT;
-            case 2:
-                return MouseInputEvent.MouseInputType.MIDDLE;
-            case 3:
-                return MouseInputEvent.MouseInputType.RELEASE;
-            case 4:
-                return MouseInputEvent.MouseInputType.SCROLL_UP;
-            case 5:
-                return MouseInputEvent.MouseInputType.SCROLL_DOWN;
-            case 6:
-                return MouseInputEvent.MouseInputType.SCROLL_LEFT;
-            case 7:
-                return MouseInputEvent.MouseInputType.SCROLL_RIGHT;
-            case 8:
-                return MouseInputEvent.MouseInputType.EXTRA_0;
-            case 9:
-                return MouseInputEvent.MouseInputType.EXTRA_1;
-            case 10:
-                return MouseInputEvent.MouseInputType.EXTRA_2;
-            case 11:
-                return MouseInputEvent.MouseInputType.EXTRA_3;
-            default:
-                return null;
-
-        }
-        */
     }
 
     int xtermCharToInt(char chr) {
