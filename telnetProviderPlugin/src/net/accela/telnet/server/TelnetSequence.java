@@ -112,7 +112,7 @@ public final class TelnetSequence {
 
     /**
      * Validates the sequence.
-     * See {@link this.confirmValid} if you wish to inquire more about why the sequence is invalid.
+     * See {@link TelnetSequence#confirmValid()} if you wish to inquire more about why the sequence is invalid.
      *
      * @return true if this TelnetSequence is valid.
      */
@@ -128,7 +128,7 @@ public final class TelnetSequence {
     /**
      * Validates the sequence.
      * This method may throw an exception with a short message describing why the sequence is invalid.
-     * See {@link this.isValid} if you wish to validate but not throw any exceptions.
+     * See {@link TelnetSequence#isValid()} if you wish to validate but not throw any exceptions.
      */
     public void confirmValid() throws InvalidTelnetSequenceException {
         if (commandByte == null) {

@@ -1,6 +1,5 @@
 package net.accela.telnet.session;
 
-import net.accela.ansi.AnsiLib;
 import net.accela.prisma.PrismaWM;
 import net.accela.prisma.session.TextGraphicsSession;
 import net.accela.server.AccelaAPI;
@@ -120,29 +119,20 @@ public final class TelnetSession extends TextGraphicsSession {
     }
 
     /**
-     * Closes the session
+     * Closes the session with an optional message describing the reason for closing.
+     * How this message is used is up to the SessionCreator implementation to decide.
+     *
+     * @param reason The reason for closing.
      */
     @Override
     public void close(@Nullable String reason) {
         getLogger().log(Level.INFO, "Terminating session");
 
-        // Reset terminal
-        /* TODO: 10/21/20 This should be implemented in TelnetSessionServer instead.
-         *   Make a close() method. */
-        try {
-            sessionServer.writeToClient((AnsiLib.CLR + AnsiLib.RIS).getBytes(getCharset()));
-        } catch (IOException ex) {
-            getLogger().log(Level.WARNING, "Exception when writing terminal reset to client", ex);
-        }
+        // Perform the default closing actions
+        super.close(reason);
+
         // Interrupt the negotiation thread
         sessionServer.interrupt();
-
-        // Attempt to close the WindowManager
-        try {
-            if (windowManager != null) windowManager.close();
-        } catch (Exception ex) {
-            getLogger().log(Level.SEVERE, "Exception when closing WM during the session shutdown process", ex);
-        }
 
         // Attempt to close the socket
         try {
@@ -150,9 +140,6 @@ public final class TelnetSession extends TextGraphicsSession {
         } catch (IOException ex) {
             getLogger().log(Level.SEVERE, "Exception when attempting to close the socket");
         }
-
-        // Perform the default closing actions
-        super.close(reason);
     }
 
     @Override

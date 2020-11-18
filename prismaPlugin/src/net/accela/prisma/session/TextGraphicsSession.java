@@ -19,6 +19,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public abstract class TextGraphicsSession extends Session {
     // Charset configuration
@@ -98,6 +99,23 @@ public abstract class TextGraphicsSession extends Session {
     @Override
     public @NotNull SessionLogger getLogger() {
         return sessionLogger;
+    }
+
+    /**
+     * Closes the session with an optional message describing the reason for closing.
+     * How this message is used is up to the SessionCreator implementation to decide.
+     *
+     * @param reason The reason for closing.
+     */
+    @Override
+    public void close(@Nullable String reason) {
+        super.close(reason);
+        // Attempt to close the WindowManager
+        try {
+            if (windowManager != null) windowManager.close();
+        } catch (Exception ex) {
+            getLogger().log(Level.SEVERE, "Exception when closing WM during the session shutdown process", ex);
+        }
     }
 
     /**

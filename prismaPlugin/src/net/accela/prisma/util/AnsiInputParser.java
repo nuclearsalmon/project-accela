@@ -134,13 +134,15 @@ public class AnsiInputParser {
     */
 
     /**
+     * <pre>
      * Possible inputs:
-     * <char>                                -> char
-     * <esc> <nochar>                        -> esc
-     * <esc> <esc>                           -> esc
-     * <esc> <char>                          -> Alt-keypress or keycode sequence
-     * <esc> '[' <nochar>                    -> Alt-[
-     * <esc> '[' (<num>) (';'<num>) '~'      -> keycode sequence, <num> defaults to 1
+     *  <char>                           -> char
+     *  <esc> <nochar>                   -> esc
+     *  <esc> <esc>                      -> esc
+     *  <esc> <char>                     -> Alt-keypress or keycode sequence
+     *  <esc> '[' <nochar>               -> Alt-[
+     *  <esc> '[' (<num>) (';'<num>) '~' -> keycode sequence, <num> defaults to 1
+     * </pre>
      */
     @Nullable
     public InputEvent parse(@NotNull final String singleEntry) {

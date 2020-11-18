@@ -1,9 +1,9 @@
 package net.accela.telnet.server;
 
+import net.accela.ansi.AnsiLib;
 import net.accela.prisma.util.CharsetDecoder;
 import net.accela.telnet.exception.InvalidTelnetSequenceException;
 import net.accela.telnet.exception.TerminationException;
-import net.accela.telnet.session.InputParser;
 import net.accela.telnet.session.TelnetSession;
 import net.accela.telnet.util.ArrayUtil;
 import net.accela.telnet.util.TelnetByteTranslator;
@@ -164,8 +164,8 @@ public final class TelnetSessionServer extends Thread {
                     else {
                         // Reset state
                         negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
-                        // Send to engine
-                        writeToEngine(decodedString);
+                        // Send to window manager
+                        writeToWindowManager(decodedString);
                         // Break the loop
                         break;
                     }
@@ -570,8 +570,19 @@ public final class TelnetSessionServer extends Thread {
         }
     }
 
-    void writeToEngine(String decoded) {
+    void writeToWindowManager(String decoded) {
         // Pass along the input
         inputParser.processDecoded(decoded);
+    }
+
+    @Override
+    public void interrupt() {
+        // Reset terminal
+        try {
+            writeToClient((AnsiLib.CLR + AnsiLib.RIS).getBytes(getCharset()));
+        } catch (IOException e) {
+            session.getLogger().warning("Failed to write CLR + RIS to client before interrupting");
+        }
+        super.interrupt();
     }
 }

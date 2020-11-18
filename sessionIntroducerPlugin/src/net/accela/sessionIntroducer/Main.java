@@ -12,17 +12,20 @@ import net.accela.server.plugin.java.JavaPlugin;
 import net.accela.server.session.Session;
 
 public class Main extends JavaPlugin {
+    final Listener sessionCreatedListener = new SessionCreatedListener();
+
     @Override
     public void onEnable() {
         PluginManager pluginManager = AccelaAPI.getPluginManager();
 
         // Register listeners
-        pluginManager.registerEvents(new SessionCreatedListener(), this, Server.PRIVATE_CHANNEL);
+        pluginManager.registerEvents(sessionCreatedListener, this, Server.PRIVATE_CHANNEL);
     }
 
     @Override
     public void onDisable() {
-        // todo deregister listener(s)?
+        // Unregister listeners
+        AccelaAPI.getPluginManager().unregisterEvents(sessionCreatedListener);
     }
 
     static class SessionCreatedListener implements Listener {

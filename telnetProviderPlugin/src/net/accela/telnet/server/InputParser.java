@@ -1,4 +1,4 @@
-package net.accela.telnet.session;
+package net.accela.telnet.server;
 
 import net.accela.ansi.AnsiLib;
 import net.accela.ansi.Crayon;
@@ -12,7 +12,7 @@ import net.accela.prisma.session.TextGraphicsSession;
 import net.accela.prisma.util.AnsiInputParser;
 import net.accela.server.AccelaAPI;
 import net.accela.server.plugin.Plugin;
-import net.accela.telnet.server.TelnetSessionServer;
+import net.accela.telnet.session.TelnetSession;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -26,6 +26,9 @@ import java.util.logging.Level;
  * depending on which one is preferred.
  */
 // FIXME: 11/9/20 Make this into a separate thread to prevent freezes
+//  note, this is no longer that big of an issue as callEvent
+//  is now multithreaded and offhands tasks to hypervisor.
+//  Still worth looking into however.
 public class InputParser {
     final TelnetSession session;
     final Plugin plugin;

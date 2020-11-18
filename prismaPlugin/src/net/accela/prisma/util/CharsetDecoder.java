@@ -12,7 +12,7 @@ import java.nio.charset.UnsupportedCharsetException;
  * If the encoding gets switched in the middle of a reading (resulting in a corrupted character),
  * it will discard the previously read bytes.
  * <br>
- * Currently, it can decode UTF8 and various ASCII-based charsets (US_ASCII & CP437/IBM437).
+ * Currently, it can decode UTF8 and various ASCII-based charsets (US_ASCII and CP437/IBM437).
  */
 public abstract class CharsetDecoder {
     byte[] charBytes;

@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Grid represents a 2 dimensional grid. Uses int width & height pairs internally.
+ * Grid represents a 2 dimensional grid. Uses int width and height pairs internally.
  * Behaves the way you'd expect, with index 0 always being the beginning
  *
  * @param <E> the type of elements in this grid
