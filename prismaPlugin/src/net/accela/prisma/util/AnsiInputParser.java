@@ -301,8 +301,8 @@ public class AnsiInputParser {
         }
         // xterm spec
         else {
-            int x = xtermCharToInt(sequence.charAt(2));
-            int y = xtermCharToInt(sequence.charAt(3));
+            int x = xtermCharToInt(sequence.charAt(2)) - 1; // (-1) - Convert to a 0-based coordinate system
+            int y = xtermCharToInt(sequence.charAt(3)) - 1; // (-1) - Convert to a 0-based coordinate system
             int mod = xtermCharToInt(sequence.charAt(1));
 
             // Mouse bits
