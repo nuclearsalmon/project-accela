@@ -1,5 +1,8 @@
 package net.accela.ansi.sequence;
 
+import net.accela.ansi.annotation.Inconsistent;
+import net.accela.ansi.annotation.NonStandard;
+import net.accela.ansi.annotation.NotWidelySupported;
 import net.accela.ansi.exception.ESCSequenceException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,38 +107,187 @@ public class SGRStatement {
     }
 
     public enum Type {
+        // Reset
+        /**
+         * Resets all attributes
+         */
         RESET,
 
-        INTENSITY_NORMAL, INTENSITY_BRIGHT_OR_BOLD, INTENSITY_DIM_OR_THIN,
+        // Intensity
+        /**
+         * Enables Bright color intensity OR bold typefaces (this can vary between terminals).
+         *
+         * @see Type#INTENSITY_DIM_OR_THIN
+         * @see Type#INTENSITY_DEFAULT
+         */
+        @Inconsistent INTENSITY_BRIGHT_OR_BOLD,
 
-        STYLE_NORMAL, STYLE_ITALIC, STYLE_FRAKTUR,
+        /**
+         * Enables dim color intensity OR faint typefaces (this can vary between terminals).
+         *
+         * @see Type#INTENSITY_BRIGHT_OR_BOLD
+         * @see Type#INTENSITY_DEFAULT
+         */
+        @Inconsistent INTENSITY_DIM_OR_THIN,
 
-        BLINK_NORMAL, BLINK_SLOW, BLINK_RAPID,
+        /**
+         * Resets color intensity back to normal
+         *
+         * @see Type#INTENSITY_BRIGHT_OR_BOLD
+         * @see Type#INTENSITY_DIM_OR_THIN
+         */
+        INTENSITY_DEFAULT,
 
-        INVERT_ON, INVERT_OFF, CONCEAL_ON, CONCEAL_OFF, STRIKE_ON, STRIKE_OFF,
+        // Styles
+        /**
+         * Enables italic style. Not widely supported. Sometimes treated as an inverse or blink effect.
+         *
+         * @see Type#STYLE_FRAKTUR
+         * @see Type#STYLE_DEFAULT
+         */
+        @NotWidelySupported @Inconsistent STYLE_ITALIC,
 
-        FONT_0, FONT_1, FONT_2, FONT_3, FONT_4, FONT_5, FONT_6, FONT_7, FONT_8, FONT_9,
+        /**
+         * Enables fraktur style. Rarely supported.
+         *
+         * @see Type#STYLE_ITALIC
+         * @see Type#STYLE_DEFAULT
+         */
+        @NotWidelySupported STYLE_FRAKTUR,
 
-        UNDERLINE_SINGLE, UNDERLINE_DOUBLE, UNDERLINE_NONE,
+        /**
+         * Resets style back to normal. Disables italic and fraktur styles
+         *
+         * @see Type#STYLE_ITALIC
+         * @see Type#STYLE_FRAKTUR
+         */
+        STYLE_DEFAULT,
 
-        FG_BLK, FG_RED, FG_GRN, FG_YEL, FG_BLU, FG_MAG, FG_CYA, FG_WHI, FG_RGB, FG_DEF,
-        BG_BLK, BG_RED, BG_GRN, BG_YEL, BG_BLU, BG_MAG, BG_CYA, BG_WHI, BG_RGB, BG_DEF,
+        // Cursor blinking
+        /**
+         * Enables slow cursor blinking. Less than 150 blinks per minute, according to the spec.
+         *
+         * @see Type#BLINK_FAST
+         * @see Type#BLINK_DEFAULT
+         */
+        BLINK_SLOW,
 
-        FG_BLK_BRIGHT, FG_RED_BRIGHT, FG_GRN_BRIGHT, FG_YEL_BRIGHT, FG_BLU_BRIGHT, FG_MAG_BRIGHT, FG_CYA_BRIGHT,
-        FG_WHI_BRIGHT,
-        BG_BLK_BRIGHT, BG_RED_BRIGHT, BG_GRN_BRIGHT, BG_YEL_BRIGHT, BG_BLU_BRIGHT, BG_MAG_BRIGHT, BG_CYA_BRIGHT,
-        BG_WHI_BRIGHT,
+        /**
+         * Enables fast cursor blinking. More than 150 blinks per minute, according to the spec.
+         *
+         * @see Type#BLINK_SLOW
+         * @see Type#BLINK_DEFAULT
+         */
+        @NotWidelySupported BLINK_FAST,
 
-        UNDERLINE_COLOR, UNDERLINE_COLOR_DEF,
+        /**
+         * Disables cursor blinking.
+         *
+         * @see Type#BLINK_SLOW
+         * @see Type#BLINK_FAST
+         */
+        BLINK_DEFAULT,
 
-        PROP_SPACING_ON, PROP_SPACING_OFF,
+        // Inversion
+        /**
+         * Enables color inversion by swapping the foreground and background colors.
+         * Also known as "reverse video". Inconsistent emulation.
+         *
+         * @see Type#INVERT_OFF
+         */
+        @Inconsistent INVERT_ON,
 
-        FRAMED_ON, ENCIRCLED_ON, OVERLINED_ON, FRAMED_ENCIRCLED_OFF, OVERLINED_OFF,
+        /**
+         * Disables the color inversion effect; disables swapping foreground and background colors.
+         *
+         * @see Type#INVERT_ON
+         */
+        INVERT_OFF,
 
-        IDEOGRAM_UNDERLINE_ON, IDEOGRAM_DOUBLE_UNDERLINE_ON, IDEOGRAM_OVERLINE_ON, IDEOGRAM_DOUBLE_OVERLINE_ON,
-        IDEOGRAM_STRESS_MARKING_ON, IDEOGRAM_OFF,
+        // Concealment
+        /**
+         * Enables text concealing.
+         * Also known as "Hide". Not widely supported.
+         *
+         * @see Type#CONCEAL_OFF
+         */
+        @NotWidelySupported CONCEAL_ON,
 
-        SUBSCRIPT, SUPERSCRIPT,
+        /**
+         * Disable text concealing.
+         *
+         * @see Type#CONCEAL_ON
+         */
+        CONCEAL_OFF,
+
+        // Strikethrough
+        /**
+         * Enables a strike-through line across text. Also known as "Crossed out".
+         * Makes characters legible, but marked as if for deletion.
+         *
+         * @see Type#STRIKE_OFF
+         */
+        @NotWidelySupported STRIKE_ON,
+
+        /**
+         * Disables strike-through lines across text.
+         *
+         * @see Type#STRIKE_ON
+         */
+        STRIKE_OFF,
+
+        // Fonts
+        // todo Finish documenting this
+        @Inconsistent FONT_1, @Inconsistent FONT_2, @Inconsistent FONT_3,
+        @Inconsistent FONT_4, @Inconsistent FONT_5, @Inconsistent FONT_6,
+        @Inconsistent FONT_7, @Inconsistent FONT_8, @Inconsistent FONT_9,
+        FONT_DEFAULT,
+
+        // Underlines
+        UNDERLINE_SINGLE,
+        UNDERLINE_DOUBLE,
+        UNDERLINE_NONE,
+
+        // Color
+        FG_BLK, FG_RED, FG_GRN, FG_YEL, FG_BLU, FG_MAG, FG_CYA, FG_WHI, FG_RGB,
+        FG_DEFAULT,
+
+        BG_BLK, BG_RED, BG_GRN, BG_YEL, BG_BLU, BG_MAG, BG_CYA, BG_WHI, BG_RGB,
+        BG_DEFAULT,
+
+        // Bright color
+        @NonStandard FG_BLK_BRIGHT, @NonStandard FG_RED_BRIGHT, @NonStandard FG_GRN_BRIGHT, @NonStandard FG_YEL_BRIGHT,
+        @NonStandard FG_BLU_BRIGHT, @NonStandard FG_MAG_BRIGHT, @NonStandard FG_CYA_BRIGHT, @NonStandard FG_WHI_BRIGHT,
+
+        @NonStandard BG_BLK_BRIGHT, @NonStandard BG_RED_BRIGHT, @NonStandard BG_GRN_BRIGHT, @NonStandard BG_YEL_BRIGHT,
+        @NonStandard BG_BLU_BRIGHT, @NonStandard BG_MAG_BRIGHT, @NonStandard BG_CYA_BRIGHT, @NonStandard BG_WHI_BRIGHT,
+
+        // Underline Color
+        @NonStandard UNDERLINE_COLOR,
+        @NonStandard UNDERLINE_COLOR_DEFAULT,
+
+        // Proportional spacing
+        @NotWidelySupported PROP_SPACING_ON, @NotWidelySupported PROP_SPACING_OFF,
+
+        // Framing
+        @NotWidelySupported FRAMED_ON, @NotWidelySupported ENCIRCLED_ON, @NotWidelySupported OVERLINED_ON,
+        @NotWidelySupported FRAMED_ENCIRCLED_OFF, @NotWidelySupported OVERLINED_OFF,
+
+        // Ideogram
+        @NotWidelySupported IDEOGRAM_UNDERLINE_ON, @NotWidelySupported IDEOGRAM_DOUBLE_UNDERLINE_ON,
+        @NotWidelySupported IDEOGRAM_OVERLINE_ON, @NotWidelySupported IDEOGRAM_DOUBLE_OVERLINE_ON,
+        @NotWidelySupported IDEOGRAM_STRESS_MARKING_ON, @NotWidelySupported IDEOGRAM_OFF,
+
+        // Subscript and superscript
+        /**
+         * Enables subscript. Not widely supported, not in standard. Supported in mintty.
+         */
+        @NotWidelySupported @NonStandard SUBSCRIPT,
+
+        /**
+         * Enables superscript. Not widely supported, not in standard. Supported in mintty.
+         */
+        @NotWidelySupported @NonStandard SUPERSCRIPT,
     }
 
     @SuppressWarnings("unused")
@@ -146,11 +298,11 @@ public class SGRStatement {
         put(3, Type.STYLE_ITALIC);
         put(4, Type.UNDERLINE_SINGLE);
         put(5, Type.BLINK_SLOW);
-        put(6, Type.BLINK_RAPID);
+        put(6, Type.BLINK_FAST);
         put(7, Type.INVERT_ON);
         put(8, Type.CONCEAL_ON);
         put(9, Type.STRIKE_ON);
-        put(10, Type.FONT_0);
+        put(10, Type.FONT_DEFAULT);
         put(11, Type.FONT_1);
         put(12, Type.FONT_2);
         put(13, Type.FONT_3);
@@ -162,10 +314,10 @@ public class SGRStatement {
         put(19, Type.FONT_9);
         put(20, Type.STYLE_FRAKTUR);
         put(21, Type.UNDERLINE_DOUBLE);
-        put(22, Type.INTENSITY_NORMAL);
-        put(23, Type.STYLE_NORMAL);
+        put(22, Type.INTENSITY_DEFAULT);
+        put(23, Type.STYLE_DEFAULT);
         put(24, Type.UNDERLINE_NONE);
-        put(25, Type.BLINK_NORMAL);
+        put(25, Type.BLINK_DEFAULT);
         put(26, Type.PROP_SPACING_ON);
         put(27, Type.INVERT_OFF);
         put(28, Type.CONCEAL_OFF);
@@ -179,7 +331,7 @@ public class SGRStatement {
         put(36, Type.FG_CYA);
         put(37, Type.FG_WHI);
         put(38, Type.FG_RGB);
-        put(39, Type.FG_DEF);
+        put(39, Type.FG_DEFAULT);
         put(40, Type.BG_BLK);
         put(41, Type.BG_RED);
         put(42, Type.BG_GRN);
@@ -189,7 +341,7 @@ public class SGRStatement {
         put(46, Type.BG_CYA);
         put(47, Type.BG_WHI);
         put(48, Type.BG_RGB);
-        put(49, Type.BG_DEF);
+        put(49, Type.BG_DEFAULT);
         put(50, Type.PROP_SPACING_OFF);
         put(51, Type.FRAMED_ON);
         put(52, Type.ENCIRCLED_ON);
@@ -197,7 +349,7 @@ public class SGRStatement {
         put(54, Type.FRAMED_ENCIRCLED_OFF);
         put(55, Type.OVERLINED_OFF);
         put(56, Type.UNDERLINE_COLOR);
-        put(57, Type.UNDERLINE_COLOR_DEF);
+        put(57, Type.UNDERLINE_COLOR_DEFAULT);
         put(60, Type.IDEOGRAM_UNDERLINE_ON);
         put(61, Type.IDEOGRAM_DOUBLE_UNDERLINE_ON);
         put(62, Type.IDEOGRAM_OVERLINE_ON);
@@ -232,11 +384,11 @@ public class SGRStatement {
         put(Type.STYLE_ITALIC, 3);
         put(Type.UNDERLINE_SINGLE, 4);
         put(Type.BLINK_SLOW, 5);
-        put(Type.BLINK_RAPID, 6);
+        put(Type.BLINK_FAST, 6);
         put(Type.INVERT_ON, 7);
         put(Type.CONCEAL_ON, 8);
         put(Type.STRIKE_ON, 9);
-        put(Type.FONT_0, 10);
+        put(Type.FONT_DEFAULT, 10);
         put(Type.FONT_1, 11);
         put(Type.FONT_2, 12);
         put(Type.FONT_3, 13);
@@ -248,10 +400,10 @@ public class SGRStatement {
         put(Type.FONT_9, 19);
         put(Type.STYLE_FRAKTUR, 20);
         put(Type.UNDERLINE_DOUBLE, 21);
-        put(Type.INTENSITY_NORMAL, 22);
-        put(Type.STYLE_NORMAL, 23);
+        put(Type.INTENSITY_DEFAULT, 22);
+        put(Type.STYLE_DEFAULT, 23);
         put(Type.UNDERLINE_NONE, 24);
-        put(Type.BLINK_NORMAL, 25);
+        put(Type.BLINK_DEFAULT, 25);
         put(Type.PROP_SPACING_ON, 26);
         put(Type.INVERT_OFF, 27);
         put(Type.CONCEAL_OFF, 28);
@@ -265,7 +417,7 @@ public class SGRStatement {
         put(Type.FG_CYA, 36);
         put(Type.FG_WHI, 37);
         put(Type.FG_RGB, 38);
-        put(Type.FG_DEF, 39);
+        put(Type.FG_DEFAULT, 39);
         put(Type.BG_BLK, 40);
         put(Type.BG_RED, 41);
         put(Type.BG_GRN, 42);
@@ -275,7 +427,7 @@ public class SGRStatement {
         put(Type.BG_CYA, 46);
         put(Type.BG_WHI, 47);
         put(Type.BG_RGB, 48);
-        put(Type.BG_DEF, 49);
+        put(Type.BG_DEFAULT, 49);
         put(Type.PROP_SPACING_OFF, 50);
         put(Type.FRAMED_ON, 51);
         put(Type.ENCIRCLED_ON, 52);
@@ -283,7 +435,7 @@ public class SGRStatement {
         put(Type.FRAMED_ENCIRCLED_OFF, 54);
         put(Type.OVERLINED_OFF, 55);
         put(Type.UNDERLINE_COLOR, 56);
-        put(Type.UNDERLINE_COLOR_DEF, 57);
+        put(Type.UNDERLINE_COLOR_DEFAULT, 57);
         put(Type.IDEOGRAM_UNDERLINE_ON, 60);
         put(Type.IDEOGRAM_DOUBLE_UNDERLINE_ON, 61);
         put(Type.IDEOGRAM_OVERLINE_ON, 62);

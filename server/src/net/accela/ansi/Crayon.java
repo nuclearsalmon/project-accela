@@ -1,6 +1,8 @@
 package net.accela.ansi;
 
+import net.accela.ansi.annotation.NotWidelySupported;
 import net.accela.ansi.exception.ESCSequenceException;
+import net.accela.ansi.sequence.ESCSequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.SGRStatement;
 import net.accela.ansi.sequence.color.PaletteColor;
@@ -8,28 +10,41 @@ import net.accela.ansi.sequence.color.StandardColor;
 import net.accela.ansi.sequence.color.TrueColor;
 import net.accela.ansi.sequence.color.standard.RGB;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link Crayon} is a somewhat more high level framework than the {@link SGRSequence} framework that it builds upon.
- * They are inter-compatible, and the programmer may use whichever one
- * she or he prefers. The functionality provided is more or less the same,
- * the syntax for {@link Crayon} is just shorter and easier to use.
+ * {@link Crayon} is a high level tool that builds upon the {@link SGRSequence} framework.
+ * They are inter-compatible, and the programmer may use whichever one she or he prefers;
+ * the functionality provided is more or less the same. {@link Crayon} is simply meant to shorter and easier to use,
+ * not requiring any in-depth knowledge on how ANSI Escape Sequences work.
+ * <br>
+ * Another noteworthy difference is that {@link Crayon} is mutable,
+ * whereas {@link ESCSequence} objects are immutable.
  */
+// TODO: 11/16/20 Fully document this one.
 public class Crayon extends SGRSequence {
-    List<SGRStatement> statements = new ArrayList<>();
+    @NotNull List<@NotNull SGRStatement> statements = new ArrayList<>();
 
-    //
-    // MISC
-    //
+    ///
+    /// MISC
+    ///
 
+    /**
+     * @return The {@link SGRStatement}s that this {@link Crayon} consists of.
+     */
     @Override
-    public @NotNull List<SGRStatement> toSGRStatements() {
+    public @NotNull List<@NotNull SGRStatement> toSGRStatements() {
         return List.copyOf(statements);
     }
 
+    /**
+     * Converts this {@link Crayon} into an {@link SGRSequence} and returns the String version of it.
+     *
+     * @return The {@link String} representation of this {@link Crayon}.
+     */
     @Override
     public @NotNull String toString() {
         try {
@@ -40,66 +55,124 @@ public class Crayon extends SGRSequence {
         }
     }
 
+    /**
+     * @return The length (in characters) of the {@link String} representation of this {@link Crayon}.
+     * @see CharSequence
+     */
     @Override
     public int length() {
         return toString().length();
     }
 
+    /**
+     * @param i The index get the character from.
+     * @return A single character from the {@link String} representation of this {@link Crayon}, at the requested index.
+     * @see CharSequence
+     */
     @Override
     public char charAt(int i) {
         return toString().charAt(i);
     }
 
+    /**
+     * @param start The start index.
+     * @param end   The end index.
+     * @return A subsequence of the {@link String} representation of this {@link Crayon},
+     * starting and ending at the provided indexes.
+     * @see CharSequence
+     */
     @Override
-    public CharSequence subSequence(int i, int i1) {
-        return toString().subSequence(i, i1);
+    public @NotNull CharSequence subSequence(int start, int end) {
+        return toString().subSequence(start, end);
     }
 
-    //
-    // EFFECTS
-    //
+    ///
+    /// EFFECTS
+    ///
 
-    public Crayon reset() {
+    /**
+     * Resets ALL attributes before this.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon reset() {
         statements.add(new SGRStatement(SGRStatement.Type.RESET));
         return this;
     }
 
-    public Crayon brightIntensity() {
+    /// Intensity
+
+    /**
+     * Enables bright color intensity OR bold typefaces (this can vary between terminals).
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon brightIntensity() {
         statements.add(new SGRStatement(SGRStatement.Type.INTENSITY_BRIGHT_OR_BOLD));
         return this;
     }
 
-    public Crayon dimIntensity() {
+    /**
+     * Enables dim color intensity OR faint typefaces (this can vary between terminals).
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon dimIntensity() {
         statements.add(new SGRStatement(SGRStatement.Type.INTENSITY_DIM_OR_THIN));
         return this;
     }
 
-    public Crayon italicStyle() {
+    /**
+     * Enables default color intensity. Neither bright or dim color intensity.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon normalIntensity() {
+        statements.add(new SGRStatement(SGRStatement.Type.INTENSITY_DEFAULT));
+        return this;
+    }
+
+    /// Text styles and fonts
+
+    /**
+     * Enables italic style. Not widely supported. Sometimes treated as an inverse or blink effect.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    @NotWidelySupported
+    public @NotNull Crayon italicStyle() {
         statements.add(new SGRStatement(SGRStatement.Type.STYLE_ITALIC));
         return this;
     }
 
-    public Crayon singleUnderline() {
-        statements.add(new SGRStatement(SGRStatement.Type.UNDERLINE_SINGLE));
+    /**
+     * Enables fraktur style. Rarely supported.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    @NotWidelySupported
+    public @NotNull Crayon frakturStyle() {
+        statements.add(new SGRStatement(SGRStatement.Type.STYLE_FRAKTUR));
         return this;
     }
 
-    public Crayon invert() {
-        statements.add(new SGRStatement(SGRStatement.Type.INVERT_ON));
+    /**
+     * Disables italic and fraktur styles.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon normalStyle() {
+        statements.add(new SGRStatement(SGRStatement.Type.STYLE_DEFAULT));
         return this;
     }
 
-    public Crayon hide() {
-        statements.add(new SGRStatement(SGRStatement.Type.CONCEAL_ON));
-        return this;
-    }
-
-    public Crayon strike() {
-        statements.add(new SGRStatement(SGRStatement.Type.STRIKE_ON));
-        return this;
-    }
-
-    public Crayon font(int font) {
+    /**
+     * Enables a different font.
+     *
+     * @param font Ranges from 0 - 9, 0 being the default font and the others being alternatives.
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon font(@Range(from = 0, to = 9) int font) {
         SGRStatement.Type fontType;
         switch (font) {
             case 1:
@@ -131,190 +204,285 @@ public class Crayon extends SGRSequence {
                 break;
             case 0:
             default:
-                fontType = SGRStatement.Type.FONT_0;
+                fontType = SGRStatement.Type.FONT_DEFAULT;
                 break;
         }
         statements.add(new SGRStatement(fontType));
         return this;
     }
 
+    /// Underline and strikethrough
 
-    public Crayon frakturStyle() {
-        statements.add(new SGRStatement(SGRStatement.Type.STYLE_FRAKTUR));
+    /**
+     * Enables a single underline. Underline style extensions exists for some terminals.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon singleUnderline() {
+        statements.add(new SGRStatement(SGRStatement.Type.UNDERLINE_SINGLE));
         return this;
     }
 
-    public Crayon doubleUnderline() {
+    /**
+     * Enables a double underline OR disables bold text. Underline style extensions exists for some terminals.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon doubleUnderline() {
         statements.add(new SGRStatement(SGRStatement.Type.UNDERLINE_DOUBLE));
         return this;
     }
 
-    public Crayon normalIntensity() {
-        statements.add(new SGRStatement(SGRStatement.Type.INTENSITY_NORMAL));
-        return this;
-    }
-
-    public Crayon normalStyle() {
-        statements.add(new SGRStatement(SGRStatement.Type.STYLE_NORMAL));
-        return this;
-    }
-
-    public Crayon noUnderline() {
+    /**
+     * Disables underlines.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon noUnderline() {
         statements.add(new SGRStatement(SGRStatement.Type.UNDERLINE_NONE));
         return this;
     }
 
-    public Crayon noInvert() {
-        statements.add(new SGRStatement(SGRStatement.Type.INVERT_OFF));
+    /**
+     * Enables a strike-through line across text. Also known as "Crossed out".
+     * Makes characters legible, but marked as if for deletion.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon strike() {
+        statements.add(new SGRStatement(SGRStatement.Type.STRIKE_ON));
         return this;
     }
 
-    public Crayon noConceal() {
-        statements.add(new SGRStatement(SGRStatement.Type.CONCEAL_OFF));
-        return this;
-    }
-
-    public Crayon noStrike() {
+    /**
+     * Disables strike-through lines across text.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon noStrike() {
         statements.add(new SGRStatement(SGRStatement.Type.STRIKE_OFF));
         return this;
     }
 
-    public Crayon black() {
+    /// Blink
+
+    /**
+     * Enables slow cursor blinking. Less than 150 blinks per minute, according to the spec.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon slowBlink() {
+        statements.add(new SGRStatement(SGRStatement.Type.BLINK_SLOW));
+        return this;
+    }
+
+    /**
+     * Enables fast cursor blinking. More than 150 blinks per minute, according to the spec. Not widely supported.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    @NotWidelySupported
+    public @NotNull Crayon fastBlink() {
+        statements.add(new SGRStatement(SGRStatement.Type.BLINK_FAST));
+        return this;
+    }
+
+    /**
+     * Disables cursor blinking.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon noBlink() {
+        statements.add(new SGRStatement(SGRStatement.Type.BLINK_DEFAULT));
+        return this;
+    }
+
+    /// Color Inversion
+
+    /**
+     * Enables color inversion by swapping the foreground and background colors.
+     * Also known as "Reverse Video". Inconsistent emulation.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon invert() {
+        statements.add(new SGRStatement(SGRStatement.Type.INVERT_ON));
+        return this;
+    }
+
+    /**
+     * Disables the color inversion effect; disables swapping foreground and background colors.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon noInvert() {
+        statements.add(new SGRStatement(SGRStatement.Type.INVERT_OFF));
+        return this;
+    }
+
+    /// Text concealing
+
+    /**
+     * Enables text concealing.
+     * Also known as "Hide". Not widely supported.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    @NotWidelySupported
+    public @NotNull Crayon conceal() {
+        statements.add(new SGRStatement(SGRStatement.Type.CONCEAL_ON));
+        return this;
+    }
+
+    /**
+     * Disables text concealing.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    @NotWidelySupported
+    public @NotNull Crayon noConceal() {
+        statements.add(new SGRStatement(SGRStatement.Type.CONCEAL_OFF));
+        return this;
+    }
+
+    /// Colors
+
+    public @NotNull Crayon black() {
         return black(true, false);
     }
 
-    public Crayon black(boolean fg) {
+    public @NotNull Crayon black(boolean fg) {
         return black(fg, false);
     }
 
-    public Crayon black(boolean fg, boolean bright) {
+    public @NotNull Crayon black(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.BLK, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon red() {
+    public @NotNull Crayon red() {
         return red(true, false);
     }
 
-    public Crayon red(boolean fg) {
+    public @NotNull Crayon red(boolean fg) {
         return red(fg, false);
     }
 
-    public Crayon red(boolean fg, boolean bright) {
+    public @NotNull Crayon red(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.RED, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon green() {
+    public @NotNull Crayon green() {
         return green(true, false);
     }
 
-    public Crayon green(boolean fg) {
+    public @NotNull Crayon green(boolean fg) {
         return green(fg, false);
     }
 
-    public Crayon green(boolean fg, boolean bright) {
+    public @NotNull Crayon green(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.GRN, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon yellow() {
+    public @NotNull Crayon yellow() {
         return yellow(true, false);
     }
 
-    public Crayon yellow(boolean fg) {
+    public @NotNull Crayon yellow(boolean fg) {
         return yellow(fg, false);
     }
 
-    public Crayon yellow(boolean fg, boolean bright) {
+    public @NotNull Crayon yellow(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.YEL, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon blue() {
+    public @NotNull Crayon blue() {
         return blue(true, false);
     }
 
-    public Crayon blue(boolean fg) {
+    public @NotNull Crayon blue(boolean fg) {
         return blue(fg, false);
     }
 
-    public Crayon blue(boolean fg, boolean bright) {
+    public @NotNull Crayon blue(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.BLU, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon magenta() {
+    public @NotNull Crayon magenta() {
         return magenta(true, false);
     }
 
-    public Crayon magenta(boolean fg) {
+    public @NotNull Crayon magenta(boolean fg) {
         return magenta(fg, false);
     }
 
-    public Crayon magenta(boolean fg, boolean bright) {
+    public @NotNull Crayon magenta(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.MAG, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon cyan() {
+    public @NotNull Crayon cyan() {
         return cyan(true, false);
     }
 
-    public Crayon cyan(boolean fg) {
+    public @NotNull Crayon cyan(boolean fg) {
         return cyan(fg, false);
     }
 
-    public Crayon cyan(boolean fg, boolean bright) {
+    public @NotNull Crayon cyan(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.CYA, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon white() {
+    public @NotNull Crayon white() {
         return white(true, false);
     }
 
-    public Crayon white(boolean fg) {
+    public @NotNull Crayon white(boolean fg) {
         return white(fg, false);
     }
 
-    public Crayon white(boolean fg, boolean bright) {
+    public @NotNull Crayon white(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.WHI, fg, bright).toSGRStatements());
         return this;
     }
 
-    public Crayon rgb(int r, int g, int b) {
+    public @NotNull Crayon rgb(int r, int g, int b) {
         return rgb(new RGB(r, g, b));
     }
 
-    public Crayon rgb(int r, int g, int b, boolean fg) {
+    public @NotNull Crayon rgb(int r, int g, int b, boolean fg) {
         return rgb(new RGB(r, g, b), fg);
     }
 
-    public Crayon rgb(@NotNull RGB rgb) {
+    public @NotNull Crayon rgb(@NotNull RGB rgb) {
         return rgb(rgb, true);
     }
 
-    public Crayon rgb(@NotNull RGB rgb, boolean fg) {
+    public @NotNull Crayon rgb(@NotNull RGB rgb, boolean fg) {
         statements.addAll(new TrueColor(rgb, fg).toSGRStatements());
         return this;
     }
 
-    public Crayon rgb(int index) {
+    public @NotNull Crayon rgb(int index) {
         return rgb(index, true);
     }
 
-    public Crayon rgb(int index, boolean fg) {
+    public @NotNull Crayon rgb(int index, boolean fg) {
         statements.addAll(new PaletteColor(index, fg).toSGRStatements());
         return this;
     }
 
-    public Crayon noColor() {
+    public @NotNull Crayon noColor() {
         return noColor(true);
     }
 
-    public Crayon noColor(boolean fg) {
-        statements.add(new SGRStatement((fg ? SGRStatement.Type.FG_DEF : SGRStatement.Type.BG_DEF)));
+    public @NotNull Crayon noColor(boolean fg) {
+        statements.add(new SGRStatement((fg ? SGRStatement.Type.FG_DEFAULT : SGRStatement.Type.BG_DEFAULT)));
         return this;
     }
 }

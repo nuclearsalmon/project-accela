@@ -80,7 +80,7 @@ public final class TelnetSession extends TextGraphicsSession {
 
         if (success) {
             // Announce that the Session has been assigned a new WindowManager instance
-            AccelaAPI.getServer().getPluginManager().callEvent(
+            AccelaAPI.getPluginManager().callEvent(
                     new SessionAssignedEngineEvent(this), Server.PRIVATE_CHANNEL
             );
         } else {

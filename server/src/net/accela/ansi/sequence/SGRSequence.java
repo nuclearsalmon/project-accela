@@ -190,19 +190,19 @@ public class SGRSequence extends CSISequence {
                 case RESET:
                     compressed.add(statement);
                     break;
-                case INTENSITY_NORMAL:
+                case INTENSITY_DEFAULT:
                 case INTENSITY_BRIGHT_OR_BOLD:
                 case INTENSITY_DIM_OR_THIN:
                     tmpIntensity = statement;
                     break;
-                case STYLE_NORMAL:
+                case STYLE_DEFAULT:
                 case STYLE_ITALIC:
                 case STYLE_FRAKTUR:
                     style = statement;
                     break;
-                case BLINK_NORMAL:
+                case BLINK_DEFAULT:
                 case BLINK_SLOW:
-                case BLINK_RAPID:
+                case BLINK_FAST:
                     blink = statement;
                     break;
                 case INVERT_ON:
@@ -217,7 +217,7 @@ public class SGRSequence extends CSISequence {
                 case STRIKE_OFF:
                     strike = statement;
                     break;
-                case FONT_0:
+                case FONT_DEFAULT:
                 case FONT_1:
                 case FONT_2:
                 case FONT_3:
@@ -243,7 +243,7 @@ public class SGRSequence extends CSISequence {
                 case FG_CYA:
                 case FG_WHI:
                 case FG_RGB:
-                case FG_DEF:
+                case FG_DEFAULT:
                 case FG_BLK_BRIGHT:
                 case FG_RED_BRIGHT:
                 case FG_GRN_BRIGHT:
@@ -267,7 +267,7 @@ public class SGRSequence extends CSISequence {
                 case BG_CYA:
                 case BG_WHI:
                 case BG_RGB:
-                case BG_DEF:
+                case BG_DEFAULT:
                 case BG_BLK_BRIGHT:
                 case BG_RED_BRIGHT:
                 case BG_GRN_BRIGHT:
@@ -283,7 +283,7 @@ public class SGRSequence extends CSISequence {
                     }
                     break;
                 case UNDERLINE_COLOR:
-                case UNDERLINE_COLOR_DEF:
+                case UNDERLINE_COLOR_DEFAULT:
                     underlineColor = statement;
                     break;
                 case PROP_SPACING_ON:

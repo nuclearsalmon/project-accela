@@ -38,7 +38,7 @@ public class TelnetSocketServer extends SessionCreator {
         serverSocket = tmpServerSocket;
 
         // Register events
-        AccelaAPI.getServer().getPluginManager().registerEvents(
+        AccelaAPI.getPluginManager().registerEvents(
                 new SessionEventListener(this),
                 getPlugin(),
                 Server.PRIVATE_CHANNEL
@@ -99,7 +99,7 @@ public class TelnetSocketServer extends SessionCreator {
             telnetSessions.add(session);
 
             // Send a SessionCreatedEvent
-            AccelaAPI.getServer().getPluginManager().callEvent(
+            AccelaAPI.getPluginManager().callEvent(
                     new SessionCreatedEvent(session), Server.PRIVATE_CHANNEL
             );
         }

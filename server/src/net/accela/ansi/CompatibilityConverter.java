@@ -51,13 +51,13 @@ public class CompatibilityConverter {
 
     public @NotNull String makeCompatible(final @NotNull List<@NotNull SGRStatement> statements) {
         final StringBuilder result = new StringBuilder(AnsiLib.CSI);
-        SGRStatement.Type intensityType = SGRStatement.Type.INTENSITY_NORMAL;
+        SGRStatement.Type intensityType = SGRStatement.Type.INTENSITY_DEFAULT;
 
         for (SGRStatement statement : statements) {
             Boolean bright = null;
 
             switch (statement.getType()) {
-                case INTENSITY_NORMAL:
+                case INTENSITY_DEFAULT:
                 case INTENSITY_BRIGHT_OR_BOLD:
                 case INTENSITY_DIM_OR_THIN:
                     intensityType = statement.getType();

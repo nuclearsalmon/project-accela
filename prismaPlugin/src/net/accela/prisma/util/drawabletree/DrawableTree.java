@@ -29,7 +29,10 @@ public final class DrawableTree {
      */
     final Map<Drawable, Node> allNodes = new HashMap<>();
 
-    // This one is static so that we can do a lookup from anywhere. It's a bit hack-ish but probably fine.
+    /**
+     * All nodes in all DrawableTrees in total. Only to be used for lookups.
+     * This one is static so that we can do a lookup from anywhere. It's a bit hack-ish but probably fine.
+     */
     final static Map<Drawable, Node> globalAllNodes = new HashMap<>();
 
     final PrismaWM windowManager;
