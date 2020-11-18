@@ -338,8 +338,8 @@ public class Crayon extends SGRSequence {
     //
     // Colors
     //
-    // Black
 
+    // Black
     /**
      * Enables black foreground color.
      *
@@ -391,7 +391,6 @@ public class Crayon extends SGRSequence {
     }
 
     // Red color
-
     /**
      * Enables red foreground color.
      *
@@ -443,7 +442,6 @@ public class Crayon extends SGRSequence {
     }
 
     // Green color
-
     /**
      * Enables green foreground color.
      *
@@ -493,7 +491,6 @@ public class Crayon extends SGRSequence {
     }
 
     // Yellow color
-
     /**
      * Enables yellow foreground color.
      *
@@ -545,7 +542,6 @@ public class Crayon extends SGRSequence {
     }
 
     // Blue color
-
     /**
      * Enables blue foreground color.
      *
@@ -597,7 +593,6 @@ public class Crayon extends SGRSequence {
     }
 
     // Magenta color
-
     /**
      * Enables magenta foreground color.
      *
@@ -649,7 +644,6 @@ public class Crayon extends SGRSequence {
     }
 
     // Cyan color
-
     /**
      * Enables cyan foreground color.
      *
@@ -701,8 +695,6 @@ public class Crayon extends SGRSequence {
     }
 
     // White color
-    // Black
-
     /**
      * Enables white foreground color.
      *
@@ -754,7 +746,6 @@ public class Crayon extends SGRSequence {
     }
 
     // RGB color
-
     /**
      * Enables a foreground RGB color.
      *
@@ -804,7 +795,6 @@ public class Crayon extends SGRSequence {
     }
 
     // RGB Table color
-
     /**
      * Enables a foreground RGB color from a 8-bit color table.
      *
@@ -828,7 +818,6 @@ public class Crayon extends SGRSequence {
     }
 
     // Default color
-
     /**
      * Enables the default foreground color.
      *
