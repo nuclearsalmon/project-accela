@@ -3,6 +3,7 @@ package net.accela.ansi.sequence;
 import net.accela.ansi.annotation.Inconsistent;
 import net.accela.ansi.annotation.NonStandard;
 import net.accela.ansi.annotation.NotWidelySupported;
+import net.accela.ansi.annotation.RequiresArgument;
 import net.accela.ansi.exception.ESCSequenceException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,12 +114,12 @@ public class SGRStatement {
          */
         RESET,
 
-        // Intensity
+        // Color Intensity
         /**
          * Enables Bright color intensity OR bold typefaces (this can vary between terminals).
          *
          * @see Type#INTENSITY_DIM_OR_THIN
-         * @see Type#INTENSITY_DEFAULT
+         * @see Type#INTENSITY_OFF
          */
         @Inconsistent INTENSITY_BRIGHT_OR_BOLD,
 
@@ -126,7 +127,7 @@ public class SGRStatement {
          * Enables dim color intensity OR faint typefaces (this can vary between terminals).
          *
          * @see Type#INTENSITY_BRIGHT_OR_BOLD
-         * @see Type#INTENSITY_DEFAULT
+         * @see Type#INTENSITY_OFF
          */
         @Inconsistent INTENSITY_DIM_OR_THIN,
 
@@ -136,57 +137,32 @@ public class SGRStatement {
          * @see Type#INTENSITY_BRIGHT_OR_BOLD
          * @see Type#INTENSITY_DIM_OR_THIN
          */
-        INTENSITY_DEFAULT,
+        INTENSITY_OFF,
 
-        // Styles
+        // Emphasis
         /**
-         * Enables italic style. Not widely supported. Sometimes treated as an inverse or blink effect.
+         * Enables italic emphasis. Not widely supported. Sometimes treated as an inverse or blink effect.
          *
-         * @see Type#STYLE_FRAKTUR
-         * @see Type#STYLE_DEFAULT
+         * @see Type#EMPHASIS_FRAKTUR
+         * @see Type#EMPHASIS_OFF
          */
-        @NotWidelySupported @Inconsistent STYLE_ITALIC,
-
-        /**
-         * Enables fraktur style. Rarely supported.
-         *
-         * @see Type#STYLE_ITALIC
-         * @see Type#STYLE_DEFAULT
-         */
-        @NotWidelySupported STYLE_FRAKTUR,
+        @NotWidelySupported @Inconsistent EMPHASIS_ITALIC,
 
         /**
-         * Resets style back to normal. Disables italic and fraktur styles
+         * Enables fraktur emphasis. Rarely supported.
          *
-         * @see Type#STYLE_ITALIC
-         * @see Type#STYLE_FRAKTUR
+         * @see Type#EMPHASIS_ITALIC
+         * @see Type#EMPHASIS_OFF
          */
-        STYLE_DEFAULT,
-
-        // Cursor blinking
-        /**
-         * Enables slow cursor blinking. Less than 150 blinks per minute, according to the spec.
-         *
-         * @see Type#BLINK_FAST
-         * @see Type#BLINK_DEFAULT
-         */
-        BLINK_SLOW,
+        @NotWidelySupported EMPHASIS_FRAKTUR,
 
         /**
-         * Enables fast cursor blinking. More than 150 blinks per minute, according to the spec.
+         * Resets emphasis back to normal. Disables italic and fraktur styles
          *
-         * @see Type#BLINK_SLOW
-         * @see Type#BLINK_DEFAULT
+         * @see Type#EMPHASIS_ITALIC
+         * @see Type#EMPHASIS_FRAKTUR
          */
-        @NotWidelySupported BLINK_FAST,
-
-        /**
-         * Disables cursor blinking.
-         *
-         * @see Type#BLINK_SLOW
-         * @see Type#BLINK_FAST
-         */
-        BLINK_DEFAULT,
+        EMPHASIS_OFF,
 
         // Inversion
         /**
@@ -236,38 +212,747 @@ public class SGRStatement {
          */
         STRIKE_OFF,
 
-        // Fonts
-        // todo Finish documenting this
-        @Inconsistent FONT_1, @Inconsistent FONT_2, @Inconsistent FONT_3,
-        @Inconsistent FONT_4, @Inconsistent FONT_5, @Inconsistent FONT_6,
-        @Inconsistent FONT_7, @Inconsistent FONT_8, @Inconsistent FONT_9,
-        FONT_DEFAULT,
+        // Cursor blinking
+        /**
+         * Enables slow cursor blinking. Less than 150 blinks per minute, according to the spec.
+         *
+         * @see Type#BLINK_FAST
+         * @see Type#BLINK_OFF
+         */
+        BLINK_SLOW,
+
+        /**
+         * Enables fast cursor blinking. More than 150 blinks per minute, according to the spec.
+         *
+         * @see Type#BLINK_SLOW
+         * @see Type#BLINK_OFF
+         */
+        @NotWidelySupported BLINK_FAST,
+
+        /**
+         * Disables cursor blinking.
+         *
+         * @see Type#BLINK_SLOW
+         * @see Type#BLINK_FAST
+         */
+        BLINK_OFF,
 
         // Underlines
+        /**
+         * Enables a single underline.
+         *
+         * @see Type#UNDERLINE_DOUBLE
+         * @see Type#UNDERLINE_OFF
+         */
         UNDERLINE_SINGLE,
+
+        /**
+         * Enables a double underline.
+         *
+         * @see Type#UNDERLINE_SINGLE
+         * @see Type#UNDERLINE_OFF
+         */
         UNDERLINE_DOUBLE,
-        UNDERLINE_NONE,
 
-        // Color
-        FG_BLK, FG_RED, FG_GRN, FG_YEL, FG_BLU, FG_MAG, FG_CYA, FG_WHI, FG_RGB,
-        FG_DEFAULT,
-
-        BG_BLK, BG_RED, BG_GRN, BG_YEL, BG_BLU, BG_MAG, BG_CYA, BG_WHI, BG_RGB,
-        BG_DEFAULT,
-
-        // Bright color
-        @NonStandard FG_BLK_BRIGHT, @NonStandard FG_RED_BRIGHT, @NonStandard FG_GRN_BRIGHT, @NonStandard FG_YEL_BRIGHT,
-        @NonStandard FG_BLU_BRIGHT, @NonStandard FG_MAG_BRIGHT, @NonStandard FG_CYA_BRIGHT, @NonStandard FG_WHI_BRIGHT,
-
-        @NonStandard BG_BLK_BRIGHT, @NonStandard BG_RED_BRIGHT, @NonStandard BG_GRN_BRIGHT, @NonStandard BG_YEL_BRIGHT,
-        @NonStandard BG_BLU_BRIGHT, @NonStandard BG_MAG_BRIGHT, @NonStandard BG_CYA_BRIGHT, @NonStandard BG_WHI_BRIGHT,
+        /**
+         * Disables underline.
+         *
+         * @see Type#UNDERLINE_SINGLE
+         * @see Type#UNDERLINE_DOUBLE
+         */
+        UNDERLINE_OFF,
 
         // Underline Color
-        @NonStandard UNDERLINE_COLOR,
+        /**
+         * Sets the underline color. Requires a color argument. Nonstandard; not always supported.
+         *
+         * @see Type#UNDERLINE_SINGLE
+         * @see Type#UNDERLINE_DOUBLE
+         * @see Type#UNDERLINE_OFF
+         * @see Type#UNDERLINE_COLOR_DEFAULT
+         */
+        @NonStandard @RequiresArgument UNDERLINE_COLOR,
+
+        /**
+         * Resets the underline color. Nonstandard; not always supported.
+         *
+         * @see Type#UNDERLINE_SINGLE
+         * @see Type#UNDERLINE_DOUBLE
+         * @see Type#UNDERLINE_OFF
+         * @see Type#UNDERLINE_COLOR
+         */
         @NonStandard UNDERLINE_COLOR_DEFAULT,
 
+        // Fonts
+        /**
+         * Enables the 1st alternative font.
+         *
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_1,
+
+        /**
+         * Enables the 2nd alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_2,
+
+        /**
+         * Enables the 3nd alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_3,
+
+        /**
+         * Enables the 4th alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_4,
+
+        /**
+         * Enables the 5th alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_5,
+
+        /**
+         * Enables the 6th alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_6,
+
+        /**
+         * Enables the 7th alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_7,
+
+        /**
+         * Enables the 8th alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_9
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_8,
+
+        /**
+         * Enables the 9th alternative font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_DEFAULT
+         */
+        @Inconsistent @NotWidelySupported FONT_9,
+
+        /**
+         * Enables the default font.
+         *
+         * @see Type#FONT_1
+         * @see Type#FONT_2
+         * @see Type#FONT_3
+         * @see Type#FONT_4
+         * @see Type#FONT_5
+         * @see Type#FONT_6
+         * @see Type#FONT_7
+         * @see Type#FONT_8
+         * @see Type#FONT_9
+         */
+        @Inconsistent @NotWidelySupported FONT_DEFAULT,
+
+        // Foreground colors
+        /**
+         * Enables black foreground color.
+         *
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_BLK,
+
+        /**
+         * Enables red foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_RED,
+
+        /**
+         * Enables green foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_GRN,
+
+        /**
+         * Enables yellow foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_YEL,
+
+        /**
+         * Enables blue foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_BLU,
+
+        /**
+         * Enables magenta foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_MAG,
+
+        /**
+         * Enables cyan foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_CYA,
+
+        /**
+         * Enables white foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_RGB
+         * @see Type#FG_DEFAULT
+         */
+        FG_WHI,
+
+        /**
+         * Enables RGB foreground color. Requires an argument.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_DEFAULT
+         */
+        @RequiresArgument FG_RGB,
+
+        /**
+         * Enables default foreground color.
+         *
+         * @see Type#FG_BLK
+         * @see Type#FG_RED
+         * @see Type#FG_GRN
+         * @see Type#FG_YEL
+         * @see Type#FG_BLU
+         * @see Type#FG_MAG
+         * @see Type#FG_CYA
+         * @see Type#FG_WHI
+         * @see Type#FG_RGB
+         */
+        FG_DEFAULT,
+
+        // Background colors
+        /**
+         * Enables black background color.
+         *
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_BLK,
+
+        /**
+         * Enables red background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_RED,
+
+        /**
+         * Enables green background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_GRN,
+
+        /**
+         * Enables yellow background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_YEL,
+
+        /**
+         * Enables blue background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_BLU,
+
+        /**
+         * Enables magenta background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_MAG,
+
+        /**
+         * Enables cyan background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_CYA,
+
+        /**
+         * Enables white background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_RGB
+         * @see Type#BG_DEFAULT
+         */
+        BG_WHI,
+
+        /**
+         * Enables RGB background color. Requires an argument.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_DEFAULT
+         */
+        @RequiresArgument BG_RGB,
+
+        /**
+         * Enables default background color.
+         *
+         * @see Type#BG_BLK
+         * @see Type#BG_RED
+         * @see Type#BG_GRN
+         * @see Type#BG_YEL
+         * @see Type#BG_BLU
+         * @see Type#BG_MAG
+         * @see Type#BG_CYA
+         * @see Type#BG_WHI
+         * @see Type#BG_RGB
+         */
+        BG_DEFAULT,
+
+        // Bright foreground colors
+        /**
+         * Enables bright black foreground.
+         *
+         * @see Type#FG_RED_BRIGHT
+         * @see Type#FG_GRN_BRIGHT
+         * @see Type#FG_YEL_BRIGHT
+         * @see Type#FG_BLU_BRIGHT
+         * @see Type#FG_MAG_BRIGHT
+         * @see Type#FG_CYA_BRIGHT
+         * @see Type#FG_WHI_BRIGHT
+         */
+        @NonStandard FG_BLK_BRIGHT,
+
+        /**
+         * Enables bright red foreground.
+         *
+         * @see Type#FG_BLK_BRIGHT
+         * @see Type#FG_GRN_BRIGHT
+         * @see Type#FG_YEL_BRIGHT
+         * @see Type#FG_BLU_BRIGHT
+         * @see Type#FG_MAG_BRIGHT
+         * @see Type#FG_CYA_BRIGHT
+         * @see Type#FG_WHI_BRIGHT
+         */
+        @NonStandard FG_RED_BRIGHT,
+
+        /**
+         * Enables bright green foreground.
+         *
+         * @see Type#FG_BLK_BRIGHT
+         * @see Type#FG_RED_BRIGHT
+         * @see Type#FG_YEL_BRIGHT
+         * @see Type#FG_BLU_BRIGHT
+         * @see Type#FG_MAG_BRIGHT
+         * @see Type#FG_CYA_BRIGHT
+         * @see Type#FG_WHI_BRIGHT
+         */
+        @NonStandard FG_GRN_BRIGHT,
+
+        /**
+         * Enables bright yellow foreground.
+         *
+         * @see Type#FG_BLK_BRIGHT
+         * @see Type#FG_RED_BRIGHT
+         * @see Type#FG_GRN_BRIGHT
+         * @see Type#FG_BLU_BRIGHT
+         * @see Type#FG_MAG_BRIGHT
+         * @see Type#FG_CYA_BRIGHT
+         * @see Type#FG_WHI_BRIGHT
+         */
+        @NonStandard FG_YEL_BRIGHT,
+
+        /**
+         * Enables bright blue foreground.
+         *
+         * @see Type#FG_BLK_BRIGHT
+         * @see Type#FG_RED_BRIGHT
+         * @see Type#FG_GRN_BRIGHT
+         * @see Type#FG_YEL_BRIGHT
+         * @see Type#FG_MAG_BRIGHT
+         * @see Type#FG_CYA_BRIGHT
+         * @see Type#FG_WHI_BRIGHT
+         */
+        @NonStandard FG_BLU_BRIGHT,
+
+        /**
+         * Enables bright magenta foreground.
+         *
+         * @see Type#FG_BLK_BRIGHT
+         * @see Type#FG_RED_BRIGHT
+         * @see Type#FG_GRN_BRIGHT
+         * @see Type#FG_YEL_BRIGHT
+         * @see Type#FG_BLU_BRIGHT
+         * @see Type#FG_CYA_BRIGHT
+         * @see Type#FG_WHI_BRIGHT
+         */
+        @NonStandard FG_MAG_BRIGHT,
+
+        /**
+         * Enables bright cyan foreground.
+         *
+         * @see Type#FG_BLK_BRIGHT
+         * @see Type#FG_RED_BRIGHT
+         * @see Type#FG_GRN_BRIGHT
+         * @see Type#FG_YEL_BRIGHT
+         * @see Type#FG_BLU_BRIGHT
+         * @see Type#FG_MAG_BRIGHT
+         * @see Type#FG_WHI_BRIGHT
+         */
+        @NonStandard FG_CYA_BRIGHT,
+
+        /**
+         * Enables bright white foreground.
+         *
+         * @see Type#FG_BLK_BRIGHT
+         * @see Type#FG_RED_BRIGHT
+         * @see Type#FG_GRN_BRIGHT
+         * @see Type#FG_YEL_BRIGHT
+         * @see Type#FG_BLU_BRIGHT
+         * @see Type#FG_MAG_BRIGHT
+         * @see Type#FG_CYA_BRIGHT
+         */
+        @NonStandard FG_WHI_BRIGHT,
+
+        // Bright background colors
+        /**
+         * Enables bright black background.
+         *
+         * @see Type#BG_RED_BRIGHT
+         * @see Type#BG_GRN_BRIGHT
+         * @see Type#BG_YEL_BRIGHT
+         * @see Type#BG_BLU_BRIGHT
+         * @see Type#BG_MAG_BRIGHT
+         * @see Type#BG_CYA_BRIGHT
+         * @see Type#BG_WHI_BRIGHT
+         */
+        @NonStandard BG_BLK_BRIGHT,
+
+        /**
+         * Enables bright red background.
+         *
+         * @see Type#BG_BLK_BRIGHT
+         * @see Type#BG_GRN_BRIGHT
+         * @see Type#BG_YEL_BRIGHT
+         * @see Type#BG_BLU_BRIGHT
+         * @see Type#BG_MAG_BRIGHT
+         * @see Type#BG_CYA_BRIGHT
+         * @see Type#BG_WHI_BRIGHT
+         */
+        @NonStandard BG_RED_BRIGHT,
+
+        /**
+         * Enables bright green background.
+         *
+         * @see Type#BG_BLK_BRIGHT
+         * @see Type#BG_RED_BRIGHT
+         * @see Type#BG_YEL_BRIGHT
+         * @see Type#BG_BLU_BRIGHT
+         * @see Type#BG_MAG_BRIGHT
+         * @see Type#BG_CYA_BRIGHT
+         * @see Type#BG_WHI_BRIGHT
+         */
+        @NonStandard BG_GRN_BRIGHT,
+
+        /**
+         * Enables bright yellow background.
+         *
+         * @see Type#BG_BLK_BRIGHT
+         * @see Type#BG_RED_BRIGHT
+         * @see Type#BG_GRN_BRIGHT
+         * @see Type#BG_BLU_BRIGHT
+         * @see Type#BG_MAG_BRIGHT
+         * @see Type#BG_CYA_BRIGHT
+         * @see Type#BG_WHI_BRIGHT
+         */
+        @NonStandard BG_YEL_BRIGHT,
+
+        /**
+         * Enables bright blue background.
+         *
+         * @see Type#BG_BLK_BRIGHT
+         * @see Type#BG_RED_BRIGHT
+         * @see Type#BG_GRN_BRIGHT
+         * @see Type#BG_YEL_BRIGHT
+         * @see Type#BG_MAG_BRIGHT
+         * @see Type#BG_CYA_BRIGHT
+         * @see Type#BG_WHI_BRIGHT
+         */
+        @NonStandard BG_BLU_BRIGHT,
+
+        /**
+         * Enables bright magenta background.
+         *
+         * @see Type#BG_BLK_BRIGHT
+         * @see Type#BG_RED_BRIGHT
+         * @see Type#BG_GRN_BRIGHT
+         * @see Type#BG_YEL_BRIGHT
+         * @see Type#BG_BLU_BRIGHT
+         * @see Type#BG_CYA_BRIGHT
+         * @see Type#BG_WHI_BRIGHT
+         */
+        @NonStandard BG_MAG_BRIGHT,
+
+        /**
+         * Enables bright cyan background.
+         *
+         * @see Type#BG_BLK_BRIGHT
+         * @see Type#BG_RED_BRIGHT
+         * @see Type#BG_GRN_BRIGHT
+         * @see Type#BG_YEL_BRIGHT
+         * @see Type#BG_BLU_BRIGHT
+         * @see Type#BG_MAG_BRIGHT
+         * @see Type#BG_WHI_BRIGHT
+         */
+        @NonStandard BG_CYA_BRIGHT,
+
+        /**
+         * Enables bright white background.
+         *
+         * @see Type#BG_BLK_BRIGHT
+         * @see Type#BG_RED_BRIGHT
+         * @see Type#BG_GRN_BRIGHT
+         * @see Type#BG_YEL_BRIGHT
+         * @see Type#BG_BLU_BRIGHT
+         * @see Type#BG_MAG_BRIGHT
+         * @see Type#BG_CYA_BRIGHT
+         */
+        @NonStandard BG_WHI_BRIGHT,
+
         // Proportional spacing
-        @NotWidelySupported PROP_SPACING_ON, @NotWidelySupported PROP_SPACING_OFF,
+        /**
+         * Enables proportional spacing
+         */@NotWidelySupported PROP_SPACING_ON,
+        /**
+         * Disables proportional spacing
+         */@NotWidelySupported PROP_SPACING_OFF,
 
         // Framing
         @NotWidelySupported FRAMED_ON, @NotWidelySupported ENCIRCLED_ON, @NotWidelySupported OVERLINED_ON,
@@ -295,7 +980,7 @@ public class SGRStatement {
         put(0, Type.RESET);
         put(1, Type.INTENSITY_BRIGHT_OR_BOLD);
         put(2, Type.INTENSITY_DIM_OR_THIN);
-        put(3, Type.STYLE_ITALIC);
+        put(3, Type.EMPHASIS_ITALIC);
         put(4, Type.UNDERLINE_SINGLE);
         put(5, Type.BLINK_SLOW);
         put(6, Type.BLINK_FAST);
@@ -312,12 +997,12 @@ public class SGRStatement {
         put(17, Type.FONT_7);
         put(18, Type.FONT_8);
         put(19, Type.FONT_9);
-        put(20, Type.STYLE_FRAKTUR);
+        put(20, Type.EMPHASIS_FRAKTUR);
         put(21, Type.UNDERLINE_DOUBLE);
-        put(22, Type.INTENSITY_DEFAULT);
-        put(23, Type.STYLE_DEFAULT);
-        put(24, Type.UNDERLINE_NONE);
-        put(25, Type.BLINK_DEFAULT);
+        put(22, Type.INTENSITY_OFF);
+        put(23, Type.EMPHASIS_OFF);
+        put(24, Type.UNDERLINE_OFF);
+        put(25, Type.BLINK_OFF);
         put(26, Type.PROP_SPACING_ON);
         put(27, Type.INVERT_OFF);
         put(28, Type.CONCEAL_OFF);
@@ -381,7 +1066,7 @@ public class SGRStatement {
         put(Type.RESET, 0);
         put(Type.INTENSITY_BRIGHT_OR_BOLD, 1);
         put(Type.INTENSITY_DIM_OR_THIN, 2);
-        put(Type.STYLE_ITALIC, 3);
+        put(Type.EMPHASIS_ITALIC, 3);
         put(Type.UNDERLINE_SINGLE, 4);
         put(Type.BLINK_SLOW, 5);
         put(Type.BLINK_FAST, 6);
@@ -398,12 +1083,12 @@ public class SGRStatement {
         put(Type.FONT_7, 17);
         put(Type.FONT_8, 18);
         put(Type.FONT_9, 19);
-        put(Type.STYLE_FRAKTUR, 20);
+        put(Type.EMPHASIS_FRAKTUR, 20);
         put(Type.UNDERLINE_DOUBLE, 21);
-        put(Type.INTENSITY_DEFAULT, 22);
-        put(Type.STYLE_DEFAULT, 23);
-        put(Type.UNDERLINE_NONE, 24);
-        put(Type.BLINK_DEFAULT, 25);
+        put(Type.INTENSITY_OFF, 22);
+        put(Type.EMPHASIS_OFF, 23);
+        put(Type.UNDERLINE_OFF, 24);
+        put(Type.BLINK_OFF, 25);
         put(Type.PROP_SPACING_ON, 26);
         put(Type.INVERT_OFF, 27);
         put(Type.CONCEAL_OFF, 28);

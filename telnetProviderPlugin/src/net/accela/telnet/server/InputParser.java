@@ -169,7 +169,7 @@ public class InputParser {
                 /* Clear to reset the cursor */
                 AnsiLib.CLR +
                         /* Black FG and BG so that the characters aren't visible. Makes for a cleaner look */
-                        new Crayon().black(true).black(false) +
+                        new Crayon().blackBg(true).blackBg(false) +
                         /* Print three unicode characters that are 3 bytes in UTF-8 encoding */
                         "㐸惵㲒" +
                         /* Request to know where the cursor is now */

@@ -5,8 +5,8 @@ import net.accela.ansi.exception.ESCSequenceException;
 import net.accela.ansi.sequence.ESCSequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.SGRStatement;
-import net.accela.ansi.sequence.color.PaletteColor;
 import net.accela.ansi.sequence.color.StandardColor;
+import net.accela.ansi.sequence.color.TableColor;
 import net.accela.ansi.sequence.color.TrueColor;
 import net.accela.ansi.sequence.color.standard.RGB;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +27,6 @@ import java.util.List;
 // TODO: 11/16/20 Fully document this one.
 public class Crayon extends SGRSequence {
     @NotNull List<@NotNull SGRStatement> statements = new ArrayList<>();
-
-    ///
-    /// MISC
-    ///
 
     /**
      * @return The {@link SGRStatement}s that this {@link Crayon} consists of.
@@ -86,9 +82,9 @@ public class Crayon extends SGRSequence {
         return toString().subSequence(start, end);
     }
 
-    ///
-    /// EFFECTS
-    ///
+    //
+    // EFFECTS
+    //
 
     /**
      * Resets ALL attributes before this.
@@ -100,8 +96,7 @@ public class Crayon extends SGRSequence {
         return this;
     }
 
-    /// Intensity
-
+    // Intensity
     /**
      * Enables bright color intensity OR bold typefaces (this can vary between terminals).
      *
@@ -128,12 +123,11 @@ public class Crayon extends SGRSequence {
      * @return The {@link Crayon} instance this was executed on.
      */
     public @NotNull Crayon normalIntensity() {
-        statements.add(new SGRStatement(SGRStatement.Type.INTENSITY_DEFAULT));
+        statements.add(new SGRStatement(SGRStatement.Type.INTENSITY_OFF));
         return this;
     }
 
-    /// Text styles and fonts
-
+    // Text styles and fonts
     /**
      * Enables italic style. Not widely supported. Sometimes treated as an inverse or blink effect.
      *
@@ -141,7 +135,7 @@ public class Crayon extends SGRSequence {
      */
     @NotWidelySupported
     public @NotNull Crayon italicStyle() {
-        statements.add(new SGRStatement(SGRStatement.Type.STYLE_ITALIC));
+        statements.add(new SGRStatement(SGRStatement.Type.EMPHASIS_ITALIC));
         return this;
     }
 
@@ -152,7 +146,7 @@ public class Crayon extends SGRSequence {
      */
     @NotWidelySupported
     public @NotNull Crayon frakturStyle() {
-        statements.add(new SGRStatement(SGRStatement.Type.STYLE_FRAKTUR));
+        statements.add(new SGRStatement(SGRStatement.Type.EMPHASIS_FRAKTUR));
         return this;
     }
 
@@ -162,12 +156,12 @@ public class Crayon extends SGRSequence {
      * @return The {@link Crayon} instance this was executed on.
      */
     public @NotNull Crayon normalStyle() {
-        statements.add(new SGRStatement(SGRStatement.Type.STYLE_DEFAULT));
+        statements.add(new SGRStatement(SGRStatement.Type.EMPHASIS_OFF));
         return this;
     }
 
     /**
-     * Enables a different font.
+     * Changes the font.
      *
      * @param font Ranges from 0 - 9, 0 being the default font and the others being alternatives.
      * @return The {@link Crayon} instance this was executed on.
@@ -211,8 +205,7 @@ public class Crayon extends SGRSequence {
         return this;
     }
 
-    /// Underline and strikethrough
-
+    // Underline and strikethrough
     /**
      * Enables a single underline. Underline style extensions exists for some terminals.
      *
@@ -239,7 +232,7 @@ public class Crayon extends SGRSequence {
      * @return The {@link Crayon} instance this was executed on.
      */
     public @NotNull Crayon noUnderline() {
-        statements.add(new SGRStatement(SGRStatement.Type.UNDERLINE_NONE));
+        statements.add(new SGRStatement(SGRStatement.Type.UNDERLINE_OFF));
         return this;
     }
 
@@ -264,8 +257,7 @@ public class Crayon extends SGRSequence {
         return this;
     }
 
-    /// Blink
-
+    // Cursor blinking
     /**
      * Enables slow cursor blinking. Less than 150 blinks per minute, according to the spec.
      *
@@ -293,12 +285,11 @@ public class Crayon extends SGRSequence {
      * @return The {@link Crayon} instance this was executed on.
      */
     public @NotNull Crayon noBlink() {
-        statements.add(new SGRStatement(SGRStatement.Type.BLINK_DEFAULT));
+        statements.add(new SGRStatement(SGRStatement.Type.BLINK_OFF));
         return this;
     }
 
-    /// Color Inversion
-
+    // Color inversion
     /**
      * Enables color inversion by swapping the foreground and background colors.
      * Also known as "Reverse Video". Inconsistent emulation.
@@ -320,8 +311,7 @@ public class Crayon extends SGRSequence {
         return this;
     }
 
-    /// Text concealing
-
+    // Text concealing
     /**
      * Enables text concealing.
      * Also known as "Hide". Not widely supported.
@@ -345,144 +335,517 @@ public class Crayon extends SGRSequence {
         return this;
     }
 
-    /// Colors
+    //
+    // Colors
+    //
+    // Black
 
-    public @NotNull Crayon black() {
+    /**
+     * Enables black foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blackFg() {
         return black(true, false);
     }
 
-    public @NotNull Crayon black(boolean fg) {
-        return black(fg, false);
+    /**
+     * Enables black foreground color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blackFg(boolean bright) {
+        return black(true, bright);
     }
 
+    /**
+     * Enables black background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blackBg() {
+        return black(false, false);
+    }
+
+    /**
+     * Enables black background color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blackBg(boolean bright) {
+        return black(false, bright);
+    }
+
+    /**
+     * Enables black color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon black(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.BLK, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon red() {
+    // Red color
+
+    /**
+     * Enables red foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon redFg() {
         return red(true, false);
     }
 
-    public @NotNull Crayon red(boolean fg) {
-        return red(fg, false);
+    /**
+     * Enables red foreground color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon redFg(boolean bright) {
+        return red(true, bright);
     }
 
+    /**
+     * Enables red background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon redBg() {
+        return red(false, false);
+    }
+
+    /**
+     * Enables red background color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon redFb(boolean bright) {
+        return red(false, bright);
+    }
+
+    /**
+     * Enables black color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon red(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.RED, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon green() {
+    // Green color
+
+    /**
+     * Enables green foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon greenFg() {
         return green(true, false);
     }
 
-    public @NotNull Crayon green(boolean fg) {
-        return green(fg, false);
+    /**
+     * Enables green foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon greenFg(boolean bright) {
+        return green(true, bright);
     }
 
+    /**
+     * Enables green background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon greenBg() {
+        return green(false, false);
+    }
+
+    /**
+     * Enables green background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon greenBg(boolean bright) {
+        return green(false, bright);
+    }
+
+    /**
+     * Enables green color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon green(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.GRN, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon yellow() {
+    // Yellow color
+
+    /**
+     * Enables yellow foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon yellowFg() {
         return yellow(true, false);
     }
 
-    public @NotNull Crayon yellow(boolean fg) {
-        return yellow(fg, false);
+    /**
+     * Enables yellow foreground color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon yellowFg(boolean bright) {
+        return yellow(true, bright);
     }
 
+    /**
+     * Enables yellow background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon yellowBg() {
+        return yellow(false, false);
+    }
+
+    /**
+     * Enables yellow background color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon yellowBg(boolean bright) {
+        return yellow(false, bright);
+    }
+
+    /**
+     * Enables yellow color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon yellow(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.YEL, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon blue() {
+    // Blue color
+
+    /**
+     * Enables blue foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blueFg() {
         return blue(true, false);
     }
 
-    public @NotNull Crayon blue(boolean fg) {
-        return blue(fg, false);
+    /**
+     * Enables blue foreground color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blueFg(boolean bright) {
+        return blue(true, bright);
     }
 
+    /**
+     * Enables blue background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blueBg() {
+        return blue(false, false);
+    }
+
+    /**
+     * Enables blue background color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon blueBg(boolean bright) {
+        return blue(false, bright);
+    }
+
+    /**
+     * Enables blue color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon blue(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.BLU, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon magenta() {
+    // Magenta color
+
+    /**
+     * Enables magenta foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon magentaFg() {
         return magenta(true, false);
     }
 
-    public @NotNull Crayon magenta(boolean fg) {
-        return magenta(fg, false);
+    /**
+     * Enables magenta foreground color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon magentaFg(boolean bright) {
+        return magenta(true, bright);
     }
 
+    /**
+     * Enables magenta background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon magentaBg() {
+        return magenta(false, false);
+    }
+
+    /**
+     * Enables magenta background color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon magentaBg(boolean bright) {
+        return magenta(false, bright);
+    }
+
+    /**
+     * Enables magenta color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon magenta(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.MAG, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon cyan() {
+    // Cyan color
+
+    /**
+     * Enables cyan foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon cyanFg() {
         return cyan(true, false);
     }
 
-    public @NotNull Crayon cyan(boolean fg) {
-        return cyan(fg, false);
+    /**
+     * Enables cyan foreground color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon cyanFg(boolean bright) {
+        return cyan(true, bright);
     }
 
+    /**
+     * Enables cyan background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon cyanBg() {
+        return cyan(false, false);
+    }
+
+    /**
+     * Enables cyan background color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon cyanBg(boolean bright) {
+        return cyan(false, bright);
+    }
+
+    /**
+     * Enables cyan color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon cyan(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.CYA, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon white() {
+    // White color
+    // Black
+
+    /**
+     * Enables white foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon whiteFg() {
         return white(true, false);
     }
 
-    public @NotNull Crayon white(boolean fg) {
-        return white(fg, false);
+    /**
+     * Enables white foreground color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon whiteFg(boolean bright) {
+        return white(true, bright);
     }
 
+    /**
+     * Enables white background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon whiteBg() {
+        return white(false, false);
+    }
+
+    /**
+     * Enables white background color.
+     *
+     * @param bright Whether to use a bright color or not
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon whiteBg(boolean bright) {
+        return white(false, bright);
+    }
+
+    /**
+     * Enables white color.
+     *
+     * @param fg     Whether to use a foreground color or a background color.
+     * @param bright Whether to use a bright color or not.
+     * @return The {@link Crayon} instance this was executed on.
+     */
     public @NotNull Crayon white(boolean fg, boolean bright) {
         statements.addAll(new StandardColor(StandardColor.ColorName.WHI, fg, bright).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon rgb(int r, int g, int b) {
-        return rgb(new RGB(r, g, b));
-    }
+    // RGB color
 
-    public @NotNull Crayon rgb(int r, int g, int b, boolean fg) {
-        return rgb(new RGB(r, g, b), fg);
-    }
-
-    public @NotNull Crayon rgb(@NotNull RGB rgb) {
-        return rgb(rgb, true);
-    }
-
-    public @NotNull Crayon rgb(@NotNull RGB rgb, boolean fg) {
-        statements.addAll(new TrueColor(rgb, fg).toSGRStatements());
+    /**
+     * Enables a foreground RGB color.
+     *
+     * @param r The amount of red to use
+     * @param g The amount of green to use
+     * @param b The amount of blue to use
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon rgbFg(int r, int g, int b) {
+        statements.addAll(new TrueColor(new RGB(r, g, b), true).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon rgb(int index) {
-        return rgb(index, true);
-    }
-
-    public @NotNull Crayon rgb(int index, boolean fg) {
-        statements.addAll(new PaletteColor(index, fg).toSGRStatements());
+    /**
+     * Enables a foreground RGB color.
+     *
+     * @param rgb The RGB values to use.
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon rgbFg(@NotNull RGB rgb) {
+        statements.addAll(new TrueColor(rgb, true).toSGRStatements());
         return this;
     }
 
-    public @NotNull Crayon noColor() {
-        return noColor(true);
+    /**
+     * Enables a background RGB color.
+     *
+     * @param r The amount of red to use
+     * @param g The amount of green to use
+     * @param b The amount of blue to use
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon rgbBg(int r, int g, int b) {
+        statements.addAll(new TrueColor(new RGB(r, g, b), false).toSGRStatements());
+        return this;
     }
 
-    public @NotNull Crayon noColor(boolean fg) {
-        statements.add(new SGRStatement((fg ? SGRStatement.Type.FG_DEFAULT : SGRStatement.Type.BG_DEFAULT)));
+    /**
+     * Enables a background RGB color.
+     *
+     * @param rgb The RGB values to use.
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon rgbBg(@NotNull RGB rgb) {
+        statements.addAll(new TrueColor(rgb, false).toSGRStatements());
+        return this;
+    }
+
+    // RGB Table color
+
+    /**
+     * Enables a foreground RGB color from a 8-bit color table.
+     *
+     * @param index Color index in the table.
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon tableFg(@Range(from = 0, to = 255) int index) {
+        statements.addAll(new TableColor(index, true).toSGRStatements());
+        return this;
+    }
+
+    /**
+     * Enables a background RGB color from a 8-bit color table.
+     *
+     * @param index Color index in the table.
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon tableBg(@Range(from = 0, to = 255) int index) {
+        statements.addAll(new TableColor(index, false).toSGRStatements());
+        return this;
+    }
+
+    // Default color
+
+    /**
+     * Enables the default foreground color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon defaultFg() {
+        statements.add(new SGRStatement(SGRStatement.Type.FG_DEFAULT));
+        return this;
+    }
+
+    /**
+     * Enables the default background color.
+     *
+     * @return The {@link Crayon} instance this was executed on.
+     */
+    public @NotNull Crayon defaultBg() {
+        statements.add(new SGRStatement(SGRStatement.Type.BG_DEFAULT));
         return this;
     }
 }

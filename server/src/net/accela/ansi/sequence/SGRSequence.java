@@ -190,17 +190,17 @@ public class SGRSequence extends CSISequence {
                 case RESET:
                     compressed.add(statement);
                     break;
-                case INTENSITY_DEFAULT:
+                case INTENSITY_OFF:
                 case INTENSITY_BRIGHT_OR_BOLD:
                 case INTENSITY_DIM_OR_THIN:
                     tmpIntensity = statement;
                     break;
-                case STYLE_DEFAULT:
-                case STYLE_ITALIC:
-                case STYLE_FRAKTUR:
+                case EMPHASIS_OFF:
+                case EMPHASIS_ITALIC:
+                case EMPHASIS_FRAKTUR:
                     style = statement;
                     break;
-                case BLINK_DEFAULT:
+                case BLINK_OFF:
                 case BLINK_SLOW:
                 case BLINK_FAST:
                     blink = statement;
@@ -229,7 +229,7 @@ public class SGRSequence extends CSISequence {
                 case FONT_9:
                     font = statement;
                     break;
-                case UNDERLINE_NONE:
+                case UNDERLINE_OFF:
                 case UNDERLINE_SINGLE:
                 case UNDERLINE_DOUBLE:
                     underline = statement;

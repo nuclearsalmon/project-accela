@@ -5,29 +5,32 @@ import net.accela.ansi.exception.ESCSequenceException;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.color.standard.RGB;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
-public class PaletteColor extends SGRSequence {
+public class TableColor extends SGRSequence {
     int index;
     boolean fg;
 
-    public PaletteColor(int index) throws ESCSequenceException {
+    public TableColor(int index) throws ESCSequenceException {
         this(index, true);
     }
 
-    public PaletteColor(int index, boolean fg) throws ESCSequenceException {
+    public TableColor(@Range(from = 0, to = 255) int index, boolean fg) throws ESCSequenceException {
+        //noinspection ConstantConditions
         if (index < 0 | index > 255) {
             throw new IndexOutOfBoundsException("The int value needs to be between 0 and 255");
         }
+
         this.index = index;
         this.fg = fg;
         this.sequenceString = AnsiLib.CSI + (fg ? "3" : "4") + "8;5;" + index + "m";
     }
 
-    public PaletteColor(RGB rgb) throws ESCSequenceException {
+    public TableColor(RGB rgb) throws ESCSequenceException {
         this(rgb, true);
     }
 
-    public PaletteColor(RGB rgb, boolean fg) throws ESCSequenceException {
+    public TableColor(RGB rgb, boolean fg) throws ESCSequenceException {
         this.fg = fg;
         // We use the extended greyscale palette here, with the exception of
         // black and white. Normal palette only has 4 greyscale shades.
@@ -56,7 +59,7 @@ public class PaletteColor extends SGRSequence {
         }
     }
 
-    public boolean isFG() {
+    public boolean isForeground() {
         return fg;
     }
 

@@ -3,8 +3,8 @@ package net.accela.ansi;
 import net.accela.ansi.exception.ESCSequenceException;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.SGRStatement;
-import net.accela.ansi.sequence.color.PaletteColor;
 import net.accela.ansi.sequence.color.StandardColor;
+import net.accela.ansi.sequence.color.TableColor;
 import net.accela.ansi.sequence.color.standard.RGB;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,13 +51,13 @@ public class CompatibilityConverter {
 
     public @NotNull String makeCompatible(final @NotNull List<@NotNull SGRStatement> statements) {
         final StringBuilder result = new StringBuilder(AnsiLib.CSI);
-        SGRStatement.Type intensityType = SGRStatement.Type.INTENSITY_DEFAULT;
+        SGRStatement.Type intensityType = SGRStatement.Type.INTENSITY_OFF;
 
         for (SGRStatement statement : statements) {
             Boolean bright = null;
 
             switch (statement.getType()) {
-                case INTENSITY_DEFAULT:
+                case INTENSITY_OFF:
                 case INTENSITY_BRIGHT_OR_BOLD:
                 case INTENSITY_DIM_OR_THIN:
                     intensityType = statement.getType();
@@ -127,7 +127,7 @@ public class CompatibilityConverter {
             int[] args = statement.getArguments();
             RGB rgb;
             if (args[0] == 5) {
-                rgb = new PaletteColor(args[1]).toRGB();
+                rgb = new TableColor(args[1]).toRGB();
             } else if (args[0] == 2) {
                 rgb = new RGB(args[1], args[2], args[3]);
             } else {
