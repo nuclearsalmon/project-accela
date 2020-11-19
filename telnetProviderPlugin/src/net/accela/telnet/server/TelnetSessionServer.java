@@ -1,11 +1,12 @@
 package net.accela.telnet.server;
 
 import net.accela.ansi.AnsiLib;
-import net.accela.prisma.util.CharsetDecoder;
 import net.accela.telnet.exception.InvalidTelnetSequenceException;
 import net.accela.telnet.exception.TerminationException;
 import net.accela.telnet.session.TelnetSession;
 import net.accela.telnet.util.ArrayUtil;
+import net.accela.telnet.util.CharsetDecoder;
+import net.accela.telnet.util.InputParser;
 import net.accela.telnet.util.TelnetByteTranslator;
 import org.jetbrains.annotations.NotNull;
 

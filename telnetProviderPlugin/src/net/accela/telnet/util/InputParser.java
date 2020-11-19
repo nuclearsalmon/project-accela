@@ -1,4 +1,4 @@
-package net.accela.telnet.server;
+package net.accela.telnet.util;
 
 import net.accela.ansi.AnsiLib;
 import net.accela.ansi.Crayon;
@@ -12,6 +12,7 @@ import net.accela.prisma.session.TextGraphicsSession;
 import net.accela.prisma.util.AnsiInputParser;
 import net.accela.server.AccelaAPI;
 import net.accela.server.plugin.Plugin;
+import net.accela.telnet.server.TelnetSessionServer;
 import net.accela.telnet.session.TelnetSession;
 import org.jetbrains.annotations.NotNull;
 

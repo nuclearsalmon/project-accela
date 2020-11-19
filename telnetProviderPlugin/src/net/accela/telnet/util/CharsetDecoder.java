@@ -1,4 +1,4 @@
-package net.accela.prisma.util;
+package net.accela.telnet.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
