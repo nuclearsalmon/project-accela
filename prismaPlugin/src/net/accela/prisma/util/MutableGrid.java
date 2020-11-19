@@ -18,27 +18,32 @@ import java.util.List;
  *
  * @param <E> the type of elements in this grid
  */
-public final class CacheGrid<E> {
+public final class MutableGrid<E> {
     List<E> elements;
     Size size;
 
     /**
      * @param sideSize The size of the sides, AKA both width and height
      */
-    public CacheGrid(int sideSize) throws RectOutOfBoundsException {
+    public MutableGrid(int sideSize) throws RectOutOfBoundsException {
         this(new Size(sideSize));
     }
 
-    public CacheGrid(int width, int height) throws RectOutOfBoundsException {
+    public MutableGrid(int width, int height) throws RectOutOfBoundsException {
         this(new Size(width, height));
     }
 
     /**
-     * @param size The {@link Size} of the {@link CacheGrid}
+     * @param size The {@link Size} of the {@link MutableGrid}
      */
-    public CacheGrid(@NotNull Size size) throws RectOutOfBoundsException {
+    public MutableGrid(@NotNull Size size) throws RectOutOfBoundsException {
         this.size = size;
         clear();
+    }
+
+    public MutableGrid(@NotNull MutableGrid<E> origin) {
+        this.size = origin.size;
+        this.elements = origin.elements;
     }
 
     /**
@@ -119,6 +124,47 @@ public final class CacheGrid<E> {
     }
 
     /**
+     * Takes the intersecting area between target and source
+     * (which is created based off of the start points),
+     * and uses it to grab values from source and insert into a new {@link MutableGrid}, which is then returned.
+     * <p>
+     * Be careful with bad point values, it might result in unexpected null values.
+     *
+     * @param bottomSourceStart A {@link Point} representing the start of the target
+     * @param bottomSource      This is where values will be inserted
+     * @param topSourceStart    A {@link Point} representing the start of the source
+     * @param topSource         This is where values will be sourced
+     * @return The resulting {@link MutableGrid} from the overlay process.
+     */
+    public static <T> MutableGrid<T> overlay(@NotNull Point bottomSourceStart, @NotNull MutableGrid<T> bottomSource,
+                                             @NotNull Point topSourceStart, @NotNull MutableGrid<T> topSource) {
+        // Create areas (starting at 0,0) for each MutableGrid
+        Rect bottomSourceRect = new Rect(bottomSourceStart.getX(), bottomSourceStart.getY(), bottomSource.getWidth(), bottomSource.getHeight());
+        Rect topSourceRect = new Rect(topSourceStart.getX(), topSourceStart.getY(), topSource.getWidth(), topSource.getHeight());
+
+        // Get the area we're interested in
+        Rect intersection = Rect.intersection(bottomSourceRect, topSourceRect);
+
+        MutableGrid<T> targetMutableGrid = new MutableGrid<>(bottomSource);
+
+        for (int y = intersection.getMinY(); y <= intersection.getMaxY(); y++) {
+            for (int x = intersection.getMinX(); x <= intersection.getMaxX(); x++) {
+                // Turn this into separate sets of relative points for bottomSource and topSource
+                int bottomSourceRelX = x - bottomSourceStart.getX();
+                int bottomSourceRelY = y - bottomSourceStart.getY();
+                int topSourceRelX = x - topSourceStart.getX();
+                int topSourceRelY = y - topSourceStart.getY();
+
+                //System.out.println("i(" + x + "," + y + ") -> t(" + targetRelX + "," + targetRelY + ") + s(" + sourceRelX + "," + sourceRelY + ")");
+                // Set the target cache grid
+                targetMutableGrid.set(bottomSourceRelX, bottomSourceRelY, topSource.get(topSourceRelX, topSourceRelY));
+            }
+        }
+
+        return targetMutableGrid;
+    }
+
+    /**
      * Takes the intersecting area between the target and source
      * (which is created based off of the start points),
      * and uses it to grab values from source and insert into target.
@@ -130,9 +176,9 @@ public final class CacheGrid<E> {
      * @param sourceStart A {@link Point} representing the start of the source
      * @param source      This is where values will be sourced
      */
-    public static <T> void overlay(@NotNull Point targetStart, @NotNull CacheGrid<T> target,
-                                   @NotNull Point sourceStart, @NotNull CacheGrid<T> source) {
-        // Create areas (starting at 0,0) for each CacheGrid
+    public static <T> void overlayAndInsert(@NotNull Point targetStart, @NotNull MutableGrid<T> target,
+                                            @NotNull Point sourceStart, @NotNull MutableGrid<T> source) {
+        // Create areas (starting at 0,0) for each MutableGrid
         Rect targetRect = new Rect(targetStart.getX(), targetStart.getY(), target.getWidth(), target.getHeight());
         Rect sourceRect = new Rect(sourceStart.getX(), sourceStart.getY(), source.getWidth(), source.getHeight());
 
@@ -159,18 +205,6 @@ public final class CacheGrid<E> {
             }
         }
          */
-
-        /* EVEN OLDER CODE, NOT RECOMMENDED!!!
-        Rect intersect = Rect.intersection(targetRect, sourceRect);
-        for (int x = intersect.getMinX(); x <= intersect.getMaxX(); x++) {
-            for (int y = intersect.getMinY(); y <= intersect.getMaxY(); y++) {
-                int relativeX = x - sourceRect.getMinX();
-                int relativeY = y - sourceRect.getMinY();
-
-                target.set(x, y, source.get(relativeX, relativeY));
-            }
-        }
-        */
     }
 
     /**
@@ -193,15 +227,15 @@ public final class CacheGrid<E> {
      * Be careful with bad point values, as it may result in unexpected null values.
      */
     public void resize(@NotNull Size size, @NotNull Point point) {
-        CacheGrid<E> tmpGrid = new CacheGrid<>(size);
-        CacheGrid.overlay(point, tmpGrid, point, this);
+        MutableGrid<E> tmpGrid = new MutableGrid<>(size);
+        MutableGrid.overlayAndInsert(point, tmpGrid, point, this);
         this.elements = tmpGrid.elements;
         this.size = size;
     }
 
     /**
      * Maintains {@link Size}, but will replace all elements with null.
-     * Same as {@link CacheGrid#fill(Object element)} but with null as argument.
+     * Same as {@link MutableGrid#fill(Object element)} but with null as argument.
      */
     public void clear() {
         fill(null);
@@ -217,7 +251,7 @@ public final class CacheGrid<E> {
     }
 
     /**
-     * @return The capacity; width * height, or how many elements this {@link CacheGrid} can hold.
+     * @return The capacity; width * height, or how many elements this {@link MutableGrid} can hold.
      */
     public int getCapacity() {
         return size.getCapacity();
@@ -231,21 +265,21 @@ public final class CacheGrid<E> {
     }
 
     /**
-     * @return The {@link Size} of this CacheGrid.
+     * @return The {@link Size} of this MutableGrid.
      */
     public @NotNull Size getSize() {
         return size;
     }
 
     /**
-     * @return The {@link Size#getWidth()} of this CacheGrid.
+     * @return The {@link Size#getWidth()} of this MutableGrid.
      */
     public int getWidth() {
         return size.getWidth();
     }
 
     /**
-     * @return The {@link Size#getHeight()} of this CacheGrid.
+     * @return The {@link Size#getHeight()} of this MutableGrid.
      */
     public int getHeight() {
         return size.getHeight();

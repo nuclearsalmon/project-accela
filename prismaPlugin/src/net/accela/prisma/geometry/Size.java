@@ -2,8 +2,16 @@ package net.accela.prisma.geometry;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class Size {
-    final int width, height;
+/**
+ * Represents the size (width and height) of something.
+ * Minimum allowed value is 1, the size cannot be 0 in any dimension.
+ */
+public class Size {
+    private final int width, height;
+
+    //
+    // Constructors
+    //
 
     public Size() {
         this(1, 1);
@@ -25,18 +33,36 @@ public final class Size {
         this.height = height;
     }
 
-    public int getWidth() {
+    //
+    // Getters
+    //
+
+    /**
+     * @return The width
+     */
+    public final int getWidth() {
         return width;
     }
 
-    public int getHeight() {
+    /**
+     * @return The height
+     */
+    public final int getHeight() {
         return height;
     }
 
-    public int getCapacity() {
+    /**
+     * @return The width multiplied with the height
+     */
+    public final int getCapacity() {
         return width * height;
     }
 
+    //
+    // Object overrides
+    //
+
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Size)) {
             return false;
@@ -46,11 +72,13 @@ public final class Size {
         }
     }
 
+    @Override
     public int hashCode() {
         int sum = this.width + this.height;
         return sum * (sum + 1) / 2 + this.width;
     }
 
+    @Override
     public String toString() {
         return this.getClass().getName() + "[width=" + this.width + ",height=" + this.height + "]";
     }

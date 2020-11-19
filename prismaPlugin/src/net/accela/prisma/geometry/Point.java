@@ -2,8 +2,15 @@ package net.accela.prisma.geometry;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents a coordinate point. Supports negative values.
+ */
 public class Point {
-    int x, y;
+    private final int x, y;
+
+    //
+    // Constructors
+    //
 
     public Point() {
         this.x = 0;
@@ -20,25 +27,53 @@ public class Point {
         this.y = point.y;
     }
 
-    public int getX() {
+    //
+    // Getters
+    //
+
+    /**
+     * @return The X location
+     */
+    public final int getX() {
         return x;
     }
 
-    public int getY() {
+    /**
+     * @return The Y location
+     */
+    public final int getY() {
         return y;
     }
 
-    public double distanceSq(@NotNull Point pt) {
-        double px = pt.getX() - this.getX();
-        double py = pt.getY() - this.getY();
+    //
+    // Calculations and utilities
+    //
+
+    /**
+     * @param startPoint The {@link Point} at the start of the line.
+     * @param endPoint   The {@link Point} at the end of the line.
+     * @return The distance from startPoint to endPoint, squared.
+     */
+    public static double distanceSquared(@NotNull Point startPoint, @NotNull Point endPoint) {
+        double px = endPoint.getX() - startPoint.getX();
+        double py = endPoint.getY() - startPoint.getY();
         return px * px + py * py;
     }
 
-    public double distance(@NotNull Point pt) {
-        int px = pt.getX() - this.getX();
-        int py = pt.getY() - this.getY();
+    /**
+     * @param startPoint The {@link Point} at the start of the line.
+     * @param endPoint   The {@link Point} at the end of the line.
+     * @return The distance from startPoint to endPoint.
+     */
+    public static double distance(@NotNull Point startPoint, @NotNull Point endPoint) {
+        int px = endPoint.getX() - startPoint.getX();
+        int py = endPoint.getY() - startPoint.getY();
         return Math.sqrt(px * px + py * py);
     }
+
+    //
+    // Object overrides
+    //
 
     @Override
     public boolean equals(Object obj) {
@@ -53,10 +88,5 @@ public class Point {
     @Override
     public String toString() {
         return this.getClass().getName() + "[x=" + this.x + ",y=" + this.y + "]";
-    }
-
-    @NotNull
-    public MutablePoint toMutable() {
-        return new MutablePoint(this);
     }
 }

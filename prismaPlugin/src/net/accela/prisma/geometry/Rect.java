@@ -3,8 +3,15 @@ package net.accela.prisma.geometry;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A rectangle shape
+ */
 public class Rect implements Shape {
-    final int minX, minY, width, height;
+    private final int minX, minY, width, height;
+
+    //
+    // Constructors and factory methods
+    //
 
     public Rect() {
         this.minX = 0;
@@ -16,8 +23,8 @@ public class Rect implements Shape {
     public Rect(@NotNull Size size) {
         this.minX = 0;
         this.minY = 0;
-        this.width = size.width;
-        this.height = size.height;
+        this.width = size.getWidth();
+        this.height = size.getHeight();
     }
 
     public Rect(int width, int height) throws RectOutOfBoundsException {
@@ -30,17 +37,17 @@ public class Rect implements Shape {
     }
 
     public Rect(@NotNull Point point) {
-        this.minX = point.x;
-        this.minY = point.y;
+        this.minX = point.getX();
+        this.minY = point.getY();
         this.width = 1;
         this.height = 1;
     }
 
     public Rect(@NotNull Point point, @NotNull Size size) {
-        this.minX = point.x;
-        this.minY = point.y;
-        this.width = size.width;
-        this.height = size.height;
+        this.minX = point.getX();
+        this.minY = point.getY();
+        this.width = size.getWidth();
+        this.height = size.getHeight();
     }
 
     public Rect(int minX, int minY, int width, int height) throws RectOutOfBoundsException {
@@ -53,10 +60,10 @@ public class Rect implements Shape {
     }
 
     public Rect(@NotNull Point start, @NotNull Point end) throws RectOutOfBoundsException {
-        this.minX = start.x;
-        this.minY = start.y;
-        this.width = end.x;
-        this.height = end.y;
+        this.minX = start.getX();
+        this.minY = start.getY();
+        this.width = end.getX() - start.getX() + 1;  // +1 since we're using 0-based coordinates
+        this.height = end.getY() - start.getY() + 1; // +1 since we're using 0-based coordinates
 
         validate();
     }
@@ -66,7 +73,7 @@ public class Rect implements Shape {
      *
      * @throws RectOutOfBoundsException If it's not a valid area
      */
-    void validate() throws RectOutOfBoundsException {
+    private void validate() throws RectOutOfBoundsException {
         if (getMinX() > getMaxX() || getMinY() > getMaxY()) {
             throw new RectOutOfBoundsException("negative points: " + this);
         }
@@ -74,6 +81,17 @@ public class Rect implements Shape {
             throw new RectOutOfBoundsException("no size: " + this);
         }
     }
+
+    /**
+     * @return A new Rect starting at (0,0), but with the same width and height as this one.
+     */
+    public Rect zero() {
+        return new Rect(0, 0, width, height);
+    }
+
+    //
+    // Getters, calculations and utilities
+    //
 
     /**
      * @return The X point of the upper left corner
@@ -104,6 +122,48 @@ public class Rect implements Shape {
     }
 
     /**
+     * @return The width
+     */
+    public int getWidth() {
+        return width;
+    }
+
+    /**
+     * @return The height
+     */
+    public int getHeight() {
+        return height;
+    }
+
+    /**
+     * @return The width multiplied with the height
+     */
+    public int getCapacity() {
+        return getWidth() * getHeight();
+    }
+
+    /**
+     * @return A {@link Size} representing this {@link Rect}.
+     */
+    public @NotNull Size getSize() {
+        return new Size(width, height);
+    }
+
+    /**
+     * @return A {@link Point} representing the upper left corner
+     */
+    public @NotNull Point getStartPoint() {
+        return new Point(minX, minY);
+    }
+
+    /**
+     * @return A {@link Point} representing the lower right corner
+     */
+    public @NotNull Point getEndPoint() {
+        return new Point(width, height);
+    }
+
+    /**
      * @return The X point of the center
      */
     public int getCenterX() {
@@ -125,59 +185,10 @@ public class Rect implements Shape {
     }
 
     /**
-     * @return The width
-     */
-    public int getWidth() {
-        return width;
-    }
-
-    /**
-     * @return The height
-     */
-    public int getHeight() {
-        return height;
-    }
-
-    /**
-     * @return A {@link Point} representing the upper left corner
-     */
-    public @NotNull Point getStartPoint() {
-        return new Point(minX, minY);
-    }
-
-    /**
-     * @return A {@link Point} representing the lower right corner
-     */
-    public @NotNull Point getEndPoint() {
-        return new Point(width, height);
-    }
-
-    /**
-     * @return The width multiplied with the height
-     */
-    public int getCapacity() {
-        return getWidth() * getHeight();
-    }
-
-    /**
-     * @return A {@link Size} representing this {@link Rect}.
-     */
-    public @NotNull Size getSize() {
-        return new Size(getWidth(), getHeight());
-    }
-
-    /**
      * @return true if the starting point of this {@link Rect} is negative
      */
     public boolean isNegative() {
         return minX < 0 || minY < 0;
-    }
-
-    /**
-     * @return True if the width or height is <= 0
-     */
-    public boolean isEmpty() {
-        return this.width <= 0 || this.height <= 0;
     }
 
     /**
@@ -196,13 +207,19 @@ public class Rect implements Shape {
                 container.getMaxX() >= item.getMaxX() && container.getMaxY() >= item.getMaxY();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Rect getBounds() {
+    public @NotNull Rect getBounds() {
         return this;
     }
 
-    public boolean contains(Point point) {
-        return this.contains(point.x, point.y);
+    /**
+     * {@inheritDoc}
+     */
+    public boolean contains(@NotNull Point point) {
+        return this.contains(point.getX(), point.getY());
     }
 
     public boolean contains(int X, int Y) {
@@ -223,7 +240,10 @@ public class Rect implements Shape {
         }
     }
 
-    public boolean contains(Rect rect) {
+    /**
+     * {@inheritDoc}
+     */
+    public boolean contains(@NotNull Rect rect) {
         return this.contains(rect.minX, rect.minY, rect.width, rect.height);
     }
 
@@ -258,7 +278,7 @@ public class Rect implements Shape {
     }
 
     /**
-     * @return True if this overlaps with the provided rect
+     * {@inheritDoc}
      */
     public final boolean intersects(@NotNull Rect rect) {
         return intersects(this, rect);
@@ -298,14 +318,6 @@ public class Rect implements Shape {
 
     public static Rect intersection(@NotNull Rect rectA, @NotNull Rect rectB) {
         Rect result;
-
-        /*
-        int x1 = Math.max(rectA.minX, rectB.minX);
-        int y1 = Math.max(rectA.minY, rectB.minY);
-        int x2 = Math.min(rectA.width, rectB.width);
-        int y2 = Math.min(rectA.height, rectB.height);
-        result = new Rect(x1, y1, x2, y2);
-         */
 
         int x1 = Math.max(rectA.getMinX(), rectB.getMinX());
         int y1 = Math.max(rectA.getMinY(), rectB.getMinY());
@@ -350,7 +362,7 @@ public class Rect implements Shape {
 
          */
 
-        System.out.println("intersectingArea(" + rectA + ", " + rectB + ") = " + result);
+        //System.out.println("intersectingArea(" + rectA + ", " + rectB + ") = " + result);
 
         return result;
     }
@@ -381,9 +393,9 @@ public class Rect implements Shape {
         );
     }
 
-    public Rect zero() {
-        return new Rect(0, 0, width, height);
-    }
+    //
+    // Object overrides
+    //
 
     @Override
     public boolean equals(Object obj) {

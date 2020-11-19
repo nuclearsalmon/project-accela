@@ -1,11 +1,28 @@
 package net.accela.prisma.geometry;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface Shape {
-    Rect getBounds();
+    /**
+     * @return The bounds of this {@link Shape} when represented as a {@link Rect}.
+     */
+    @NotNull Rect getBounds();
 
-    boolean contains(Point point);
+    /**
+     * @param point The {@link Point} to compare with.
+     * @return True if the provided {@link Point} fits inside this {@link Shape}.
+     */
+    boolean contains(@NotNull Point point);
 
-    boolean contains(Rect rect);
+    /**
+     * @param rect The {@link Rect} to compare with.
+     * @return True if the provided {@link Rect} fits inside this {@link Shape}.
+     */
+    boolean contains(@NotNull Rect rect);
 
-    boolean intersects(Rect rect);
+    /**
+     * @param rect The {@link Rect} to compare with.
+     * @return True if the provided {@link Rect} intersects with this {@link Shape}.
+     */
+    boolean intersects(@NotNull Rect rect);
 }
