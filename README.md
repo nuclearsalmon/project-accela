@@ -1,64 +1,89 @@
 # Project Accela
-A modular framework for building plugin-driven virtual networks and server software.
+A modular framework for building plugin-driven server software, BBSes and MUDs.
 
 ## The concept
-The basic idea is that any user can write a plugin and load it into the network, 
-providing additional features and experiences for anyone to access. 
-The plugins run in a sandboxed environment where the plugins only have access to certain exposed parts of the system,
-including a purpose built TUI window manager which I call [PrismaWM][plugin_prismawm].
+The idea behind Project accela to provide a safe and easy-to-use framework for
+building modular, plugin-driven servers. The plugins can be loaded into the server at any point during runtime 
+and will run in a sandboxed environment where they only have access to certain exposed parts of the system.
+
+This includes a [purpose built TUI window manager][plugin_prismawm] (an optional plugin),
+making it easy for other plugins to provide a consistent and easy-to-use means of providing IO to client software.
 
 ## The purpose
-My end goal with the project is to utilize it to create a sandboxed network for hackers to play around in, explore and exploit.
-It will be almost like a game, though I dislike calling it such. I want it to be highly strategic and to reward those that think out of the box.
-<br><br>
-The plugins that will make up this network will be publicly availible along with the rest of the project.
+My end goal with Project Accela is to utilize the framework to create a sandboxed virtual network 
+for hackers to play around in, explore and exploit. 
+I want it to be social, highly strategic and to reward those that think out of the box.
+It will look and behave somewhat similarly to a [BBS][out_bbs] or a [MUD][out_mud].
+
+The plugins that will make up this network will be publicly available along with the rest of the project 
+(probably in a separate repository).
 I have plenty of plans for this "game", but that is outside the scope of this README.
 
 ## Notes
 * The full code for the [server module][module_server] and [PrismaWM][plugin_prismawm] will be uploaded at a later date,
 as it's not quite ready yet and I'm dissatisfied with the current code quality.
-* I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. However, for local testing purposes unencrypted Telnet is sufficient.
+* I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. 
+However, for as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
 
 <br>
 
 ---
 # Modules and Plugins
-In this context, when I say modules I'm referring to IntelliJ IDEA modules. 
-Plugins are loadable modules that provide additional functionality on top of the server.
+In this context, modules refers to a feature from the IDE that I use,
+not Java 9 modules. See: [IntelliJ IDEA/Modules][out_intellij_modules].
+Plugins are loadable modules that provide additional functionality on top of the core server.
 
-## [Server (core)][module_server]
-This is what will provide the core framework and functionality, such as plugin, service and permissions management, along with automatic sandboxing,
-and standards for creating "providers", that add network connectivity and new protocols (See: [Telnet Provider][plugin_telnet]).
-It also includes my own library for crafting [ANSI Escape Sequences][out_ansi], along with related utilities.
+## Server (core)
+This is what will provide the essential frameworks and functionality behind the project.
+Including, but not limited to:
+- Plugin, services and permissions management.
+- Sandbox security features.
+- User management, basic encryption and permissions features.
+- Standard classes for creating *Session Providers* that add support for network communication
+through various client-server protocols (such as [Telnet][plugin_telnet]). 
+This is so that any future protocols can be easily implemented and interacted with in a standardized fashion.
+- A purpose built library for creating and utilizing [ANSI Escape Sequences][out_ansi].
 
-## [PrismaWM Window Manager][plugin_prismawm]
-This is to be used by plugins as a means of providing text-based output to users, 
-as well as receiving input from said users without the plugins interfering with each other.
+Link: [Server (core)][module_server]
 
-## [Telnet Provider][plugin_telnet]
+## PrismaWM Window Manager
+PrismaWM lets multiple plugins simultaneously provide text-based output (and input!) to users, 
+without interfering with each other. 
+
+It's lets you build "windows" similar to how one would do for a GUI program. 
+This includes buttons, dropdown menus, input boxes, etc.
+
+Link: [PrismaWM Window Manager][plugin_prismawm]
+
+## Telnet Provider
 A plugin that adds support for communication through the telnet protocol.
 It provides users a means of connecting to the system and interacting with it.
+
 The telnet server supports proper telnet negotiation, and can intelligently negotiate 
-for features that the server and client both share, for example character sets. 
-Since it's a plugin, it can through config files be configured to start any amount of telnet servers, with custom port numbers for each one.
+for features that the server and client both support or have in common. 
+The plugin can be configured to listen on multiple ports.
 
-The telnet server builds on top of a few classes and interfaces provided by the [core][module_server],
-so that any future protocols can be easily implemented and interacted with in a standardized fashion.
+Link: [Telnet Provider][plugin_telnet]
 
-## [Session Introducer][plugin_session_introducer]
-A simple plugin that listens for creation events for graphical sessions. Once such an event gets called,
-the session introducer will attempt to load a window manager into the session.
+## Session Introducer
+A simple plugin that listens for when a TextGraphicsSession is created. 
+It will attempt to load a [window manager][plugin_prismawm] into the Session if it doesn't already have one loaded.
+
 Having a window manager makes it possible for other plugins to facilitate graphical communication with the client.
-The reason this is a standalone plugin rather than having this functionality bundled in the telnet provider is due to modularity.
-I want the SysOp to be able to pick which window manager to load, without neccesarily having to modify the code of a 
-session creator (such as the [Telnet Provider][plugin_telnet] plugin).
+The reason this is a standalone plugin rather than having this functionality being bundled in with the telnet provider 
+is due to modularity. 
+I want the SysOp to be able to pick which window manager to load, 
+without having to modify the code of a *SessionCreator* (such as the [Telnet Provider][plugin_telnet] plugin).
 
+Link: [Session Introducer][plugin_session_introducer]
 
-
-[module_server]: ./server/src/ "Server/\"Core\""
-[library_ansi]: ./server/src/net/accela/ansi/ "ANSI EscSeq library"
-[plugin_prismawm]: ./prismaPlugin/src/ "PrismaWM"
-[plugin_telnet]: ./telnetProviderPlugin/src/ "Telnet Provider"
-[plugin_session_introducer]: ./sessionIntroducerPlugin/src/ "Session Introducer"
+[module_server]: ./server/src "Server/\"Core\""
+[library_ansi]: ./server/src/net/accela/ansi "ANSI EscSeq library"
+[plugin_prismawm]: ./prismaPlugin/src "PrismaWM"
+[plugin_telnet]: ./telnetProviderPlugin/src "Telnet Provider"
+[plugin_session_introducer]: ./sessionIntroducerPlugin/src "Session Introducer"
 
 [out_ansi]: https://en.wikipedia.org/wiki/ANSI_escape_code "ANSI Escape Code"
+[out_bbs]: https://sv.wikipedia.org/wiki/Bulletin_board_system "Bulletin Board System"
+[out_mud]: https://sv.wikipedia.org/wiki/MUD "Multi User Dungeon"
+[out_intellij_modules]: https://www.jetbrains.com/help/idea/creating-and-managing-modules.html "Modules"
