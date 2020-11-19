@@ -83,10 +83,20 @@ public class Rect implements Shape {
     }
 
     /**
-     * @return A new Rect starting at (0,0), but with the same width and height as this one.
+     * @return A new {@link Rect} with the same width and height as this before, but starting at {@link Point}(0,0).
      */
-    public Rect zero() {
+    @NotNull
+    public final Rect zero() {
         return new Rect(0, 0, width, height);
+    }
+
+    /**
+     * @return A new {@link Rect} starting at the same point as before, but in a new {@link Size}.
+     */
+    @NotNull
+    public final Rect resize(@NotNull Size size) {
+        Point startPoint = getStartPoint();
+        return new Rect(startPoint.getX(), startPoint.getY(), size.getWidth(), size.getHeight());
     }
 
     //
@@ -145,21 +155,24 @@ public class Rect implements Shape {
     /**
      * @return A {@link Size} representing this {@link Rect}.
      */
-    public @NotNull Size getSize() {
+    @NotNull
+    public Size getSize() {
         return new Size(width, height);
     }
 
     /**
      * @return A {@link Point} representing the upper left corner
      */
-    public @NotNull Point getStartPoint() {
+    @NotNull
+    public Point getStartPoint() {
         return new Point(minX, minY);
     }
 
     /**
      * @return A {@link Point} representing the lower right corner
      */
-    public @NotNull Point getEndPoint() {
+    @NotNull
+    public Point getEndPoint() {
         return new Point(width, height);
     }
 
@@ -180,6 +193,7 @@ public class Rect implements Shape {
     /**
      * @return A {@link Point} representing the center of this {@link Rect}
      */
+    @NotNull
     public Point getCenterPoint() {
         return new Point(getCenterX(), getCenterY());
     }
@@ -211,7 +225,8 @@ public class Rect implements Shape {
      * {@inheritDoc}
      */
     @Override
-    public @NotNull Rect getBounds() {
+    @NotNull
+    public Rect getBounds() {
         return this;
     }
 
@@ -312,10 +327,12 @@ public class Rect implements Shape {
         }
     }
 
+    @NotNull
     public Rect intersection(@NotNull Rect rect) {
         return intersection(this, rect);
     }
 
+    @NotNull
     public static Rect intersection(@NotNull Rect rectA, @NotNull Rect rectB) {
         Rect result;
 
@@ -367,10 +384,12 @@ public class Rect implements Shape {
         return result;
     }
 
+    @NotNull
     public Rect startPointAddition(@NotNull Rect addition) {
         return startPointAddition(this, addition);
     }
 
+    @NotNull
     public static Rect startPointAddition(@NotNull Rect relative, @NotNull Rect addition) {
         return new Rect(
                 relative.minX + addition.minX,
@@ -380,10 +399,12 @@ public class Rect implements Shape {
         );
     }
 
+    @NotNull
     public Rect startPointSubtraction(@NotNull Rect subtraction) {
         return startPointSubtraction(this, subtraction);
     }
 
+    @NotNull
     public static Rect startPointSubtraction(@NotNull Rect absolute, @NotNull Rect subtraction) {
         return new Rect(
                 absolute.minX - subtraction.minX,
@@ -410,6 +431,7 @@ public class Rect implements Shape {
     }
 
     @Override
+    @NotNull
     public String toString() {
         return this.getClass().getName() +
                 "[" + minX + "," + minY + "," + width + "," + height + "]";
