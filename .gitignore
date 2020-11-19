@@ -1,5 +1,5 @@
-# Much of the items listed in this file aren't stuff I use,
-# but it's there in case I do opt to use it in the future. Better safe than sorry.
+# Much of what is listed in this file isn't stuff I use,
+# but it's there in case I decide to use it in the future. Better safe than sorry :)
 
 # intellij
 .idea/
@@ -41,7 +41,7 @@
 /config
 # data created by the server
 /data
-# just logs in swedish about what I've been working on
+# just logs in swedish about what I've been working on, this should not be included
 /school
 # don't include libraries, that would be against copyright
 /lib
