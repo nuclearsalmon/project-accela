@@ -81,7 +81,7 @@ MODIFIER KEYS
  * At most times it will return null, but if it does catch a sequence
  * then it will create an {@link InputEvent} from it and return that one.
  */
-public class AnsiInputParser {
+public class InputEventParser {
     final Plugin plugin;
 
     enum ParserState {
@@ -94,7 +94,7 @@ public class AnsiInputParser {
     @NotNull ParserState parserState = ParserState.GROUND;
     @NotNull String currentSequence = "";
 
-    public AnsiInputParser(@NotNull Plugin plugin) {
+    public InputEventParser(@NotNull Plugin plugin) {
         this.plugin = plugin;
     }
 
@@ -471,7 +471,7 @@ public class AnsiInputParser {
 
             }
         } else {
-            Logger.getLogger("AnsiInputParser").log(Level.WARNING, "man, wtf is wrong with your input");
+            Logger.getLogger("InputEventParser").log(Level.WARNING, "man, wtf is wrong with your input");
             return null;
         }
     }
