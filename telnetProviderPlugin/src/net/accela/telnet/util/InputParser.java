@@ -9,7 +9,7 @@ import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
 import net.accela.prisma.session.TextGraphicsSession;
-import net.accela.prisma.util.AnsiInputParser;
+import net.accela.prisma.util.InputEventParser;
 import net.accela.server.AccelaAPI;
 import net.accela.server.plugin.Plugin;
 import net.accela.telnet.server.TelnetSessionServer;
@@ -34,7 +34,7 @@ public class InputParser {
     final TelnetSession session;
     final Plugin plugin;
     final TelnetSessionServer sessionServer;
-    final AnsiInputParser ansiParser;
+    final InputEventParser ansiParser;
     volatile CountDownLatch latch;
 
     public enum Mode {
@@ -50,7 +50,7 @@ public class InputParser {
         this.session = session;
         this.sessionServer = sessionServer;
         this.plugin = session.getCreator().getPlugin();
-        this.ansiParser = new AnsiInputParser(session.getCreator().getPlugin());
+        this.ansiParser = new InputEventParser(session.getCreator().getPlugin());
     }
 
     public void processDecoded(@NotNull String decoded) {
