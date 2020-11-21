@@ -12,10 +12,20 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 /**
- * A class representing a single ANSI SGR (Select Graphics Rendition) sequence.
- * This abstraction was implemented both as a security measure, and as a convenience tool.
+ * Represents a single immutable ANSI escape sequence SGR (Select Graphics Rendition).
  */
 public class SGRSequence extends CSISequence {
+    //
+    // Common sequences that can be re-used.
+    //
+
+    public static final SGRSequence FG_DEFAULT = new SGRSequence(new SGRStatement(SGRStatement.Type.FG_DEFAULT));
+    public static final SGRSequence BG_DEFAULT = new SGRSequence(new SGRStatement(SGRStatement.Type.BG_DEFAULT));
+
+    //
+    // Constructors
+    //
+
     public SGRSequence() {
     }
 

@@ -9,8 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
- * A class representing a single ANSI escape sequence.
- * This abstraction was implemented both as a security measure, and as a convenience tool.
+ * Represents a single immutable ANSI escape sequence.
  */
 public class ESCSequence implements CharSequence {
     @NotNull
@@ -102,5 +101,14 @@ public class ESCSequence implements CharSequence {
     @Override
     public IntStream codePoints() {
         return sequenceString.codePoints();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (ESCSequence.class.isAssignableFrom(obj.getClass())) {
+            // todo Casting might be unnecessary here
+            return this.toString().equals(((ESCSequence) obj).toString());
+        }
+        return false;
     }
 }

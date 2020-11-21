@@ -8,8 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.regex.Pattern;
 
 /**
- * A class representing a single ANSI CSI (Control Sequence Introducer) sequence.
- * This abstraction was implemented both as a security measure, and as a convenience tool.
+ * Represents a single immutable ANSI escape sequence CSI (Control Sequence Introducer).
  */
 public class CSISequence extends ESCSequence {
     public final static Pattern sequencePattern = Patterns.CSI;
@@ -23,7 +22,7 @@ public class CSISequence extends ESCSequence {
     }
 
     public enum CSISequenceType {
-        CUU, CUD, CUF, CUB, CNL, CPL, CHA, CUP, ED, EL, SU, SD, HVP, SGR, AP_ON, AP_OFF, DSR,
+        CUU, CUD, CUF, CUB, CNL, CPL, CHA, CUP, EID, EIL, SU, SD, HVP, SGR, AP_ON, AP_OFF, DSR,
         P_SCP, P_RCP, P_CUR_ON, P_CUR_OFF, P_ASB_ON, P_ASB_OFF, P_BP_ON, P_BP_OFF,
         UNKNOWN
     }
@@ -45,10 +44,10 @@ public class CSISequence extends ESCSequence {
             return CSISequenceType.CHA;
         } else if (RegexUtil.testForMatch(sequenceString, Patterns.CSI_CUP)) {
             return CSISequenceType.CUP;
-        } else if (RegexUtil.testForMatch(sequenceString, Patterns.CSI_ED)) {
-            return CSISequenceType.ED;
-        } else if (RegexUtil.testForMatch(sequenceString, Patterns.CSI_EL)) {
-            return CSISequenceType.EL;
+        } else if (RegexUtil.testForMatch(sequenceString, Patterns.CSI_EID)) {
+            return CSISequenceType.EID;
+        } else if (RegexUtil.testForMatch(sequenceString, Patterns.CSI_EIL)) {
+            return CSISequenceType.EIL;
         } else if (RegexUtil.testForMatch(sequenceString, Patterns.CSI_SU)) {
             return CSISequenceType.SU;
         } else if (RegexUtil.testForMatch(sequenceString, Patterns.CSI_SD)) {

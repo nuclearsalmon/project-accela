@@ -1,13 +1,14 @@
 package net.accela.ansi;
 
 /**
- * AnsiLib provides shorthand methods and variables so that the programmer
+ * @deprecated AnsiLib provides shorthand methods and variables so that the programmer
  * does not need to manually type "\u001B[" etc each time they need a sequence.
  * It will probably get removed in the future.
- * <p>
+ * <br>
  * For more information regarding the ANSI Specification, refer to:
  * https://en.wikipedia.org/wiki/ANSI_escape_code
  */
+@Deprecated
 public class AnsiLib {
     /**
      * Escape key sequence initializer ("\u001b" or "\27")

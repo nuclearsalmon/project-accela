@@ -11,6 +11,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * Represents a single immutable ANSI escape sequence SGR (Select Graphics Rendition) statement.
+ * Multiple statements can be combined into a single SGRSequence.
+ */
 public class SGRStatement {
     @NotNull
     final SGRStatement.Type type;
