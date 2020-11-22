@@ -99,6 +99,7 @@ public class InputEventParser {
     }
 
 
+    // FIXME: 11/22/20 remove
     /* Removed because it didn't work.
     class EscTimer {
         class EscTimerTask extends TimerTask {
@@ -146,8 +147,11 @@ public class InputEventParser {
      */
     @Nullable
     public InputEvent parse(@NotNull final String singleEntry) {
+        // FIXME: 11/22/20 remove
+        /*
         // Ensure there's AT LEAST one character in the entry
         if (singleEntry.length() == 0) return null;
+         */
 
         switch (parserState) {
             case GROUND:

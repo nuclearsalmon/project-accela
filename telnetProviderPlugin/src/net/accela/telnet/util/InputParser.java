@@ -151,7 +151,7 @@ public class InputParser {
         // Clear and redraw
         sessionServer.writeToClient(AnsiLib.CLR.getBytes(session.getCharset()));
         PrismaWM windowManager = session.getWindowManager();
-        if (windowManager != null) windowManager.draw(new Rect(session.getTerminalSize()));
+        if (windowManager != null) windowManager.paint(new Rect(session.getTerminalSize()));
     }
 
     @NotNull
@@ -202,6 +202,6 @@ public class InputParser {
         // Clear and redraw
         sessionServer.writeToClient(AnsiLib.CLR.getBytes(session.getCharset()));
         PrismaWM windowManager = session.getWindowManager();
-        if (windowManager != null) windowManager.draw(new Rect(session.getTerminalSize()));
+        if (windowManager != null) windowManager.paint(new Rect(session.getTerminalSize()));
     }
 }

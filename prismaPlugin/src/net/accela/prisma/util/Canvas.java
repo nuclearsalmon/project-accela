@@ -13,36 +13,32 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Represents a 2 dimensional grid.
+ * Represents a 2 dimensional canvas.
  * Behaves as expected, with index 0 always being the beginning (top left corner to be precise!)
  */
 public class Canvas {
     /**
-     * Cells can either be empty or null if that positon on the grid isn't occupied
+     * {@link Cell}s can either be empty or null if its position on the {@link Canvas} isn't occupied.
      */
     private List<@Nullable Cell> cells;
     /**
-     * The Rect this grid represents
+     * The {@link Size} of this {@link Canvas}.
      */
-    private Rect rect;
-
-    public Canvas(@NotNull Rect rect) {
-        this.rect = rect;
-        clear();
-    }
+    private Size size;
 
     public Canvas(@NotNull Size size) {
-        this(new Rect(size));
+        this.size = size;
+        clear();
     }
 
     /**
      * Clones a {@link Canvas}.
      *
-     * @param drawGrid The {@link Canvas} to clone.
+     * @param canvas The {@link Canvas} to clone.
      */
-    public Canvas(@NotNull Canvas drawGrid) {
-        this.cells = drawGrid.cells;
-        this.rect = drawGrid.rect;
+    public Canvas(@NotNull Canvas canvas) {
+        this.cells = canvas.cells;
+        this.size = canvas.size;
     }
 
     //
@@ -50,28 +46,28 @@ public class Canvas {
     //
 
     /**
-     * Puts an cell to the position idx
+     * Puts a {@link Cell} to the position idx.
      *
-     * @param cell       to be added
-     * @param coordinate position to add cell to
+     * @param cell       to be added.
+     * @param coordinate position to add cell to.
      */
     public void set(@NotNull Point coordinate, @Nullable Cell cell) {
         set(getIndex(coordinate.getX(), coordinate.getY()), cell);
     }
 
     /**
-     * Puts an cell to the position idx
+     * Puts a {@link Cell} to the position idx.
      *
-     * @param cell to be added
-     * @param x    position x to add cell to
-     * @param y    position y to add cell to
+     * @param cell to be added.
+     * @param x    position x to add cell to.
+     * @param y    position y to add cell to.
      */
     public void set(int x, int y, @Nullable Cell cell) {
         set(getIndex(x, y), cell);
     }
 
     /**
-     * Puts an cell to the position idx
+     * Puts a {@link Cell} to the position idx
      *
      * @param cell to be added
      * @param idx  to add cell at
@@ -81,15 +77,24 @@ public class Canvas {
         cells.set(idx, cell);
     }
 
+    public void setSize(@NotNull Size size) {
+        Canvas tmpCanvas = new Canvas(size);
+        Canvas.paintHard(tmpCanvas, Point.ZERO, this, Point.ZERO);
+        synchronized (this) {
+            this.cells = tmpCanvas.cells;
+            this.size = size;
+        }
+    }
+
     //
     // Getters
     //
 
     /**
-     * @return A {@link Rect} representing this {@link Canvas}'s size and position data.
+     * @return The {@link Size} of this {@link Canvas}.
      */
-    public @NotNull Rect getRect() {
-        return rect;
+    public @NotNull Size getSize() {
+        return size;
     }
 
     /**
@@ -107,34 +112,34 @@ public class Canvas {
     }
 
     /**
-     * @return iterator for a grid
+     * @return iterator for a {@link Canvas}
      */
     public @NotNull Iterator<@Nullable Cell> iterator() {
         return cells.iterator();
     }
 
     /**
-     * Returns the cell at position (x,y).
+     * Returns the {@link Cell} at position (x,y).
      *
-     * @return the cell at position (x,y)
+     * @return the {@link Cell} at position (x,y)
      */
     public @Nullable Cell get(@NotNull Point coordinate) {
         return cells.get(getIndex(coordinate.getX(), coordinate.getY()));
     }
 
     /**
-     * Returns the cell at position (x,y).
+     * Returns the {@link Cell} at position (x,y).
      *
-     * @return the cell at position (x,y)
+     * @return the {@link Cell} at position (x,y)
      */
     public @Nullable Cell get(int x, int y) {
-        return cells.get(getIndex(x, y));
+        return get(getIndex(x, y));
     }
 
     /**
-     * Returns the cell at index idx.
+     * Returns the {@link Cell} at index idx.
      *
-     * @return the cell at given index
+     * @return the {@link Cell} at given index
      */
     public @Nullable Cell get(int idx) {
         return cells.get(idx);
@@ -143,15 +148,15 @@ public class Canvas {
     // todo investigate whether we actually need both capacity and amount methods, or if one will do
 
     /**
-     * @return The capacity; width * height, or how many cells this {@link Canvas} can hold.
+     * @return The capacity; width * height, or how many {@link Cell}s this {@link Canvas} can hold.
      * @see #getCellAmount()
      */
     public int getCapacity() {
-        return rect.getCapacity();
+        return size.getCapacity();
     }
 
     /**
-     * @return number of cells in grid, including null cells.
+     * @return number of {@link Cell}s in {@link Canvas}, including null {@link Cell}s.
      * @see #getCapacity()
      */
     public int getCellAmount() {
@@ -168,7 +173,7 @@ public class Canvas {
      * @return x coordinate of the index
      */
     public int getX(int index) {
-        return index % rect.getWidth();
+        return index % size.getWidth();
     }
 
     /**
@@ -177,11 +182,11 @@ public class Canvas {
      * @return y coordinate of the index
      */
     public int getY(int index) {
-        return index / rect.getWidth();
+        return index / size.getWidth();
     }
 
     /**
-     * Returns index of cell at {@link Point} (x,y).
+     * Returns index of {@link Cell} at {@link Point} (x,y).
      *
      * @return index of the coordinates
      */
@@ -190,19 +195,19 @@ public class Canvas {
     }
 
     /**
-     * Returns index of cell at (x,y).
+     * Returns index of {@link Cell} at (x,y).
      *
-     * @return index of the coordinates
+     * @return index of the coordinate point
      */
     public int getIndex(int x, int y) {
         // Get dimensions
-        int width = rect.getWidth(), height = rect.getHeight();
+        int width = size.getWidth(), height = size.getHeight();
 
         // Ensure the coordinate point is within bounds
-        if (x >= width) {
+        if (x > width) {
             throw new IndexOutOfBoundsException(String.format("X (%s) is out of bounds (%s)", x, width));
         }
-        if (y >= height) {
+        if (y > height) {
             throw new IndexOutOfBoundsException(String.format("Y (%s) is out of bounds (%s)", y, height));
         }
 
@@ -215,7 +220,7 @@ public class Canvas {
     //
 
     /**
-     * Maintains {@link Size}, but will replace all cells with empty ones.
+     * Maintains {@link Size}, but will replace all {@link Cell}s with empty ones.
      */
     public void clear() {
         synchronized (this) {
@@ -227,47 +232,82 @@ public class Canvas {
         }
     }
 
-    public void setRect(final @NotNull Rect rect) {
-        synchronized (this) {
-            if (rect.getWidth() == this.rect.getWidth() && rect.getHeight() == this.rect.getHeight()) {
-                this.rect = rect;
-            } else {
-                Canvas tmpGrid = new Canvas(rect);
-                Canvas.paintHard(tmpGrid, this);
-                this.cells = tmpGrid.cells;
-                this.rect = tmpGrid.rect;
+    public void fill(@NotNull Rect rect, @Nullable String codePoint, @Nullable SGRSequence sequence) {
+        for (int y = rect.getMinY(); y < rect.getMaxY() + 1; y++) {
+            for (int x = rect.getMinX(); x < rect.getMaxX() + 1; x++) {
+                set(x, y, new Cell(codePoint, sequence));
             }
         }
     }
 
     /**
-     * Takes the intersecting area between the target and source
-     * (which is created based off of the start points),
-     * and uses it to grab values from source and insert into target.
-     * <p>
-     * Be careful with bad point values, it might result in unexpected null values.
+     * Paints a target {@link Canvas} by inserting values from an intersecting source {@link Canvas}.
      *
-     * @param targetGrid This is where values will be inserted to.
-     * @param sourceGrid This is where values will be sourced from.
-     * @see #paintTransparency(Canvas, Canvas)
+     * @param target      This is where values will be inserted to.
+     * @param targetStart The start {@link Point} for the target {@link Canvas}
+     * @param source      This is where values will be sourced from.
+     * @param sourceStart The start {@link Point} for the source {@link Canvas}
+     * @see #paintTransparency(Canvas, Point, Canvas, Point)
      */
-    public static void paintHard(@NotNull Canvas targetGrid, @NotNull Canvas sourceGrid) {
-        // Get the start points for both grids
-        Point targetStart = targetGrid.getRect().getStartPoint();
-        Point sourceStart = sourceGrid.getRect().getStartPoint();
+    public static void paintHard(@NotNull Canvas target, @NotNull Point targetStart,
+                                 @NotNull Canvas source, @NotNull Point sourceStart) {
 
-        // Create rectangles (starting at 0,0) for each MutableGrid
+        // Create rectangles (starting at 0,0) for each Mutable
         Rect targetRect = new Rect(
                 targetStart.getX(), targetStart.getY(),
-                targetGrid.getRect().getWidth(), targetGrid.getRect().getHeight()
+                target.getSize().getWidth(), target.getSize().getHeight()
         );
         Rect sourceRect = new Rect(
                 sourceStart.getX(), sourceStart.getY(),
-                sourceGrid.getRect().getWidth(), sourceGrid.getRect().getHeight()
+                source.getSize().getWidth(), source.getSize().getHeight()
         );
 
         // Get the rect we're interested in.
-        // This rect is from the perspective of an imaginary container that contains both of the grids.
+        // This rect is from the perspective of an imaginary container that contains both of the canvass.
+        Rect intersection = Rect.intersection(targetRect, sourceRect);
+        if (intersection == null) throw new IllegalStateException("Rect out of bounds");
+
+        // Painting
+        for (int y = intersection.getMinY(); y <= intersection.getMaxY(); y++) {
+            for (int x = intersection.getMinX(); x <= intersection.getMaxX(); x++) {
+                // Turn this into separate sets of relative points for target and source
+                int targetRelX = x - targetStart.getX();
+                int targetRelY = y - targetStart.getY();
+                int sourceRelX = x - sourceStart.getX();
+                int sourceRelY = y - sourceStart.getY();
+
+                // todo remember to NOT include reset, it's not needed in this cell based design
+
+                target.set(targetRelX, targetRelY, source.get(sourceRelX, sourceRelY));
+            }
+        }
+    }
+
+    /**
+     * Paints a target {@link Canvas} by inserting values from an intersecting source {@link Canvas}.
+     * Null or default color acts as transparency.
+     *
+     * @param target      This is where values will be inserted to.
+     * @param targetStart The start {@link Point} for the target {@link Canvas}
+     * @param source      This is where values will be sourced from.
+     * @param sourceStart The start {@link Point} for the source {@link Canvas}
+     * @see #paintHard(Canvas, Point, Canvas, Point)
+     */
+    public static void paintTransparency(@NotNull Canvas target, @NotNull Point targetStart,
+                                         @NotNull Canvas source, @NotNull Point sourceStart) {
+
+        // Create rectangles (starting at 0,0) for each Mutable
+        Rect targetRect = new Rect(
+                targetStart.getX(), targetStart.getY(),
+                target.getSize().getWidth(), target.getSize().getHeight()
+        );
+        Rect sourceRect = new Rect(
+                sourceStart.getX(), sourceStart.getY(),
+                source.getSize().getWidth(), source.getSize().getHeight()
+        );
+
+        // Get the rect we're interested in.
+        // This rect is from the perspective of an imaginary container that contains both of the canvass.
         Rect intersection = Rect.intersection(targetRect, sourceRect);
 
         // Painting
@@ -279,60 +319,14 @@ public class Canvas {
                 int sourceRelX = x - sourceStart.getX();
                 int sourceRelY = y - sourceStart.getY();
 
-                targetGrid.set(targetRelX, targetRelY, sourceGrid.get(sourceRelX, sourceRelY));
-            }
-        }
-    }
-
-    /**
-     * Paints a {@link Canvas} based on values from another. Null or default color acts as transparency.
-     * <br>
-     * Takes the intersecting area between the target and source
-     * (which is created based off of the start points),
-     * and uses it to grab values from source and insert into target.
-     * <br>
-     * Be careful with bad point values, it might result in unexpected null values.
-     *
-     * @param targetGrid This is where values will be inserted to.
-     * @param sourceGrid This is where values will be sourced from.
-     * @see #paintHard(Canvas, Canvas)
-     */
-    public static void paintTransparency(@NotNull Canvas targetGrid, @NotNull Canvas sourceGrid) {
-        // Get the start points for both grids
-        Point targetStart = targetGrid.getRect().getStartPoint();
-        Point sourceStart = sourceGrid.getRect().getStartPoint();
-
-        // Create rectangles (starting at 0,0) for each MutableGrid
-        Rect targetRect = new Rect(
-                targetStart.getX(), targetStart.getY(),
-                targetGrid.getRect().getWidth(), targetGrid.getRect().getHeight()
-        );
-        Rect sourceRect = new Rect(
-                sourceStart.getX(), sourceStart.getY(),
-                sourceGrid.getRect().getWidth(), sourceGrid.getRect().getHeight()
-        );
-
-        // Get the rect we're interested in.
-        // This rect is from the perspective of an imaginary container that contains both of the grids.
-        Rect intersection = Rect.intersection(targetRect, sourceRect);
-
-        // Painting
-        for (int y = intersection.getMinY(); y <= intersection.getMaxY(); y++) {
-            for (int x = intersection.getMinX(); x <= intersection.getMaxX(); x++) {
-                // Turn this into separate sets of relative points for target and source
-                int targetRelX = x - targetStart.getX();
-                int targetRelY = y - targetStart.getY();
-                int sourceRelX = x - sourceStart.getX();
-                int sourceRelY = y - sourceStart.getY();
-
-                // Get a cell from our source grid
-                Canvas.Cell sourceCell = sourceGrid.get(sourceRelX, sourceRelY);
+                // Get a cell from our source canvas
+                Canvas.Cell sourceCell = source.get(sourceRelX, sourceRelY);
 
                 // If the cell is null, we don't have to do anything,
-                // as we're instead using use the one from the target grid
+                // as we're instead using use the one from the target canvas
                 if (sourceCell != null) {
-                    // Get a cell from our target grid
-                    Canvas.Cell targetCell = targetGrid.get(targetRelX, targetRelY);
+                    // Get a cell from our target canvas
+                    Canvas.Cell targetCell = target.get(targetRelX, targetRelY);
 
                     // If the source element is "transparent", we should use the target element
                     String codePoint = sourceCell.getCodepoint();
@@ -340,12 +334,10 @@ public class Canvas {
 
                     // If the source element is "transparent", we should use the target element
                     SGRSequence sequence = sourceCell.getSequence();
-                    if (sequence == null || sequence.equals(SGRSequence.FG_DEFAULT) || sequence.equals(SGRSequence.BG_DEFAULT)) {
-                        if (targetCell != null) sequence = targetCell.getSequence();
-                    }
+                    if (sequence == null && targetCell != null) sequence = targetCell.getSequence();
 
-                    // Apply the resulting cell to the target grid
-                    targetGrid.set(targetRelX, targetRelY, new Canvas.Cell(codePoint, sequence));
+                    // Apply the resulting cell to the target canvas
+                    target.set(targetRelX, targetRelY, new Canvas.Cell(codePoint, sequence));
                 }
             }
         }
@@ -356,14 +348,13 @@ public class Canvas {
     //
 
     /**
-     * A cell in the terminal.
+     * A {@link Cell} in the terminal.
      * <br><br>
      * This is designed to be immutable.
      * Whilst I get that's a pain in the ass and a half, it makes programming this shit a heck of a lot easier for me.
      * I might replace this with something more efficient later in a couple of months or so...
      * if I'm feeling like over-engineering something for no reason. We'll see. Well.. back to work.<br>
-     * - me, to myself in a couple of months from the time of writing
-     * <br>
+     * - me, to myself in a couple of months from the time of writing...
      */
     public static class Cell {
         private final String codepoint;
@@ -374,32 +365,48 @@ public class Canvas {
         // Constructors
         //
 
+        /**
+         * Creates a {@link Cell}.
+         */
         public Cell() {
             this.codepoint = null;
             this.sequence = null;
             this.characterWidth = 0;
         }
 
+        /**
+         * Creates a {@link Cell}.
+         *
+         * @param codepoint Must contain only a single codepoint or null.
+         * @param sequence  Any SGRSequence or null.
+         */
         public Cell(@Nullable String codepoint, @Nullable SGRSequence sequence) {
             // Checks
-            if (codepoint != null && codepoint.codePointCount(0, codepoint.length()) != 1) {
+            if (codepoint != null && codepoint.codePointCount(0, codepoint.length()) > 1) {
                 throw new IllegalArgumentException("The String must contain only a single CodePoint");
             }
 
             this.codepoint = codepoint;
             this.sequence = sequence;
             // todo test if this actually works
-            this.characterWidth = codepoint == null ? 0 : WCWidth.wcwidth(codepoint.codePointAt(0));
+            this.characterWidth = codepoint == null || codepoint.codePointCount(0, codepoint.length()) <= 0
+                    ? 0 : WCWidth.wcwidth(codepoint.codePointAt(0));
         }
 
         //
         // Getters
         //
 
+        /**
+         * @return This {@link Cell}s codepoint, if any.
+         */
         public @Nullable String getCodepoint() {
             return codepoint;
         }
 
+        /**
+         * @return This {@link Cell}s {@link SGRSequence}, if any.
+         */
         public @Nullable SGRSequence getSequence() {
             return sequence;
         }
@@ -442,5 +449,15 @@ public class Canvas {
         public String toString() {
             return super.toString() + "[codePoint=" + codepoint + ",sequence=" + sequence + "]";
         }
+    }
+
+    //
+    // Object overrides
+    //
+
+
+    @Override
+    public String toString() {
+        return super.toString() + " : \nsize=" + size;
     }
 }

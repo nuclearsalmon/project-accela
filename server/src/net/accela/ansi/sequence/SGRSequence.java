@@ -21,6 +21,7 @@ public class SGRSequence extends CSISequence {
 
     public static final SGRSequence FG_DEFAULT = new SGRSequence(new SGRStatement(SGRStatement.Type.FG_DEFAULT));
     public static final SGRSequence BG_DEFAULT = new SGRSequence(new SGRStatement(SGRStatement.Type.BG_DEFAULT));
+    public static final SGRSequence RESET = new SGRSequence(new SGRStatement(SGRStatement.Type.RESET));
 
     //
     // Constructors
