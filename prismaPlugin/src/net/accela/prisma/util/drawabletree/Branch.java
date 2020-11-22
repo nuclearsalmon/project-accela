@@ -72,8 +72,8 @@ public final class Branch extends Node {
      * @see Node#kill()
      */
     public void killNodes() {
-        for (Node node : childNodes) {
-            node.kill();
+        while (childNodes.size() > 0) {
+            childNodes.get(0).kill();
         }
     }
 
