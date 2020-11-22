@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
  * Represents a coordinate point. Supports negative values.
  */
 public class Point {
+    public static final Point ZERO = new Point(0, 0);
+
     private final int x, y;
 
     //

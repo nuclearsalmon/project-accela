@@ -2,9 +2,10 @@ package net.accela.prisma.geometry;
 
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * A rectangle shape
+ * Represents a rectangular shape
  */
 public class Rect implements Shape {
     private final int minX, minY, width, height;
@@ -25,6 +26,8 @@ public class Rect implements Shape {
         this.minY = 0;
         this.width = size.getWidth();
         this.height = size.getHeight();
+
+        validate();
     }
 
     public Rect(int width, int height) throws RectOutOfBoundsException {
@@ -48,6 +51,8 @@ public class Rect implements Shape {
         this.minY = point.getY();
         this.width = size.getWidth();
         this.height = size.getHeight();
+
+        validate();
     }
 
     public Rect(int minX, int minY, int width, int height) throws RectOutOfBoundsException {
@@ -74,11 +79,8 @@ public class Rect implements Shape {
      * @throws RectOutOfBoundsException If it's not a valid area
      */
     private void validate() throws RectOutOfBoundsException {
-        if (getMinX() > getMaxX() || getMinY() > getMaxY()) {
-            throw new RectOutOfBoundsException("negative points: " + this);
-        }
-        if (getWidth() < 1 || getHeight() < 1) {
-            throw new RectOutOfBoundsException("no size: " + this);
+        if (width < 1 || height < 1) {
+            throw new RectOutOfBoundsException("Bad dimensions \n" + this);
         }
     }
 
@@ -199,9 +201,9 @@ public class Rect implements Shape {
     }
 
     /**
-     * @return true if the starting point of this {@link Rect} is negative
+     * @return True if the starting point of this {@link Rect} is negative
      */
-    public boolean isNegative() {
+    public boolean hasNegativeStartPoint() {
         return minX < 0 || minY < 0;
     }
 
@@ -327,20 +329,32 @@ public class Rect implements Shape {
         }
     }
 
-    @NotNull
+    @Nullable
     public Rect intersection(@NotNull Rect rect) {
         return intersection(this, rect);
     }
 
-    @NotNull
+    @Nullable
     public static Rect intersection(@NotNull Rect rectA, @NotNull Rect rectB) {
-        Rect result;
+        int minX = Math.max(rectA.getMinX(), rectB.getMinX());
+        int minY = Math.max(rectA.getMinY(), rectB.getMinY());
+        int maxX = Math.min(rectA.getMaxX(), rectB.getMaxX());
+        int maxY = Math.min(rectA.getMaxY(), rectB.getMaxY());
 
-        int x1 = Math.max(rectA.getMinX(), rectB.getMinX());
-        int y1 = Math.max(rectA.getMinY(), rectB.getMinY());
-        int x2 = Math.min(rectA.getMaxX(), rectB.getMaxX());
-        int y2 = Math.min(rectA.getMaxY(), rectB.getMaxY());
-        result = new Rect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+        int width = maxX - minX + 1;
+        int height = maxY - minY + 1;
+
+        /*
+        System.out.println("rectA=" + rectA + "\nrectB=" + rectB
+                + "\nminX=" + minX + ",minY=" + minY + ",maxX=" + maxX + ",maxY=" + maxY
+                + ",width=" + width + ",height=" + height);
+         */
+
+        if (width < 1 || height < 1) {
+            return null;
+        } else {
+            return new Rect(minX, minY, width, height);
+        }
 
         /*
         int tx1 = rectA.minX;
@@ -380,35 +394,53 @@ public class Rect implements Shape {
          */
 
         //System.out.println("intersectingArea(" + rectA + ", " + rectB + ") = " + result);
-
-        return result;
     }
 
     @NotNull
-    public Rect startPointAddition(@NotNull Rect addition) {
+    public static Rect combine(@NotNull Rect rectA, @NotNull Rect rectB) {
+        final int initialMinX, initialMinY, initialMaxX, initialMaxY;
+        initialMinX = Math.min(rectA.getMinX(), rectB.getMinX());
+        initialMinY = Math.min(rectA.getMinY(), rectB.getMinY());
+        initialMaxX = Math.max(rectA.getMaxX(), rectB.getMaxX());
+        initialMaxY = Math.max(rectA.getMaxY(), rectB.getMaxY());
+
+        final int resultingMinX, resultingMinY, resultingMaxX, resultingMaxY, resultingWidth, resultingHeight;
+        resultingMinX = Math.min(initialMinX, initialMaxX);
+        resultingMinY = Math.min(initialMinY, initialMaxY);
+        resultingMaxX = Math.max(initialMinX, initialMaxX);
+        resultingMaxY = Math.max(initialMinY, initialMaxY);
+
+        resultingWidth = resultingMaxX - resultingMinX + 1;
+        resultingHeight = resultingMaxY - resultingMinY + 1;
+
+        return new Rect(resultingMinX, resultingMinY, resultingWidth, resultingHeight);
+    }
+
+    @NotNull
+    public Rect startPointAddition(@NotNull Point addition) {
         return startPointAddition(this, addition);
     }
 
     @NotNull
-    public static Rect startPointAddition(@NotNull Rect relative, @NotNull Rect addition) {
+    public static Rect startPointAddition(@NotNull Rect relative, @NotNull Point addition) {
         return new Rect(
-                relative.minX + addition.minX,
-                relative.minY + addition.minY,
+                relative.minX + addition.getX(),
+                relative.minY + addition.getY(),
                 relative.width,
                 relative.height
         );
     }
 
     @NotNull
-    public Rect startPointSubtraction(@NotNull Rect subtraction) {
+    public Rect startPointSubtraction(@NotNull Point subtraction) {
         return startPointSubtraction(this, subtraction);
     }
 
     @NotNull
-    public static Rect startPointSubtraction(@NotNull Rect absolute, @NotNull Rect subtraction) {
+    public static Rect startPointSubtraction(@NotNull Rect absolute, @NotNull Point subtraction) {
         return new Rect(
-                absolute.minX - subtraction.minX,
-                absolute.minY - subtraction.minY,
+                absolute.minX - subtraction.getX(),
+                absolute.minY - subtraction.getY(),
                 absolute.width,
                 absolute.height
         );
@@ -434,6 +466,7 @@ public class Rect implements Shape {
     @NotNull
     public String toString() {
         return this.getClass().getName() +
-                "[" + minX + "," + minY + "," + width + "," + height + "]";
+                "[minX=" + minX + ",minY=" + minY + ",maxX=" + getMaxX() + ",maxY=" + getMaxY()
+                + ",width=" + width + ",height=" + height + "]";
     }
 }

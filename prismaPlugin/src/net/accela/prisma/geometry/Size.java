@@ -14,7 +14,7 @@ public class Size {
     //
 
     public Size() {
-        this(1, 1);
+        this(0, 0);
     }
 
     public Size(int side) throws IndexOutOfBoundsException {
@@ -26,9 +26,7 @@ public class Size {
         this.height = size.height;
     }
 
-    public Size(int width, int height) throws IndexOutOfBoundsException {
-        if (width < 1 || height < 1) throw new IndexOutOfBoundsException();
-
+    public Size(int width, int height) {
         this.width = width;
         this.height = height;
     }
@@ -56,6 +54,10 @@ public class Size {
      */
     public final int getCapacity() {
         return width * height;
+    }
+
+    public final boolean isNegative() {
+        return width < 0 || height < 0;
     }
 
     //

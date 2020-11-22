@@ -27,13 +27,14 @@ public interface Container {
 
     /**
      * Draws the contents of the requested {@link Drawable}, as well as any intersecting {@link Drawable}'s.
+     *
+     * @param drawable The {@link Drawable} to draw.
      */
-    void draw(@NotNull Drawable drawable) throws DeadWMException, NodeNotFoundException;
+    default void paint(@NotNull Drawable drawable) throws NodeNotFoundException {
+        paint(drawable.getRelativeRect());
+    }
 
-    /**
-     * Draws the contents of the requested (absolute) rect.
-     */
-    void draw(@NotNull Rect rect) throws DeadWMException, NodeNotFoundException;
+    void paint(@NotNull Rect rect) throws NodeNotFoundException;
 
     /**
      * @return A {@link Rect} representing the relative size and position of this {@link Drawable}.
