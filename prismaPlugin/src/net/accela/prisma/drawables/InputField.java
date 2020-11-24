@@ -40,6 +40,11 @@ public class InputField extends Drawable {
         }
     }
 
+    @Override
+    public boolean wantsFocus() {
+        return true;
+    }
+
     public String getContent() {
         return textContent;
     }

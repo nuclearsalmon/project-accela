@@ -16,6 +16,8 @@ import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.logging.Level;
+
 public abstract class Drawable implements Listener {
     /**
      * The EventChannel for this drawable
@@ -35,8 +37,8 @@ public abstract class Drawable implements Listener {
     private Rect rect;
 
     /**
-     * If the Drawable is marked as active, it will be selected to receive Events.
-     * It can still receive Events when inactive, of course, but it's less likely to.
+     * If the Drawable is marked as active, it will be selected to receive Events. It will be "focused".
+     * It can still receive Events when inactive, but is less likely to.
      */
     protected boolean isActive = false;
 
@@ -47,7 +49,8 @@ public abstract class Drawable implements Listener {
     public void setRect(@NotNull Rect newRect) throws NodeNotFoundException {
         Rect oldRect = this.rect;
         this.rect = newRect;
-        getAnyContainer().paint(Rect.combine(oldRect, newRect));
+        getAnyContainer().paint(oldRect);
+        getAnyContainer().paint(newRect);
     }
 
     /**
@@ -177,9 +180,15 @@ public abstract class Drawable implements Listener {
         return getRelativeRect().getCapacity();
     }
 
+    /**
+     * If the Drawable is marked as active, it will be selected to receive Events. It will be "focused".
+     * It can still receive Events when inactive, but is less likely to.
+     */
     public boolean isActive() {
         return isActive;
     }
+
+    public abstract boolean wantsFocus();
 
     public @NotNull Point getCursorRestingPoint() throws NodeNotFoundException {
         return getAbsoluteRect().getStartPoint();
@@ -212,13 +221,12 @@ public abstract class Drawable implements Listener {
     protected void onActivation(ActivationEvent event) throws NodeNotFoundException {
         DrawableIdentifier identifier = event.getTarget();
         isActive = identifier == this.identifier || identifier == null;
-        /*
+
         try {
-            getPlugin().getLogger().log(Level.INFO, "ACTIVATION DETECTED!!!");
+            getPlugin().getLogger().log(Level.INFO, "ACTIVATION DETECTED!!! " + this);
         } catch (NodeNotFoundException e) {
             e.printStackTrace();
         }
-         */
     }
 
     //

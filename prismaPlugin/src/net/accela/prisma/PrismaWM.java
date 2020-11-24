@@ -1,7 +1,6 @@
 package net.accela.prisma;
 
 import net.accela.ansi.AnsiLib;
-import net.accela.ansi.Crayon;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.prisma.event.*;
 import net.accela.prisma.exception.DeadWMException;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
 /**
@@ -191,7 +189,7 @@ public class PrismaWM implements Container {
 
         // Get the intersection of the rect of this container vs the rect of the drawable(s)
         final Rect targetRect = Rect.intersection(getRelativeRect(), initialTargetRect);
-        if (targetRect == null) throw new IllegalStateException("drawable is outside the screen boundaries");
+        if (targetRect == null) throw new IllegalStateException("The Drawable is outside the screen boundaries");
 
         // Hide the cursor before painting to prevent flickering
         writeToSession(AnsiLib.hideCursor);
@@ -212,7 +210,7 @@ public class PrismaWM implements Container {
             // Get rectangles and intersect them
             final Rect drawableRect = drawable.getRelativeRect();
             final Rect targetIntersection = Rect.intersection(targetRect, drawableRect);
-            if (targetIntersection == null) throw new IllegalStateException("THIS SHOULD NOT BE FUCKING NULL");
+            if (targetIntersection == null) throw new IllegalStateException("THIS SHOULD NOT BE NULL");
 
             // Get canvas
             final Canvas drawableCanvas = drawable.getCanvas();
@@ -503,14 +501,9 @@ public class PrismaWM implements Container {
         writeToSession(AnsiLib.CUP(point.getX() + 1, point.getY() + 1));
     }
 
-    ///
-    /// MOUSE RELATED
-    ///
-
-    public void setMouseMode(@NotNull Drawable caller, @NotNull MouseMode mode) throws NodeNotFoundException {
-        if (tree.getFocusedNode() != caller.getNode()) return;
-        setMouseMode(mode);
-    }
+    //
+    // MOUSE RELATED
+    //
 
     void setMouseMode(@NotNull MouseMode mode) {
         //if(!doorwayModeEnabled) enableDoorwayMode();
@@ -535,30 +528,6 @@ public class PrismaWM implements Container {
         mouseMode = mode;
     }
 
-    public void moveMouseCursor(@NotNull Drawable caller, @NotNull Point point) throws NodeNotFoundException {
-        if (tree.getFocusedNode() == caller.getNode()) moveMouseCursor(point);
-    }
-
-    void moveMouseCursor(@NotNull Point point) throws NodeNotFoundException {
-        // Only draw if it's inside the terminal area
-        if (!Rect.fits(getRelativeRect(), new Rect(point))) return;
-
-        // Draw over the old location
-        paint(new Rect(mousePoint));
-
-        // Save the new location
-        mousePoint = point;
-
-        // Draw a pointer (without editing the cache!)
-        int r = ThreadLocalRandom.current().nextInt(256);
-        int g = ThreadLocalRandom.current().nextInt(256);
-        int b = ThreadLocalRandom.current().nextInt(256);
-        SGRSequence color = new Crayon().rgbFg(r, g, b);
-
-        writeToSession(AnsiLib.hideCursor + AnsiLib.CUP(point.getX() + 1, point.getY() + 1));
-        writeToSession(color + "▀");
-    }
-
     void enableDoorwayMode() {
         writeToSession(AnsiLib.CSI + "=255h");
         doorwayModeEnabled = true;
@@ -569,9 +538,9 @@ public class PrismaWM implements Container {
         doorwayModeEnabled = false;
     }
 
-    ///
-    /// I/O
-    ///
+    //
+    // I/O
+    //
 
     /**
      * Properly shuts down the WindowManager, closes streams, etc.
@@ -639,9 +608,11 @@ public class PrismaWM implements Container {
      *
      * @param event The event to broadcast
      */
-    void performBroadcast(@NotNull WMEvent event) {
+    synchronized void performBroadcast(@NotNull WMEvent event) {
         thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
-        for (Node node : tree.getChildNodes()) {
+
+        List<Node> childNodes = tree.getChildNodes();
+        for (Node node : childNodes) {
             callEvent(event, node.getDrawable());
         }
     }
@@ -651,7 +622,7 @@ public class PrismaWM implements Container {
      *
      * @param event The event to broadcast
      */
-    public void broadcastEvent(final @NotNull WMEvent event) {
+    public synchronized void broadcastEvent(final @NotNull WMEvent event) {
         //thisPlugin.getLogger().log(Level.INFO, "Received event..." + event);
         // Focus mods etc
         // todo make shortcuts customizable
@@ -659,40 +630,53 @@ public class PrismaWM implements Container {
             SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
 
             if (specialInputEvent.getKey() == SpecialInputEvent.SpecialKey.HT) {
-                List<Node> nodes = tree.getChildNodes();
                 Node focusedNode = tree.getFocusedNode();
                 if (focusedNode != null) {
+                    List<Node> nodes = tree.getChildNodes();
+
                     int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
                     if (index + 1 > nodes.size()) index = 0;
                     Drawable drawable = nodes.get(index).getDrawable();
                     performBroadcast(new ActivationEvent(thisPlugin, drawable.identifier));
                 }
             }
-        } else if (event instanceof MouseInputEvent) {
+        }
+        // FIXME: 11/24/20 drawable overlap handling
+        else if (event instanceof MouseInputEvent) {
             MouseInputEvent mouseInputEvent = (MouseInputEvent) event;
 
-            // FIXME: 11/7/20 an issue with this approach is when drawables overlap
+            // Get Drawables that intersect with the point
             Rect pointRect = new Rect(mouseInputEvent.getPoint());
             List<Node> intersectingChildNodes = tree.getIntersectingNodes(pointRect);
 
-            if (intersectingChildNodes.size() > 0) {
-                Node focusNode;
-                while (true) {
-                    focusNode = intersectingChildNodes.get(0);
-                    if (focusNode instanceof Branch) {
-                        Branch branch = (Branch) focusNode;
+            Node focusNode;
+            int index = 0;
+            while (intersectingChildNodes.size() > 0 && intersectingChildNodes.size() > index) {
+                focusNode = intersectingChildNodes.get(index);
 
-                        pointRect = Rect.startPointAddition(
-                                pointRect, focusNode.getDrawable().getRelativeRect().getStartPoint()
-                        );
-                        intersectingChildNodes = branch.getIntersectingNodes(pointRect);
-
-                        if (intersectingChildNodes.size() <= 0) break;
-                    } else break;
+                if (!focusNode.getDrawable().wantsFocus()) {
+                    index++;
+                    continue;
                 }
+
                 performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.identifier));
+
+                if (focusNode instanceof Branch) {
+                    Branch branch = (Branch) focusNode;
+
+                    pointRect = Rect.startPointSubtraction(
+                            pointRect, focusNode.getDrawable().getRelativeRect().getStartPoint());
+
+                    intersectingChildNodes = branch.getIntersectingNodes(pointRect);
+
+                    index = 0;
+                } else {
+                    break;
+                }
             }
         }
+
+        // Send the event so that it can be parsed "raw" if need be.
         performBroadcast(event);
     }
 

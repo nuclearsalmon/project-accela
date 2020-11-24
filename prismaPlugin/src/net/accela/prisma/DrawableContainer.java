@@ -25,6 +25,11 @@ public class DrawableContainer extends Drawable implements Container {
         super(rect);
     }
 
+    @Override
+    public boolean wantsFocus() {
+        return true;
+    }
+
     public @NotNull Branch getBranch() throws NodeNotFoundException {
         return (Branch) super.getNode();
     }
@@ -56,9 +61,12 @@ public class DrawableContainer extends Drawable implements Container {
         // Get the rect before detaching, we're going to need it later
         Rect rect = drawable.getAbsoluteRect();
 
-        // Detach
+        // Kill node
         Node node = DrawableTree.getNode(drawable);
         if (node != null) node.kill();
+
+        // Unregister events
+        AccelaAPI.getPluginManager().unregisterEvents(drawable);
 
         // Redraw the now empty rect
         paint(rect);
