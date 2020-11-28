@@ -564,9 +564,9 @@ public class PrismaWM implements Container {
         session.writeToClient(characters.toString());
     }
 
-    ///
-    /// EVENT SYSTEM RELATED
-    ///
+    //
+    // EVENT RELATED
+    //
 
     /**
      * Calls an {@link Event}, targeting it at a {@link Drawable} using its {@link EventChannel}.
@@ -611,10 +611,39 @@ public class PrismaWM implements Container {
     synchronized void performBroadcast(@NotNull WMEvent event) {
         thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
 
+        List<Node> childNodes = tree.getAllNodes();
+        for (Node node : childNodes) {
+            AccelaAPI.getPluginManager().callEvent(event, node.drawable.getChannel());
+        }
+
+        /*
         List<Node> childNodes = tree.getChildNodes();
         for (Node node : childNodes) {
-            callEvent(event, node.getDrawable());
+            // A list of drawables to send the events to
+            List<Drawable> drawableList = new ArrayList<>();
+            drawableList.add(node.getDrawable());
+
+            while (drawableList.size() > 0) {
+                Drawable subDrawable = drawableList.remove(0);
+
+                // Send the event to the drawable
+                EventChannel channel = subDrawable.getChannel();
+                AccelaAPI.getPluginManager().callEvent(event, channel);
+                //fixme remove thisPlugin.getLogger().log(Level.INFO, "Called an event... " + event);
+
+                // Check if it contains more drawables. If yes, then add those to the list
+                if (subDrawable instanceof DrawableContainer) {
+                    try {
+                        // Add (immediate) child drawables to the list
+                        Branch branch = ((DrawableContainer) subDrawable).getBranch();
+                        drawableList.addAll(branch.getChildDrawables());
+                    } catch (NodeNotFoundException ex) {
+                        session.getLogger().log(Level.WARNING, "Node not found", ex);
+                    }
+                }
+            }
         }
+         */
     }
 
     /**
@@ -649,8 +678,9 @@ public class PrismaWM implements Container {
             Rect pointRect = new Rect(mouseInputEvent.getPoint());
             List<Node> intersectingChildNodes = tree.getIntersectingNodes(pointRect);
 
-            Node focusNode;
+            Node focusNode = null;
             int index = 0;
+            // fixme Can probably be simplified to just "intersectingChildNodes.size() > index"
             while (intersectingChildNodes.size() > 0 && intersectingChildNodes.size() > index) {
                 focusNode = intersectingChildNodes.get(index);
 
@@ -659,20 +689,21 @@ public class PrismaWM implements Container {
                     continue;
                 }
 
-                performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.identifier));
-
                 if (focusNode instanceof Branch) {
                     Branch branch = (Branch) focusNode;
 
-                    pointRect = Rect.startPointSubtraction(
+                    pointRect = Rect.startPointAddition(
                             pointRect, focusNode.getDrawable().getRelativeRect().getStartPoint());
 
                     intersectingChildNodes = branch.getIntersectingNodes(pointRect);
-
                     index = 0;
                 } else {
                     break;
                 }
+            }
+
+            if (focusNode != null) {
+                performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.identifier));
             }
         }
 

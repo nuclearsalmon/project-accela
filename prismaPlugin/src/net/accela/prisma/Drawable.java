@@ -16,13 +16,11 @@ import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.logging.Level;
-
 public abstract class Drawable implements Listener {
     /**
      * The EventChannel for this drawable
      */
-    protected final EventChannel eventChannel = new EventChannel();
+    protected final EventChannel channel = new EventChannel();
 
     /**
      * The ID for this Drawable
@@ -49,6 +47,7 @@ public abstract class Drawable implements Listener {
     public void setRect(@NotNull Rect newRect) throws NodeNotFoundException {
         Rect oldRect = this.rect;
         this.rect = newRect;
+
         getAnyContainer().paint(oldRect);
         getAnyContainer().paint(newRect);
     }
@@ -64,7 +63,7 @@ public abstract class Drawable implements Listener {
      * @return The channel this {@link Drawable} is listening in.
      */
     public final @NotNull EventChannel getChannel() {
-        return eventChannel;
+        return channel;
     }
 
     /**
@@ -213,20 +212,14 @@ public abstract class Drawable implements Listener {
         return cutCanvas;
     }
 
-    ///
-    /// EVENTS
-    ///
+    //
+    // EVENTS
+    //
 
     @EventHandler
     protected void onActivation(ActivationEvent event) throws NodeNotFoundException {
         DrawableIdentifier identifier = event.getTarget();
         isActive = identifier == this.identifier || identifier == null;
-
-        try {
-            getPlugin().getLogger().log(Level.INFO, "ACTIVATION DETECTED!!! " + this);
-        } catch (NodeNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 
     //

@@ -190,9 +190,9 @@ public class InputField extends Drawable {
     }
      */
 
-    ///
-    /// EVENTS
-    ///
+    //
+    // EVENTS
+    //
 
     @EventHandler
     public void onStringInput(StringInputEvent event) throws NodeNotFoundException {

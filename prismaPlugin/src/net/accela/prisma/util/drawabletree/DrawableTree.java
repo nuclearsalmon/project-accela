@@ -27,7 +27,7 @@ public final class DrawableTree {
     /**
      * All {@link Node}s in this {@link DrawableTree}
      */
-    final Map<Drawable, Node> allNodes = new HashMap<>();
+    final List<Node> allNodes = new ArrayList<>();
 
     /**
      * All nodes in all DrawableTrees in total. Only to be used for lookups.
@@ -59,7 +59,7 @@ public final class DrawableTree {
         }
 
         childNodes.add(node);
-        allNodes.put(drawable, node);
+        allNodes.add(node);
         globalAllNodes.put(drawable, node);
         setFocusedNode(node);
         return node;
@@ -94,8 +94,8 @@ public final class DrawableTree {
     /**
      * @return all {@link Node}s that are connected to this SecureTree, including those of its child branches
      */
-    public @NotNull Map<@NotNull Drawable, @NotNull Node> getAllNodes() {
-        return Map.copyOf(allNodes);
+    public @NotNull List<@NotNull Node> getAllNodes() {
+        return List.copyOf(allNodes);
     }
 
     /**
@@ -116,7 +116,7 @@ public final class DrawableTree {
      * @param node The currently focused {@link Node}.
      */
     public void setFocusedNode(@Nullable Node node) {
-        if (node == null || (node.isAlive() && allNodes.containsValue(node))) focusedNode = node;
+        if (node == null || (node.isAlive() && allNodes.contains(node))) focusedNode = node;
     }
 
     /**

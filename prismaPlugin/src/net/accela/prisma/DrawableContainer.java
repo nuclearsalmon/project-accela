@@ -50,7 +50,8 @@ public class DrawableContainer extends Drawable implements Container {
         AccelaAPI.getPluginManager().registerEvents(drawable, drawable.getPlugin(), drawable.getChannel());
 
         // Focus
-        getWindowManager().broadcastEvent(new ActivationEvent(getPlugin(), drawable.getIdentifier()));
+        // FIXME: 11/25/20 disabled for now, same in wm
+        //getWindowManager().broadcastEvent(new ActivationEvent(getPlugin(), drawable.getIdentifier()));
     }
 
     /**

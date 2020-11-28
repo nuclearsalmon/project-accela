@@ -64,11 +64,8 @@ public class InputParser {
                 // Check if the session has a WindowManager
                 PrismaWM windowManager = session.getWindowManager();
                 if (windowManager != null) {
-                    session.getLogger().log(Level.INFO, "Calling event via PluginManager... " + inputEvent);
-
+                    session.getLogger().log(Level.INFO, "Calling event " + inputEvent);
                     AccelaAPI.getPluginManager().callEvent(inputEvent, windowManager.getBroadcastChannel());
-
-                    session.getLogger().log(Level.INFO, "Called an event via PluginManager... " + inputEvent);
                 } else {
                     session.getLogger().log(Level.WARNING, "Engine down when trying to call an event via PluginManager");
                 }

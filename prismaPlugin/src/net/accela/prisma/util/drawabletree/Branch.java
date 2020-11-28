@@ -52,7 +52,7 @@ public final class Branch extends Node {
         }
 
         childNodes.add(node);
-        tree.allNodes.put(drawable, node);
+        tree.allNodes.add(node);
         DrawableTree.globalAllNodes.put(drawable, node);
         return node;
     }
