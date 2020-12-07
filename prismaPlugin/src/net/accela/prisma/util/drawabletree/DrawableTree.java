@@ -152,14 +152,14 @@ public final class DrawableTree {
     }
 
     /**
-     * @param rect The {@link Rect} to look for {@link Node}s within. Relative.
+     * @param relativeRect The {@link Rect} to look for {@link Node}s within. Relative.
      * @return All {@link Node}s that are situated within the {@link Rect} provided
      */
-    public @NotNull List<@NotNull Node> getIntersectingNodes(@NotNull Rect rect) {
+    public @NotNull List<@NotNull Node> getIntersectingNodes(@NotNull Rect relativeRect) {
         List<Node> nodes = new ArrayList<>();
         for (Node node : getChildNodes()) {
             Drawable drawable = node.getDrawable();
-            if (rect.intersects(drawable.getRelativeRect())) {
+            if (relativeRect.intersects(drawable.getRelativeRect())) {
                 nodes.add(node);
             }
         }
@@ -167,14 +167,14 @@ public final class DrawableTree {
     }
 
     /**
-     * @param rect The {@link Rect} to look for {@link Drawable}s within. Relative.
+     * @param relativeRect The {@link Rect} to look for {@link Drawable}s within. Relative.
      * @return All {@link Drawable}s that are situated within the {@link Rect} provided
      */
-    public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
+    public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect relativeRect) {
         List<Drawable> drawables = new ArrayList<>();
         for (Node node : getChildNodes()) {
             Drawable drawable = node.getDrawable();
-            if (rect.intersects(drawable.getRelativeRect())) {
+            if (relativeRect.intersects(drawable.getRelativeRect())) {
                 drawables.add(drawable);
             }
         }

@@ -16,7 +16,15 @@ import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public abstract class Drawable implements Listener {
+    /**
+     * A lock for any canvas edits
+     */
+    protected final Lock canvasLock = new ReentrantLock();
+
     /**
      * The EventChannel for this drawable
      */
@@ -183,6 +191,7 @@ public abstract class Drawable implements Listener {
      * If the Drawable is marked as active, it will be selected to receive Events. It will be "focused".
      * It can still receive Events when inactive, but is less likely to.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isActive() {
         return isActive;
     }
@@ -197,13 +206,13 @@ public abstract class Drawable implements Listener {
         return false;
     }
 
-    public final synchronized void paint() throws NodeNotFoundException {
+    public final void paint() throws NodeNotFoundException {
         getAnyContainer().paint(this);
     }
 
     protected abstract @NotNull Canvas getCanvas() throws NodeNotFoundException;
 
-    protected synchronized @NotNull Canvas getCanvas(@NotNull Rect rect) throws NodeNotFoundException {
+    protected @NotNull Canvas getCanvas(@NotNull Rect rect) throws NodeNotFoundException {
         Canvas cutCanvas = new Canvas(rect.getSize());
         Canvas.paintHard(
                 cutCanvas, rect.getStartPoint(),

@@ -52,13 +52,4 @@ public interface Container {
      */
     @NotNull
     Rect getAbsoluteRect() throws NodeNotFoundException;
-
-    /**
-     * Validates if a rect is allowed or not for the drawable.
-     *
-     * @param drawable The drawable to approve for
-     * @param rect     A relative rect to validate
-     * @throws RectOutOfBoundsException If the request is denied
-     */
-    void tryRect(@NotNull Drawable drawable, @NotNull Rect rect) throws RectOutOfBoundsException;
 }

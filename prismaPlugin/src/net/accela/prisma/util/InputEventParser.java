@@ -98,42 +98,6 @@ public class InputEventParser {
         this.plugin = plugin;
     }
 
-
-    // FIXME: 11/22/20 remove
-    /* Removed because it didn't work.
-    class EscTimer {
-        class EscTimerTask extends TimerTask {
-            @Override
-            public void run() {
-                parse
-            }
-        }
-
-        Timer timer = new Timer();
-        List<EscTimerTask> tasks = new ArrayList<>();
-
-        public synchronized void schedule(){
-            EscTimerTask timerTask = new EscTimerTask();
-            tasks.add(timerTask);
-            timer.schedule(timerTask, 100);
-        }
-
-        public synchronized void cancelLatest(){
-            if(tasks.size() != 0){
-                TimerTask task = tasks.get(0);
-                tasks.remove(task);
-                task.cancel();
-            }
-        }
-
-        public synchronized void cancel(){
-            tasks.clear();
-            timer.cancel();
-        }
-    }
-    final EscTimer escTimer = new EscTimer();
-    */
-
     /**
      * <pre>
      * Possible inputs:
@@ -147,12 +111,6 @@ public class InputEventParser {
      */
     @Nullable
     public InputEvent parse(@NotNull final String singleEntry) {
-        // FIXME: 11/22/20 remove
-        /*
-        // Ensure there's AT LEAST one character in the entry
-        if (singleEntry.length() == 0) return null;
-         */
-
         switch (parserState) {
             case GROUND:
                 // ESC
@@ -188,8 +146,7 @@ public class InputEventParser {
                 currentSequence += singleEntry;
 
                 // Check if the entry is a terminating character
-                char charEntry = singleEntry.charAt(0);
-                if ((Character.isLetter(charEntry) || charEntry == '~')) {
+                if ((Character.isLetter(singleEntry.charAt(0)) || singleEntry.charAt(0) == '~')) {
                     if (singleEntry.equals("M")) parserState = ParserState.ANSI_MOUSE;
                     else {
                         // Parse the sequence, reset and return
@@ -298,14 +255,14 @@ public class InputEventParser {
     }
 
     MouseInputEvent parseMouse(@NotNull final String sequence) {
-        // Netrunner spec (WHY CAN'T YOU JUST BE NORMAL AND FOLLOW THE STANDARD XTERM SPEC?!!?!!!!)
+        // Netrunner spec
         if (sequence.charAt(1) == '0') {
-            int x = netrunnerCharToInt(sequence.charAt(2));
-            int y = netrunnerCharToInt(sequence.charAt(3));
+            int x = netrunnerCharToInt(sequence.charAt(2)) - 1; // (-1) - Convert to a 0-based coordinate system
+            int y = netrunnerCharToInt(sequence.charAt(3)) - 1; // (-1) - Convert to a 0-based coordinate system
 
             return new MouseInputEvent(plugin, x, y, MouseInputEvent.MouseInputType.LEFT);
         }
-        // xterm spec
+        // xterm spec, or at least assume so
         else {
             int x = xtermCharToInt(sequence.charAt(2)) - 1; // (-1) - Convert to a 0-based coordinate system
             int y = xtermCharToInt(sequence.charAt(3)) - 1; // (-1) - Convert to a 0-based coordinate system
@@ -349,23 +306,24 @@ public class InputEventParser {
             boolean control = false;
             if (((mod >> 4) & 1) == 1) control = true;
 
-            // Whether to use alternative buttons (1) or not.
-            boolean altButtons1 = false;
-            if (((mod >> 5) & 1) == 1) altButtons1 = true;
+            // Whether to use the first set of alternative buttons or not.
+            boolean buttonsAlt1 = false;
+            if (((mod >> 5) & 1) == 1) buttonsAlt1 = true;
 
-            // Whether to use alternative buttons (2) or not
-            boolean altButtons2 = false;
-            if (((mod >> 6) & 1) == 1) altButtons2 = true;
+            // Whether to use second set of alternative buttons or not.
+            boolean buttonsAlt2 = false;
+            if (((mod >> 6) & 1) == 1) buttonsAlt2 = true;
 
-            // Whether this was a motion event or not
+            // Whether this was a motion event or not.
             boolean motion = false;
             if (((mod >> 7) & 1) == 1) motion = true;
 
-            // Calculate condensed button info
-            if (altButtons1) button += 1;
-            if (altButtons2) button += 2;
+            // Calculate which alternative button set to use, if any.
+            // If both one and two are enabled, then the third alternative button set will be used.
+            if (buttonsAlt1) button += 1;
+            if (buttonsAlt2) button += 2;
 
-            // Return an InputEvent or null
+            // Return an InputEvent or null.
             if (motion) {
                 return new MouseInputEvent(plugin, x, y, MouseInputEvent.MouseInputType.MOTION, shift, meta, control);
             } else {
@@ -412,15 +370,11 @@ public class InputEventParser {
     }
 
     int xtermCharToInt(char chr) {
-        int i = chr;
-        i -= 32;
-        return i;
+        return chr - 32;
     }
 
     int netrunnerCharToInt(char chr) {
-        int i = chr;
-        i -= 40;
-        return i;
+        return chr - 40;
     }
 
     @Nullable

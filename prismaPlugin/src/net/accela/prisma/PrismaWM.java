@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 /**
@@ -70,6 +72,10 @@ public class PrismaWM implements Container {
     // Event
     public final EventChannel broadcast = new EventChannel();
 
+    // Locks
+    final Lock paintLock = new ReentrantLock();
+    final Lock broadcastLock = new ReentrantLock();
+
     public PrismaWM(@NotNull TextGraphicsSession session) throws MissingPluginInstanceException {
         this.session = session;
 
@@ -109,7 +115,7 @@ public class PrismaWM implements Container {
      * {@inheritDoc}
      */
     @Override
-    public synchronized void attach(@NotNull Drawable drawable, @NotNull Plugin plugin)
+    public void attach(@NotNull Drawable drawable, @NotNull Plugin plugin)
             throws RectOutOfBoundsException, DeadWMException, NodeNotFoundException {
         // Checks
         checkClosed();
@@ -132,13 +138,16 @@ public class PrismaWM implements Container {
         if(drawable.cursorEnabled()) writeToSession(AnsiLib.showCursor);
         else writeToSession(AnsiLib.hideCursor);
          */
+        thisPlugin.getLogger().log(Level.INFO, "Attached drawable '" + drawable + "'");
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public synchronized void detach(@NotNull Drawable drawable) throws NodeNotFoundException {
+    public void detach(@NotNull Drawable drawable) throws NodeNotFoundException {
+        thisPlugin.getLogger().log(Level.INFO, "Detaching drawable '" + drawable + "'");
+
         // Get the rect before detaching, we're going to need it later
         Rect rect = drawable.getAbsoluteRect();
 
@@ -171,80 +180,74 @@ public class PrismaWM implements Container {
         return getRelativeRect();
     }
 
-    @Override
-    public void tryRect(@NotNull Drawable drawable, @NotNull Rect rect) throws RectOutOfBoundsException {
-        if (!Rect.fits(getRelativeRect(), drawable.getRelativeRect())) {
-            throw new RectOutOfBoundsException("Drawable does not fit within the container");
-        }
-    }
-
     //
     // Painting
     //
 
     @Override
-    public synchronized void paint(@NotNull Rect initialTargetRect) throws NodeNotFoundException {
-        // Confirm WM status
-        checkClosed();
+    public void paint(@NotNull Rect initialTargetRect) throws NodeNotFoundException {
+        paintLock.lock();
+        try {
+            // Confirm WM status
+            checkClosed();
 
-        // Get the intersection of the rect of this container vs the rect of the drawable(s)
-        final Rect targetRect = Rect.intersection(getRelativeRect(), initialTargetRect);
-        if (targetRect == null) throw new IllegalStateException("The Drawable is outside the screen boundaries");
+            // Get the intersection of the rect of this container vs the rect of the drawable(s)
+            final Rect termBounds = getRelativeRect();
+            final Rect targetRect = Rect.intersection(termBounds, initialTargetRect);
+            if (targetRect == null) throw new IllegalStateException(
+                    "\n" + initialTargetRect + "\n is outside the terminal boundaries \n" + termBounds);
 
-        // Hide the cursor before painting to prevent flickering
-        writeToSession(AnsiLib.hideCursor);
+            // Hide the cursor before painting to prevent flickering
+            writeToSession(AnsiLib.hideCursor);
 
-        // Create a new canvas
-        Canvas canvas = new Canvas(targetRect.getSize());
+            // Create a new canvas
+            Canvas canvas = new Canvas(targetRect.getSize());
 
-        // Get drawables that intersect with the rectangle
-        final List<Drawable> drawables = getIntersectingImmediateDrawables(targetRect);
+            // Get drawables that intersect with the rectangle
+            final List<Drawable> drawables = getIntersectingImmediateDrawables(targetRect);
 
-        // Paint the canvas
-        // Iterate in reverse
-        ListIterator<Drawable> drawableIterator = drawables.listIterator(drawables.size());
-        while (drawableIterator.hasPrevious()) {
-            // Get drawable
-            final Drawable drawable = drawableIterator.previous();
+            // Paint the canvas
+            // Iterate in reverse
+            ListIterator<Drawable> drawableIterator = drawables.listIterator(drawables.size());
+            while (drawableIterator.hasPrevious()) {
+                // Get drawable
+                final Drawable drawable = drawableIterator.previous();
 
-            // Get rectangles and intersect them
-            final Rect drawableRect = drawable.getRelativeRect();
-            final Rect targetIntersection = Rect.intersection(targetRect, drawableRect);
-            if (targetIntersection == null) throw new IllegalStateException("THIS SHOULD NOT BE NULL");
+                // Get rectangles and intersect them
+                final Rect drawableRect = drawable.getRelativeRect();
+                final Rect targetIntersection = Rect.intersection(targetRect, drawableRect);
+                if (targetIntersection == null) throw new IllegalStateException("THIS SHOULD NOT BE NULL");
 
-            // Get canvas
-            final Canvas drawableCanvas = drawable.getCanvas();
+                // Get canvas
+                final Canvas drawableCanvas = drawable.getCanvas();
 
-            // Only paint to main canvas after validation
-            if (drawableCanvas.getSize().equals(drawableRect.getSize())) {
-                // Paint the Canvas
-                Canvas.paintHard(canvas, targetRect.getStartPoint(), drawableCanvas, drawableRect.getStartPoint());
-            } else {
-                // Warn and add Drawable to list of bad Drawables
-                String warnMsg = drawable.toString() + "\n"
-                        + drawableCanvas + "\n"
-                        + " tried to pass a Canvas with non-matching Size dimensions. The Drawable will be detached.";
-                //session.getLogger().log(Level.WARNING, warnMsg);
-                //drawable.getPlugin().getLogger().log(Level.WARNING, warnMsg);
-                // fixme absolute shit tier pajeet code, don't do this you dumbass
-                throw new IllegalStateException(warnMsg);
+                // Only paint to main canvas after validation
+                if (drawableCanvas.getSize().equals(drawableRect.getSize())) {
+                    // Paint the Canvas
+                    Canvas.paintHard(canvas, targetRect.getStartPoint(), drawableCanvas, drawableRect.getStartPoint());
+                } else {
+                    // Warn and add Drawable to list of bad Drawables
+                    String warnMsg = drawable.toString() + "\n"
+                            + drawableCanvas + "\n"
+                            + " tried to pass a Canvas with non-matching Size dimensions. The Drawable will be detached.";
+                    throw new IllegalStateException(warnMsg);
+                }
             }
-        }
 
-        // Paint terminal from canvas
-        SequencePainter sequencePainter = new SequencePainter();
-        for (int y = targetRect.getMinY(); y < targetRect.getMaxY() + 1; y++) {
-            // Move the cursor into position
-            writeToSession(AnsiLib.CUP(targetRect.getMinX() + 1, y + 1));
+            // Paint terminal from canvas
+            SequencePainter sequencePainter = new SequencePainter();
+            for (int y = targetRect.getMinY(); y < targetRect.getMaxY() + 1; y++) {
+                // Move the cursor into position
+                writeToSession(AnsiLib.CUP(targetRect.getMinX() + 1, y + 1));
 
-            for (int x = targetRect.getMinX(); x < targetRect.getMaxX() + 1; x++) {
-                // Get the cell we're at
-                final Canvas.Cell cell = canvas.get(x - targetRect.getMinX(), y - targetRect.getMinY());
+                for (int x = targetRect.getMinX(); x < targetRect.getMaxX() + 1; x++) {
+                    // Get the cell we're at
+                    final Canvas.Cell cell = canvas.get(x - targetRect.getMinX(), y - targetRect.getMinY());
 
-                // Reset painting attributes to prevent sequence bleed
-                writeToSession(SGRSequence.RESET);
+                    // Reset painting attributes to prevent sequence bleed
+                    writeToSession(SGRSequence.RESET);
 
-                if (cell == null) {
+                    if (cell == null) {
                     /*
                     if(sequencePainter.getCurrentStatements().size() > 0){
                         sequencePainter.reset();
@@ -252,14 +255,14 @@ public class PrismaWM implements Container {
                     }
                      */
 
-                    writeToSession(" ");
-                } else {
-                    // Update current SGR statements
-                    // sequence logic
-                    // fixme no sequence logic for now, using dumb graphics to lessen the risk
-                    //  of bugs during first tests...
-                    SGRSequence sequence = cell.getSequence();
-                    if (sequence != null) writeToSession(sequence);
+                        writeToSession(" ");
+                    } else {
+                        // Update current SGR statements
+                        // sequence logic
+                        // fixme no sequence logic for now, using dumb graphics to lessen the risk
+                        //  of bugs during first tests...
+                        SGRSequence sequence = cell.getSequence();
+                        if (sequence != null) writeToSession(sequence);
 
                     /*
                     SGRSequence sequence = cell.getSequence();
@@ -284,44 +287,47 @@ public class PrismaWM implements Container {
                     }
                      */
 
-                    // code point logic
-                    String codePoint = cell.getCodepoint();
-                    if (codePoint != null) {
-                        switch (cell.getCharacterWidth()) {
-                            case -1:
-                                // todo plugin blaming system
-                                session.getLogger().log(Level.WARNING, "'" + codePoint
-                                        + "' - C0/C1 control characters are not allowed");
-                                writeToSession(" ");
-                                break;
-                            case 0:
-                                writeToSession(codePoint + " ");
-                            case 1:
-                                writeToSession(codePoint);
-                                break;
-                            case 2:
-                                writeToSession(codePoint);
-                                x++;
-                                break;
+                        // code point logic
+                        String codePoint = cell.getCodepoint();
+                        if (codePoint != null) {
+                            switch (cell.getCharacterWidth()) {
+                                case -1:
+                                    // todo plugin blaming system
+                                    session.getLogger().log(Level.WARNING, "'" + codePoint
+                                            + "' - C0/C1 control characters are not allowed");
+                                    writeToSession(" ");
+                                    break;
+                                case 0:
+                                    writeToSession(codePoint + " ");
+                                case 1:
+                                    writeToSession(codePoint);
+                                    break;
+                                case 2:
+                                    writeToSession(codePoint);
+                                    x++;
+                                    break;
+                            }
+                        } else {
+                            writeToSession(" ");
                         }
-                    } else {
-                        writeToSession(" ");
                     }
                 }
             }
-        }
 
-        // The cursor has moved a lot during the drawing process,
-        // so move it back to where it's supposed to be.
-        Node focusedNode = tree.getFocusedNode();
-        if (focusedNode != null) {
-            moveTextCursor(focusedNode.getDrawable().getCursorRestingPoint());
-            // Show cursor if wanted
-            if (focusedNode.getDrawable().cursorEnabled()) writeToSession(AnsiLib.showCursor);
-        }
+            // The cursor has moved a lot during the drawing process,
+            // so move it back to where it's supposed to be.
+            Node focusedNode = tree.getFocusedNode();
+            if (focusedNode != null) {
+                moveTextCursor(focusedNode.getDrawable().getCursorRestingPoint());
+                // Show cursor if wanted
+                if (focusedNode.getDrawable().cursorEnabled()) writeToSession(AnsiLib.showCursor);
+            }
 
-        // Show cursor
-        writeToSession(AnsiLib.showCursor);
+            // Show cursor
+            writeToSession(AnsiLib.showCursor);
+        } finally {
+            paintLock.unlock();
+        }
     }
 
     /*
@@ -559,7 +565,7 @@ public class PrismaWM implements Container {
         AccelaAPI.getPluginManager().unregisterEvents(broadcastListener);
     }
 
-    synchronized void writeToSession(@NotNull CharSequence characters) {
+    void writeToSession(@NotNull CharSequence characters) {
         checkClosed();
         session.writeToClient(characters.toString());
     }
@@ -608,7 +614,7 @@ public class PrismaWM implements Container {
      *
      * @param event The event to broadcast
      */
-    synchronized void performBroadcast(@NotNull WMEvent event) {
+    void performBroadcast(@NotNull WMEvent event) {
         thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
 
         List<Node> childNodes = tree.getAllNodes();
@@ -651,64 +657,69 @@ public class PrismaWM implements Container {
      *
      * @param event The event to broadcast
      */
-    public synchronized void broadcastEvent(final @NotNull WMEvent event) {
-        //thisPlugin.getLogger().log(Level.INFO, "Received event..." + event);
-        // Focus mods etc
-        // todo make shortcuts customizable
-        if (event instanceof SpecialInputEvent) {
-            SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
+    public void broadcastEvent(final @NotNull WMEvent event) {
+        broadcastLock.lock();
+        try {
+            // Focus mods etc
+            // todo make shortcuts customizable
+            if (event instanceof SpecialInputEvent) {
+                SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
 
-            if (specialInputEvent.getKey() == SpecialInputEvent.SpecialKey.HT) {
-                Node focusedNode = tree.getFocusedNode();
-                if (focusedNode != null) {
-                    List<Node> nodes = tree.getChildNodes();
+                if (specialInputEvent.getKey() == SpecialInputEvent.SpecialKey.HT) {
+                    Node focusedNode = tree.getFocusedNode();
+                    if (focusedNode != null) {
+                        List<Node> nodes = tree.getChildNodes();
 
-                    int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
-                    if (index + 1 > nodes.size()) index = 0;
-                    Drawable drawable = nodes.get(index).getDrawable();
-                    performBroadcast(new ActivationEvent(thisPlugin, drawable.identifier));
+                        int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
+                        if (index + 1 > nodes.size()) index = 0;
+                        Drawable drawable = nodes.get(index).getDrawable();
+                        performBroadcast(new ActivationEvent(thisPlugin, drawable.identifier));
+                    }
                 }
             }
+            // FIXME: 11/24/20 drawable overlap handling
+            else if (event instanceof MouseInputEvent) {
+                MouseInputEvent mouseInputEvent = (MouseInputEvent) event;
+
+                // Get Drawables that intersect with the point
+                Rect pointRect = new Rect(mouseInputEvent.getPoint());
+                List<Node> intersectingChildNodes = tree.getIntersectingNodes(pointRect);
+
+                Node focusNode = null;
+                int index = 0;
+                // fixme Can probably be simplified to just "intersectingChildNodes.size() > index"
+                while (intersectingChildNodes.size() > 0 && intersectingChildNodes.size() > index) {
+                    focusNode = intersectingChildNodes.get(index);
+
+                    if (!focusNode.drawable.wantsFocus()) {
+                        index++;
+                        System.out.println("drawable '" + focusNode.drawable + "' does not want focus, skipping");
+                        continue;
+                    }
+
+                    if (focusNode instanceof Branch) {
+                        Branch branch = (Branch) focusNode;
+
+                        Point startPoint = focusNode.drawable.getRelativeRect().getStartPoint();
+                        pointRect = Rect.startPointSubtraction(pointRect, startPoint);
+
+                        intersectingChildNodes = branch.getIntersectingNodes(pointRect);
+                        index = 0;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (focusNode != null) {
+                    performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.identifier));
+                }
+            }
+
+            // Send the event so that it can be parsed "raw" if need be.
+            performBroadcast(event);
+        } finally {
+            broadcastLock.unlock();
         }
-        // FIXME: 11/24/20 drawable overlap handling
-        else if (event instanceof MouseInputEvent) {
-            MouseInputEvent mouseInputEvent = (MouseInputEvent) event;
-
-            // Get Drawables that intersect with the point
-            Rect pointRect = new Rect(mouseInputEvent.getPoint());
-            List<Node> intersectingChildNodes = tree.getIntersectingNodes(pointRect);
-
-            Node focusNode = null;
-            int index = 0;
-            // fixme Can probably be simplified to just "intersectingChildNodes.size() > index"
-            while (intersectingChildNodes.size() > 0 && intersectingChildNodes.size() > index) {
-                focusNode = intersectingChildNodes.get(index);
-
-                if (!focusNode.getDrawable().wantsFocus()) {
-                    index++;
-                    continue;
-                }
-
-                if (focusNode instanceof Branch) {
-                    Branch branch = (Branch) focusNode;
-
-                    pointRect = Rect.startPointAddition(
-                            pointRect, focusNode.getDrawable().getRelativeRect().getStartPoint());
-
-                    intersectingChildNodes = branch.getIntersectingNodes(pointRect);
-                    index = 0;
-                } else {
-                    break;
-                }
-            }
-
-            if (focusNode != null) {
-                performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.identifier));
-            }
-        }
-
-        // Send the event so that it can be parsed "raw" if need be.
-        performBroadcast(event);
     }
 
     // Listener

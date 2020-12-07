@@ -80,29 +80,34 @@ public class DrawableContainer extends Drawable implements Container {
     }
 
     @Override
-    public synchronized void paint(@NotNull Rect rect) throws NodeNotFoundException {
+    public void paint(@NotNull Rect rect) throws NodeNotFoundException {
+        // Attempt to calculate an intersecting Rect, and ensure it's within the boundaries of this container
+        final Rect containerBounds = getZeroRect();
+        final Rect targetRect = Rect.intersection(containerBounds, rect);
+        if (targetRect == null) throw new IllegalStateException(
+                "\n" + rect + "\n is outside the container boundaries \n" + containerBounds);
+
         getAnyContainer().paint(rect.startPointAddition(getRelativeRect().getStartPoint()));
     }
 
     @Override
-    protected synchronized @NotNull Canvas getCanvas() throws NodeNotFoundException {
+    protected @NotNull Canvas getCanvas() throws NodeNotFoundException {
         return getCanvas(getZeroRect());
     }
 
     @Override
-    protected synchronized @NotNull Canvas getCanvas(@NotNull Rect relativeRect) throws NodeNotFoundException {
-        // Get the intersection of the rect of this container vs the rect of the drawable(s)
-        final Rect targetRect = Rect.intersection(getZeroRect(), relativeRect);
-        if (targetRect == null) throw new IllegalStateException("rect is outside bounds");
+    protected @NotNull Canvas getCanvas(@NotNull Rect rect) throws NodeNotFoundException {
+        // Attempt to calculate an intersecting Rect, and ensure it's within the boundaries of this container
+        final Rect containerBounds = getZeroRect();
+        final Rect targetRect = Rect.intersection(containerBounds, rect);
+        if (targetRect == null) throw new IllegalStateException(
+                rect + " is outside the container boundaries " + containerBounds);
 
         // Create a new canvas
         Canvas canvas = new Canvas(targetRect.getSize());
 
         // Get all drawables within the rectangle
         final List<Drawable> drawables = getIntersectingImmediateDrawables(targetRect);
-
-        // fixme remove
-        //  getWindowManager().getSession().getLogger().log(Level.INFO, "Drawables within " + targetRect + ":" + Arrays.toString(drawables.toArray()));
 
         // Iterate in reverse
         ListIterator<Drawable> drawableIterator = drawables.listIterator(drawables.size());
@@ -131,12 +136,5 @@ public class DrawableContainer extends Drawable implements Container {
             }
         }
         return drawables;
-    }
-
-    @Override
-    public void tryRect(@NotNull Drawable drawable, @NotNull Rect rect) throws RectOutOfBoundsException {
-        if (!Rect.fits(getZeroRect(), drawable.getRelativeRect())) {
-            throw new RectOutOfBoundsException("Drawable does not fit within the container");
-        }
     }
 }

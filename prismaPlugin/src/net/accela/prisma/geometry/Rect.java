@@ -344,11 +344,9 @@ public class Rect implements Shape {
         int width = maxX - minX + 1;
         int height = maxY - minY + 1;
 
-        /*
         System.out.println("rectA=" + rectA + "\nrectB=" + rectB
                 + "\nminX=" + minX + ",minY=" + minY + ",maxX=" + maxX + ",maxY=" + maxY
                 + ",width=" + width + ",height=" + height);
-         */
 
         if (width < 1 || height < 1) {
             return null;
@@ -392,8 +390,6 @@ public class Rect implements Shape {
         result = new Rect(tx1, ty1, tx2, ty2);
 
          */
-
-        //System.out.println("intersectingArea(" + rectA + ", " + rectB + ") = " + result);
     }
 
     @NotNull
