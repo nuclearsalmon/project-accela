@@ -23,7 +23,7 @@ I have plenty of plans for this "game", but that is outside the scope of this RE
 * The full code for the [server module][module_server] and [PrismaWM][plugin_prismawm] will be uploaded at a later date,
 as it's not quite ready yet and I'm dissatisfied with the current code quality.
 * I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. 
-However, for as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
+However, as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
 
 <br>
 
