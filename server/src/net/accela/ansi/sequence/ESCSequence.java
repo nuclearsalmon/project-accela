@@ -12,6 +12,29 @@ import java.util.stream.IntStream;
  * Represents a single immutable ANSI escape sequence.
  */
 public class ESCSequence implements CharSequence {
+    /**
+     * Escape key sequence initializer ("\u001b" or "\27")
+     */
+    @SuppressWarnings("unused")
+    public static final String ESC_STRING = "\u001B";
+
+    /**
+     * Reset to Initial State
+     */
+    @SuppressWarnings("unused")
+    public static final String RIS_STRING = ESC_STRING + "c";
+
+    /*
+     * Reset to Initial State
+     */
+    /*
+    @SuppressWarnings("unused")
+    public static final ESCSequence RIS_SEQUENCE = new ESCSequence(ESC_STRING + "c");
+    */
+
+    @SuppressWarnings("unused")
+    public final static Pattern ESC_SEQUENCE_PATTERN = Patterns.ANSI8Bit;
+
     @NotNull
     protected String sequenceString = "";
 
@@ -23,7 +46,7 @@ public class ESCSequence implements CharSequence {
         this.sequenceString = sequenceString;
     }
 
-    static void validate(@NotNull String sequence, @NotNull Pattern pattern) throws ESCSequenceException {
+    protected static void validate(@NotNull String sequence, @NotNull Pattern pattern) throws ESCSequenceException {
         // Ensure there's no extra characters besides sequences in the string
         String filtered = RegexUtil.filterExcludeByPattern(sequence, pattern);
 

@@ -1,6 +1,5 @@
 package net.accela.ansi.sequence;
 
-import net.accela.ansi.AnsiLib;
 import net.accela.ansi.Patterns;
 import net.accela.ansi.exception.ESCSequenceException;
 import org.jetbrains.annotations.NotNull;
@@ -130,7 +129,7 @@ public class SGRSequence extends CSISequence {
 
     @NotNull
     String toString(List<SGRStatement> statements) {
-        StringBuilder stmtSB = new StringBuilder(AnsiLib.CSI);
+        StringBuilder stmtSB = new StringBuilder(CSISequence.CSI_STRING);
         for (SGRStatement stmt : statements) {
             stmtSB.append(stmt.getTypeAsInt());
             int[] stmtArgs = stmt.getArguments();

@@ -1,6 +1,8 @@
 package net.accela.prisma;
 
 import net.accela.ansi.AnsiLib;
+import net.accela.ansi.sequence.CSISequence;
+import net.accela.ansi.sequence.ESCSequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.prisma.event.*;
 import net.accela.prisma.exception.DeadWMException;
@@ -33,7 +35,6 @@ import java.util.logging.Level;
 /**
  * A TUI window manager
  */
-@SuppressWarnings("deprecation")
 public class PrismaWM implements Container {
     // The session hosting this
     final TextGraphicsSession session;
@@ -48,8 +49,6 @@ public class PrismaWM implements Container {
     // Flags
     // Whether the WindowManager is alive or not
     boolean isAlive = true;
-    // Whether doorway mode is enabled or not
-    boolean doorwayModeEnabled = false;
 
     // Mouse related
     // TODO: 10/23/20 move mouse handling to textGraphicsSession
@@ -84,13 +83,12 @@ public class PrismaWM implements Container {
         thisPlugin = instance;
 
         // Reset the terminal to its initial state and clear it
-        writeToSession(AnsiLib.RIS + AnsiLib.CLR);
+        writeToSession(ESCSequence.RIS_STRING + AnsiLib.CLR);
 
         // Register event listeners
         AccelaAPI.getPluginManager().registerEvents(broadcastListener, thisPlugin, broadcast);
 
         // Enable mouse
-        //fixme remove enableDoorwayMode();
         setMouseMode(PrismaWM.MouseMode.NORMAL);
         setMouseMode(PrismaWM.MouseMode.ANY);
     }
@@ -197,7 +195,7 @@ public class PrismaWM implements Container {
                     "\n" + initialTargetRect + "\n is outside the terminal boundaries \n" + termBounds);
 
             // Hide the cursor before painting to prevent flickering
-            writeToSession(AnsiLib.hideCursor);
+            writeToSession(CSISequence.P_CUR_OFF);
 
             // Create a new canvas
             Canvas canvas = new Canvas(targetRect.getSize());
@@ -320,7 +318,7 @@ public class PrismaWM implements Container {
                 moveTextCursor(focusedNode.getDrawable().getCursorRestingPoint());
 
                 // Show cursor if wanted
-                if (focusedNode.getDrawable().cursorEnabled()) writeToSession(AnsiLib.showCursor);
+                if (focusedNode.getDrawable().cursorEnabled()) writeToSession(CSISequence.P_CUR_ON);
             }
         } finally {
             paintLock.unlock();
@@ -349,7 +347,7 @@ public class PrismaWM implements Container {
      */
     public void enableTextCursor(@NotNull Drawable caller) throws NodeNotFoundException {
         if (tree.getFocusedNode() != caller.getNode()) return;
-        writeToSession(AnsiLib.showCursor);
+        writeToSession(CSISequence.P_CUR_ON);
     }
 
     /**
@@ -359,7 +357,7 @@ public class PrismaWM implements Container {
      */
     public void disableTextCursor(@NotNull Drawable caller) throws NodeNotFoundException {
         if (tree.getFocusedNode() != caller.getNode()) return;
-        writeToSession(AnsiLib.hideCursor);
+        writeToSession(CSISequence.P_CUR_OFF);
     }
 
     /**
@@ -384,33 +382,23 @@ public class PrismaWM implements Container {
         //if(!doorwayModeEnabled) enableDoorwayMode();
         switch (mode) {
             case NONE:
-                writeToSession(AnsiLib.CSI + "?1000l");
+                writeToSession(CSISequence.CSI_STRING + "?1000l");
                 break;
             case ONLY_BUTTON_PRESS:
-                writeToSession(AnsiLib.CSI + "?9h");
+                writeToSession(CSISequence.CSI_STRING + "?9h");
                 break;
             case NORMAL:
-                writeToSession(AnsiLib.CSI + "?1000h");
+                writeToSession(CSISequence.CSI_STRING + "?1000h");
                 break;
             case BUTTON:
-                writeToSession(AnsiLib.CSI + "?1002h");
+                writeToSession(CSISequence.CSI_STRING + "?1002h");
                 break;
             case ANY:
-                writeToSession(AnsiLib.CSI + "?1003h");
+                writeToSession(CSISequence.CSI_STRING + "?1003h");
                 break;
         }
         System.out.println("changed mouse mode");
         mouseMode = mode;
-    }
-
-    void enableDoorwayMode() {
-        writeToSession(AnsiLib.CSI + "=255h");
-        doorwayModeEnabled = true;
-    }
-
-    void disableDoorwayMode() {
-        writeToSession(AnsiLib.CSI + "=255l");
-        doorwayModeEnabled = false;
     }
 
     //

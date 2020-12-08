@@ -2,6 +2,7 @@ package net.accela.telnet.util;
 
 import net.accela.ansi.AnsiLib;
 import net.accela.ansi.Crayon;
+import net.accela.ansi.sequence.CSISequence;
 import net.accela.prisma.PrismaWM;
 import net.accela.prisma.event.InputEvent;
 import net.accela.prisma.event.PointInputEvent;
@@ -123,11 +124,11 @@ public class InputParser {
         // Form a request
         String request =
                 /* Move the cursor to the very bottom of the terminal */
-                AnsiLib.CSI + "255B" +
+                CSISequence.CSI_STRING + "255B" +
                         /* Move the cursor to the very right of the terminal */
-                        AnsiLib.CSI + "255C" +
+                        CSISequence.CSI_STRING + "255C" +
                         /* Ask for the cursor location */
-                        AnsiLib.CSI + "6n";
+                        CSISequence.CSI_STRING + "6n";
 
         // Send the request
         sessionServer.writeToClient(request.getBytes(session.getCharset()));
@@ -171,7 +172,7 @@ public class InputParser {
                         /* Print three unicode characters that are 3 bytes in UTF-8 encoding */
                         "㐸惵㲒" +
                         /* Request to know where the cursor is now */
-                        AnsiLib.CSI + "6n";
+                        CSISequence.CSI_STRING + "6n";
 
         // Send the request
         sessionServer.writeToClient(request.getBytes(session.getCharset()));

@@ -1,6 +1,7 @@
 package net.accela.ansi;
 
 import net.accela.ansi.exception.ESCSequenceException;
+import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.SGRStatement;
 import net.accela.ansi.sequence.color.StandardColor;
@@ -50,7 +51,7 @@ public class CompatibilityConverter {
     }
 
     public @NotNull String makeCompatible(final @NotNull List<@NotNull SGRStatement> statements) {
-        final StringBuilder result = new StringBuilder(AnsiLib.CSI);
+        final StringBuilder result = new StringBuilder(CSISequence.CSI_STRING);
         SGRStatement.Type intensityType = SGRStatement.Type.INTENSITY_OFF;
 
         for (SGRStatement statement : statements) {

@@ -1,7 +1,7 @@
 package net.accela.ansi.sequence.color;
 
-import net.accela.ansi.AnsiLib;
 import net.accela.ansi.exception.ESCSequenceException;
+import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.SGRStatement;
 import net.accela.ansi.sequence.color.standard.RGB;
@@ -203,7 +203,7 @@ public class StandardColor extends SGRSequence {
     @NotNull
     public String toString(final boolean aixterm) {
         int index = NameToIntMap.get(colorName);
-        StringBuilder sequence = new StringBuilder(AnsiLib.CSI);
+        StringBuilder sequence = new StringBuilder(CSISequence.CSI_STRING);
         if (bright) {
             if (aixterm) {
                 sequence.append(fg ? "9" : "10");

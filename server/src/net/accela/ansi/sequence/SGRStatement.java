@@ -6,7 +6,6 @@ import net.accela.ansi.annotation.NotWidelySupported;
 import net.accela.ansi.annotation.RequiresArgument;
 import net.accela.ansi.exception.ESCSequenceException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,13 +17,13 @@ import java.util.HashMap;
 public class SGRStatement {
     @NotNull
     final SGRStatement.Type type;
-    @Nullable int[] arguments;
+    int[] arguments;
 
     public SGRStatement(int typeAsInt) throws ESCSequenceException {
         this(typeAsInt, null);
     }
 
-    public SGRStatement(int typeAsInt, @Nullable int[] args) throws ESCSequenceException {
+    public SGRStatement(int typeAsInt, int[] args) throws ESCSequenceException {
         Type typeObj = intToTypeMap.get(typeAsInt);
         if (typeObj == null) throw new ESCSequenceException("Invalid/Unknown SGRStatement type '" + typeAsInt + "'");
 
@@ -38,7 +37,7 @@ public class SGRStatement {
         this(type, null);
     }
 
-    public SGRStatement(@NotNull SGRStatement.Type type, @Nullable int[] args) throws ESCSequenceException {
+    public SGRStatement(@NotNull SGRStatement.Type type, int[] args) throws ESCSequenceException {
         this.type = type;
         this.arguments = args;
 
@@ -50,7 +49,6 @@ public class SGRStatement {
         return type;
     }
 
-    @Nullable
     public int[] getArguments() {
         return arguments;
     }

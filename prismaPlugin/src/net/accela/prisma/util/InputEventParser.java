@@ -1,6 +1,6 @@
 package net.accela.prisma.util;
 
-import net.accela.ansi.AnsiLib;
+import net.accela.ansi.sequence.ESCSequence;
 import net.accela.prisma.event.*;
 import net.accela.prisma.geometry.Point;
 import net.accela.server.plugin.Plugin;
@@ -114,7 +114,7 @@ public class InputEventParser {
         switch (parserState) {
             case GROUND:
                 // ESC
-                if (singleEntry.equals(AnsiLib.ESC)) {
+                if (singleEntry.equals(ESCSequence.ESC_STRING)) {
                     parserState = ParserState.ESC;
                 }
                 // Normal input
@@ -124,7 +124,7 @@ public class InputEventParser {
                 break;
             case ESC:
                 // Double ESC means normal input with a single ESC character
-                if (singleEntry.equals(AnsiLib.ESC)) {
+                if (singleEntry.equals(ESCSequence.ESC_STRING)) {
                     parserState = ParserState.GROUND;
                     return new SpecialInputEvent(plugin, SpecialInputEvent.SpecialKey.ESC);
                 }

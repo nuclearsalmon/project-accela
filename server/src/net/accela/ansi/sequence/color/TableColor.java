@@ -1,7 +1,7 @@
 package net.accela.ansi.sequence.color;
 
-import net.accela.ansi.AnsiLib;
 import net.accela.ansi.exception.ESCSequenceException;
+import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.color.standard.RGB;
 import org.jetbrains.annotations.NotNull;
@@ -578,7 +578,7 @@ public class TableColor extends SGRSequence {
 
         this.index = index;
         this.fg = fg;
-        this.sequenceString = AnsiLib.CSI + (fg ? "3" : "4") + "8;5;" + index + "m";
+        this.sequenceString = CSISequence.CSI_STRING + (fg ? "3" : "4") + "8;5;" + index + "m";
     }
 
     public TableColor(RGB rgb) throws ESCSequenceException {
@@ -610,7 +610,7 @@ public class TableColor extends SGRSequence {
         if (index < 16) {
             this.sequenceString = new StandardColor(index).toString();
         } else {
-            this.sequenceString = AnsiLib.CSI + (fg ? "3" : "4") + "8;5;" + index + "m";
+            this.sequenceString = CSISequence.CSI_STRING + (fg ? "3" : "4") + "8;5;" + index + "m";
         }
     }
 
