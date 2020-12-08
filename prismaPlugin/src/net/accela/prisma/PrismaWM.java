@@ -90,7 +90,7 @@ public class PrismaWM implements Container {
         AccelaAPI.getPluginManager().registerEvents(broadcastListener, thisPlugin, broadcast);
 
         // Enable mouse
-        enableDoorwayMode();
+        //fixme remove enableDoorwayMode();
         setMouseMode(PrismaWM.MouseMode.NORMAL);
         setMouseMode(PrismaWM.MouseMode.ANY);
     }
@@ -313,150 +313,19 @@ public class PrismaWM implements Container {
                 }
             }
 
-            // The cursor has moved a lot during the drawing process,
-            // so move it back to where it's supposed to be.
             Node focusedNode = tree.getFocusedNode();
             if (focusedNode != null) {
+                // The cursor has moved a lot during the drawing process,
+                // so move it back to where it's supposed to be.
                 moveTextCursor(focusedNode.getDrawable().getCursorRestingPoint());
+
                 // Show cursor if wanted
                 if (focusedNode.getDrawable().cursorEnabled()) writeToSession(AnsiLib.showCursor);
             }
-
-            // fixme remove this
-            // Show cursor
-            //writeToSession(AnsiLib.showCursor);
         } finally {
             paintLock.unlock();
         }
     }
-
-    /*
-    /**
-     * {@inheritDoc}
-     */
-    /*
-    public synchronized void draw(@NotNull Rect targetRect) throws DeadWMException, NodeNotFoundException {
-        checkClosed();
-
-        writeToSession(AnsiLib.hideCursor);
-
-        // Get the intersection of the rect of this container vs the target
-        final Rect targetRectIntersection = Rect.intersection(getRelativeRect(), targetRect);
-
-        // Get all drawables within the rect
-        final List<@NotNull Drawable> drawables = tree.getIntersectingDrawables(targetRectIntersection);
-
-        thisPlugin.getLogger().log(
-                Level.INFO, "Drawables within " + targetRectIntersection + ":" + Arrays.toString(drawables.toArray()));
-
-        // A grid for memorizing which areas are occupied and which are not
-        final MutableGrid<@NotNull Boolean> occupiedGrid = new MutableGrid<>(targetRectIntersection.getSize());
-        occupiedGrid.fill(Boolean.FALSE);
-
-        // Mark which parts of the grid are occupied
-        for (Drawable drawable:drawables) {
-            Rect relativeDrawableIntersection =
-                    Rect.intersection(targetRectIntersection, drawable.getRelativeRect()).startPointSubtraction(targetRectIntersection);
-            for (int y = relativeDrawableIntersection.getMinY(); y <= relativeDrawableIntersection.getMaxY(); y++) {
-                for (int x = relativeDrawableIntersection.getMinX(); x <= relativeDrawableIntersection.getMaxX(); x++) {
-                    occupiedGrid.set(x, y, true);
-                }
-            }
-        }
-
-        // Clear any previous effects
-        writeToSession(new SGRSequence(new SGRStatement(SGRStatement.Type.RESET)));
-
-        // Draw over any blank space not occupied by drawables
-        for (int y = targetRectIntersection.getMinY(); y <= targetRectIntersection.getMaxY(); y++) {
-            boolean needMove = true;
-            for (int x = targetRectIntersection.getMinX(); x <= targetRectIntersection.getMaxX(); x++) {
-                // Move the cursor into position
-                if(needMove){
-                    writeToSession(AnsiLib.CUP(x + 1, y + 1));
-                    needMove = false;
-                }
-
-                int relativeX = x - targetRectIntersection.getMinX();
-                int relativeY = y - targetRectIntersection.getMinY();
-                Boolean isOccupied = occupiedGrid.get(relativeX, relativeY);
-                if(isOccupied != null && isOccupied){
-                    needMove = true;
-                } else {
-                    writeToSession(" ");
-                }
-            }
-        }
-
-        // Iterate in reverse
-        final ListIterator<Drawable> listIterator = drawables.listIterator(drawables.size());
-        while (listIterator.hasPrevious()){
-            // Get drawable and related positional data
-            final Drawable drawable = listIterator.previous();
-            final Rect drawableRect = drawable.getRelativeRect();
-            final Rect targetIntersection = Rect.intersection(targetRectIntersection, drawableRect);
-
-            // Get drawable caches
-            final MutableGrid<@Nullable Character> drawableCharacterCache = drawable.getCharacterCache();
-            final MutableGrid<@Nullable SGRSequence> drawableSequenceCache = drawable.getSequenceCache();
-
-            // Validate drawable caches
-            if(!drawableCharacterCache.getSize().equals(drawableRect.getSize()) ||
-                    !drawableSequenceCache.getSize().equals(drawableRect.getSize())) throw new RectOutOfBoundsException(
-                    "The size of the cache does not equal the size of the drawable"
-            );
-
-            // Prep a list of SGRStatements that are in effect before the targeted area of the drawable
-            final List<@NotNull SGRStatement> prefixStatements = new ArrayList<>();
-            // Prefix with RESET
-            prefixStatements.add(new SGRStatement(SGRStatement.Type.RESET));
-            // Collect statements
-            for (SGRSequence sequence : drawableSequenceCache.getElements(
-                    new Point(0, 0), Rect.startPointSubtraction(targetIntersection, drawableRect).getStartPoint()
-            )) {
-                if(sequence != null) prefixStatements.addAll(sequence.toSGRStatements());
-            }
-            // Compress the statements and combine it into a single SGRSequence
-            final SGRSequence prefixSequence = new SGRSequence(SGRSequence.compress(prefixStatements));
-            writeToSession(prefixSequence);
-
-            // Print this drawable.
-            // This will induce flickering if it's overlaying another drawable,
-            // but the old caching system I used was riddled with bugs,
-            // and I really needed to progress to the next part in my project...
-            for (int y = targetIntersection.getMinY(); y <= targetIntersection.getMaxY(); y++) {
-                boolean needMove = true;
-                for (int x = targetIntersection.getMinX(); x <= targetIntersection.getMaxX(); x++) {
-                    // Convert to relative values
-                    final int relativeX = x - drawableRect.getMinX();
-                    final int relativeY = y - drawableRect.getMinY();
-
-                    // Move the cursor into position
-                    if(needMove){
-                        writeToSession(AnsiLib.CUP(x + 1, y + 1));
-                        needMove = false;
-                    }
-
-                    final Character newCharacter = drawableCharacterCache.get(relativeX, relativeY);
-                    final SGRSequence newSequence = drawableSequenceCache.get(relativeX, relativeY);
-                    final String newResult = (newSequence == null ? "" : newSequence.toString()) +
-                            (newCharacter == null ? " " : newCharacter);
-
-                    // Write
-                    writeToSession(newResult);
-                }
-            }
-        }
-
-        // The cursor has moved a lot during the drawing process,
-        // so move it back to where it's supposed to be.
-        Node focusedNode = tree.getFocusedNode();
-        if(focusedNode != null){
-            moveTextCursor(focusedNode.getDrawable().getCursorRestingPoint());
-            if(focusedNode.getDrawable().cursorEnabled()) writeToSession(AnsiLib.showCursor);
-        }
-    }
-    */
 
     private List<@NotNull Drawable> getIntersectingImmediateDrawables(@NotNull Rect rect) {
         final List<Drawable> drawables = new ArrayList<>();
