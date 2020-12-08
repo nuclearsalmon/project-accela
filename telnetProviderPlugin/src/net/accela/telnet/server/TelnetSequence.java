@@ -1,7 +1,7 @@
 package net.accela.telnet.server;
 
 import net.accela.telnet.exception.InvalidTelnetSequenceException;
-import net.accela.telnet.util.TelnetByteTranslator;
+import net.accela.telnet.util.TelnetBytes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,7 +154,7 @@ public final class TelnetSequence {
 
     @Override
     public String toString() {
-        return TelnetByteTranslator.bytesToString(this);
+        return TelnetBytes.bytesToString(this);
     }
 
     @Override

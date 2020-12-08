@@ -7,7 +7,7 @@ import net.accela.telnet.session.TelnetSession;
 import net.accela.telnet.util.ArrayUtil;
 import net.accela.telnet.util.CharsetDecoder;
 import net.accela.telnet.util.InputParser;
-import net.accela.telnet.util.TelnetByteTranslator;
+import net.accela.telnet.util.TelnetBytes;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -20,6 +20,8 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 import static net.accela.telnet.util.TelnetBytes.*;
@@ -61,8 +63,8 @@ public final class TelnetSessionServer extends Thread {
 
     @NotNull NegotiationState negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
 
-    // Synchronization lock
-    final Object terminalWriteLock = new Object();
+    // Synchronization locks
+    final Lock termWritelock = new ReentrantLock();
 
     // Default negotiation result flags
     boolean echoEnabled = true;
@@ -193,7 +195,7 @@ public final class TelnetSessionServer extends Thread {
                         // Did not receive a valid command, so stop expecting further input.
                         negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
                         session.getLogger().log(Level.INFO, "Received unknown telnet command: "
-                                + TelnetByteTranslator.byteToString(by));
+                                + TelnetBytes.byteToString(by));
                 }
                 break;
             case WAITING_FOR_ARGUMENTS:
@@ -254,7 +256,7 @@ public final class TelnetSessionServer extends Thread {
                 } else {
                     // No trigger or response found
                     session.getLogger().log(Level.INFO, "Unknown response for '"
-                            + TelnetByteTranslator.bytesToString(tmpReceivedSequence.getByteSequence()) + "'");
+                            + TelnetBytes.bytesToString(tmpReceivedSequence.getByteSequence()) + "'");
 
                     // Inform the client that the server does not expect the client to perform,
                     // or that the server refuses to perform, the request.
@@ -309,14 +311,12 @@ public final class TelnetSessionServer extends Thread {
     void sendPendingSequence() throws IOException {
         if (negotiationState != NegotiationState.WAITING_FOR_IAC_OR_CHR) return;
 
-        synchronized (terminalWriteLock) {
-            if (pendingSequences.size() == 0) return;
-            TelnetSequence sequence = pendingSequences.remove(0);
-            sequence.confirmValid();
-            if (!sequence.isValid()) return;
+        if (pendingSequences.size() == 0) return;
+        TelnetSequence sequence = pendingSequences.remove(0);
+        sequence.confirmValid();
+        if (!sequence.isValid()) return;
 
-            writeToClient(ArrayUtil.byteObjectsToBytes(sequence.getByteSequence()));
-        }
+        writeToClient(ArrayUtil.byteObjectsToBytes(sequence.getByteSequence()));
     }
 
     public void registerNegotiationFlow(@NotNull Byte trigger, @NotNull TelnetResponse response) {
@@ -553,18 +553,22 @@ public final class TelnetSessionServer extends Thread {
     }
 
     public void writeToClient(byte outByte) throws IOException {
-        synchronized (terminalWriteLock) {
+        termWritelock.lock();
+        try {
             outputStream.write(outByte);
             outputStream.flush();
-            //session.getLogger().log(Level.INFO, "Sent: '" + outByte + "' (" + TelnetByteTranslator.byteToString(outByte) + ")");
+        } finally {
+            termWritelock.unlock();
         }
     }
 
     public void writeToClient(byte[] outBytes) throws IOException {
-        synchronized (terminalWriteLock) {
+        termWritelock.lock();
+        try {
             outputStream.write(outBytes);
             outputStream.flush();
-            //session.getLogger().log(Level.INFO, "Sent: '" + TelnetByteTranslator.byteToString(outByte) + "'");
+        } finally {
+            termWritelock.unlock();
         }
     }
 
@@ -579,7 +583,7 @@ public final class TelnetSessionServer extends Thread {
         try {
             writeToClient((AnsiLib.CLR + AnsiLib.RIS).getBytes(getCharset()));
         } catch (IOException e) {
-            session.getLogger().warning("Failed to write CLR + RIS to client before interrupting");
+            session.getLogger().severe("Failed to write CLR + RIS to client before interrupting");
         }
         super.interrupt();
     }
