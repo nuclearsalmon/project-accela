@@ -1,6 +1,5 @@
 package net.accela.telnet.util;
 
-import net.accela.ansi.AnsiLib;
 import net.accela.ansi.Crayon;
 import net.accela.ansi.sequence.CSISequence;
 import net.accela.prisma.PrismaWM;
@@ -147,7 +146,7 @@ public class InputParser {
         System.out.println("Updated terminal size! New value: " + session.getTerminalSize());
 
         // Clear and redraw
-        sessionServer.writeToClient(AnsiLib.CLR.getBytes(session.getCharset()));
+        sessionServer.writeToClient(CSISequence.CLR_STRING.getBytes(session.getCharset()));
         PrismaWM windowManager = session.getWindowManager();
         if (windowManager != null) windowManager.paint(new Rect(session.getTerminalSize()));
     }
@@ -166,7 +165,7 @@ public class InputParser {
         // Form a request
         String request =
                 /* Clear to reset the cursor */
-                AnsiLib.CLR +
+                CSISequence.CLR_STRING +
                         /* Black FG and BG so that the characters aren't visible. Makes for a cleaner look */
                         new Crayon().blackBg(true).blackBg(false) +
                         /* Print three unicode characters that are 3 bytes in UTF-8 encoding */
@@ -198,7 +197,7 @@ public class InputParser {
         System.out.println("Updated unicode support! New value: " + session.getUnicodeSupport());
 
         // Clear and redraw
-        sessionServer.writeToClient(AnsiLib.CLR.getBytes(session.getCharset()));
+        sessionServer.writeToClient(CSISequence.CLR_STRING.getBytes(session.getCharset()));
         PrismaWM windowManager = session.getWindowManager();
         if (windowManager != null) windowManager.paint(new Rect(session.getTerminalSize()));
     }

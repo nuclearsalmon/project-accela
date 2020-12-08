@@ -1,6 +1,6 @@
 package net.accela.telnet.server;
 
-import net.accela.ansi.AnsiLib;
+import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.ESCSequence;
 import net.accela.telnet.exception.InvalidTelnetSequenceException;
 import net.accela.telnet.exception.TerminationException;
@@ -582,7 +582,7 @@ public final class TelnetSessionServer extends Thread {
     public void interrupt() {
         // Reset terminal
         try {
-            writeToClient((AnsiLib.CLR + ESCSequence.RIS_STRING).getBytes(getCharset()));
+            writeToClient((CSISequence.CLR_STRING + ESCSequence.RIS_STRING).getBytes(getCharset()));
         } catch (IOException e) {
             session.getLogger().severe("Failed to write CLR + RIS to client before interrupting");
         }

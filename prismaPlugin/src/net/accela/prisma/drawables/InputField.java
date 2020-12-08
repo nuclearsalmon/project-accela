@@ -6,7 +6,6 @@ import net.accela.prisma.DrawableIdentifier;
 import net.accela.prisma.event.ActivationEvent;
 import net.accela.prisma.event.SpecialInputEvent;
 import net.accela.prisma.event.StringInputEvent;
-import net.accela.prisma.exception.DeadWMException;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
@@ -57,7 +56,7 @@ public class InputField extends Drawable {
     /**
      * Applies changes
      */
-    public void apply() throws DeadWMException {
+    public void apply() {
         getCanvas().fill(getZeroRect(), " ", isActive ? activeSGR : inactiveSGR);
 
         // Populate the needed area of the cache with the text.

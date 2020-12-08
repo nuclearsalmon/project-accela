@@ -5,10 +5,7 @@ import net.accela.ansi.sequence.CSISequence;
 /**
  * @deprecated AnsiLib provides shorthand methods and variables so that the programmer
  * does not need to manually type "\u001B[" etc each time they need a sequence.
- * It will probably get removed in the future.
- * <br>
- * For more information regarding the ANSI Specification, refer to:
- * https://en.wikipedia.org/wiki/ANSI_escape_code
+ * It will get removed (replaced with a better system) eventually.
  */
 @Deprecated
 public class AnsiLib {
@@ -22,9 +19,4 @@ public class AnsiLib {
     public static String CUP(int x, int y) {
         return CSISequence.CSI_STRING + y + ";" + x + "H";
     }
-
-    /**
-     * Clears the screen.
-     */
-    public static String CLR = CSISequence.CSI_STRING + "2J";
 }

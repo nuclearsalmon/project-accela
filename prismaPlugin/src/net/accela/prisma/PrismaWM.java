@@ -5,8 +5,6 @@ import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.ESCSequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.prisma.event.*;
-import net.accela.prisma.exception.DeadWMException;
-import net.accela.prisma.exception.MissingPluginInstanceException;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
@@ -74,16 +72,16 @@ public class PrismaWM implements Container {
     final Lock paintLock = new ReentrantLock();
     final Lock broadcastLock = new ReentrantLock();
 
-    public PrismaWM(@NotNull TextGraphicsSession session) throws MissingPluginInstanceException {
+    public PrismaWM(@NotNull TextGraphicsSession session) {
         this.session = session;
 
         // Get plugin instance
         Plugin instance = Main.getInstance();
-        if (instance == null) throw new MissingPluginInstanceException();
+        if (instance == null) throw new IllegalStateException("Missing plugin instance");
         thisPlugin = instance;
 
         // Reset the terminal to its initial state and clear it
-        writeToSession(ESCSequence.RIS_STRING + AnsiLib.CLR);
+        writeToSession(ESCSequence.RIS_STRING + CSISequence.CLR_STRING);
 
         // Register event listeners
         AccelaAPI.getPluginManager().registerEvents(broadcastListener, thisPlugin, broadcast);
@@ -97,8 +95,8 @@ public class PrismaWM implements Container {
         return broadcast;
     }
 
-    public void checkClosed() throws DeadWMException {
-        if (!isAlive) throw new DeadWMException();
+    public void checkClosed() {
+        if (!isAlive) throw new IllegalStateException("Interaction with dead WM");
     }
 
     /**
@@ -113,7 +111,7 @@ public class PrismaWM implements Container {
      */
     @Override
     public void attach(@NotNull Drawable drawable, @NotNull Plugin plugin)
-            throws RectOutOfBoundsException, DeadWMException, NodeNotFoundException {
+            throws RectOutOfBoundsException, NodeNotFoundException {
         // Checks
         checkClosed();
         if (!Rect.fits(getRelativeRect(), drawable.getRelativeRect())) {

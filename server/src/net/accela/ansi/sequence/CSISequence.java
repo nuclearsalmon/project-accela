@@ -12,16 +12,24 @@ import java.util.regex.Pattern;
  */
 public class CSISequence extends ESCSequence {
     /**
+     * A pattern that matches all valid CSISequences
+     */
+    @SuppressWarnings("unused")
+    public static final Pattern CSI_SEQUENCE_PATTERN = Patterns.CSI;
+
+    /**
      * CSI - Control Sequence Inducer
      */
     @SuppressWarnings("unused")
     public static final String CSI_STRING = ESC_STRING + "[";
 
-    @SuppressWarnings("unused")
-    public static final Pattern CSI_SEQUENCE_PATTERN = Patterns.CSI;
-
     public static final CSISequence P_CUR_ON = new CSISequence(CSI_STRING + "?25h");
     public static final CSISequence P_CUR_OFF = new CSISequence(CSI_STRING + "?25l");
+
+    /**
+     * Clears the terminal window.
+     */
+    public static String CLR_STRING = CSISequence.CSI_STRING + "2J";
 
     public enum StatementType {
         CUU, CUD, CUF, CUB, CNL, CPL, CHA, CUP, EID, EIL, SU, SD, HVP, SGR, AP_ON, AP_OFF, DSR,

@@ -1,6 +1,5 @@
 package net.accela.prisma;
 
-import net.accela.prisma.exception.DeadWMException;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
@@ -18,7 +17,7 @@ public interface Container {
      * @param drawable The {@link Drawable} to attach
      * @throws RectOutOfBoundsException when the rect is invalid
      */
-    void attach(@NotNull Drawable drawable, @NotNull Plugin plugin) throws RectOutOfBoundsException, DeadWMException, NodeNotFoundException;
+    void attach(@NotNull Drawable drawable, @NotNull Plugin plugin) throws RectOutOfBoundsException, NodeNotFoundException;
 
     /**
      * Detaches a {@link Drawable} from this {@link Container}
