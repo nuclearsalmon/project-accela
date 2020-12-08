@@ -129,7 +129,7 @@ public class InputEventParser {
                     return new SpecialInputEvent(plugin, SpecialInputEvent.SpecialKey.ESC);
                 }
                 // It's ANSI.
-                // It could also be ALT[, but for the sake of code simplicity I opted not to include it.
+                // It could also be ALT[, but for the sake of code simplicity I've opted not to include that.
                 else if (singleEntry.equals("[")) {
                     parserState = ParserState.ANSI_IDENT;
                 }
@@ -146,7 +146,7 @@ public class InputEventParser {
                 currentSequence += singleEntry;
 
                 // Check if the entry is a terminating character
-                if ((Character.isLetter(singleEntry.charAt(0)) || singleEntry.charAt(0) == '~')) {
+                if (Character.isLetter(singleEntry.charAt(0)) || singleEntry.charAt(0) == '~') {
                     if (singleEntry.equals("M")) parserState = ParserState.ANSI_MOUSE;
                     else {
                         // Parse the sequence, reset and return
@@ -379,6 +379,13 @@ public class InputEventParser {
 
     @Nullable
     InputEvent parseANSI(@NotNull final String sequence) {
+        System.out.print("Sequence: [");
+        char[] chars = sequence.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            System.out.print(chars[i] + (i == 0 ? "" : ","));
+        }
+        System.out.println("]");
+
         String keycode, modifier = "";
 
         // Grab the last split item as a char
@@ -397,18 +404,24 @@ public class InputEventParser {
             // We now have a keycode, and possibly a modifier as well.
             return parseSpecialKey(keycode, modifier);
         }
-        // If the modifier comes first ( for example <esc>[5C or <esc>[32;40R )
+        // If the modifier comes first ( for example <esc>[5C or <esc>[1;5C )
         else if (Character.isLetter(lastChar)) {
             String[] split;
+            String importantPartOfSequence;
+
+            // Cut the part that we don't need (wtf does the `1` in `<esc>[1;5C` even do?)
             if (sequence.contains(";")) {
-                split = sequence.split("[;]+");
+                importantPartOfSequence = sequence.substring(sequence.indexOf(";") + 1);
             } else {
-                split = Pattern.compile("([0-9]|[A-Z]|[a-z])")
-                        .matcher(sequence)
-                        .results()
-                        .map(MatchResult::group)
-                        .toArray(String[]::new);
+                importantPartOfSequence = sequence;
             }
+
+            // Split it
+            split = Pattern.compile("([0-9]|[A-Z]|[a-z])")
+                    .matcher(importantPartOfSequence)
+                    .results()
+                    .map(MatchResult::group)
+                    .toArray(String[]::new);
 
             // Don't try to add a modifier if there isn't one.
             if (split.length == 1) {
@@ -419,49 +432,48 @@ public class InputEventParser {
             }
 
             // We now have a keycode, and possibly a modifier as well.
-            // Point
+            // If it's a Point
             if (lastChar == 'R' && Character.isDigit(modifier.charAt(0)) && Character.isDigit(keycode.charAt(0))) {
                 return new PointInputEvent(plugin, new Point(
                         Integer.parseInt(keycode.substring(0, keycode.length() - 1)), Integer.parseInt(modifier)
                 ));
-            } else {
+            }
+            // Else parse as normal
+            else {
                 return parseSpecialKey(keycode, modifier);
 
             }
         } else {
-            Logger.getLogger("InputEventParser").log(Level.WARNING, "man, wtf is wrong with your input");
+            Logger.getLogger("InputEventParser").log(
+                    Level.WARNING, "man, wtf is wrong with your input (\"" + sequence + "\")"
+            );
             return null;
         }
     }
 
     SpecialInputEvent parseSpecialKey(@NotNull String keycode, @NotNull String modifier) {
         SpecialInputEvent.SpecialKey specialKey = sequenceMap.get(keycode);
-        boolean[] modifierKeys = parseModifierKeys(modifier);
+
+        // Parse the modifier value into keys
+        boolean[] modifierBits = new boolean[]{false, false, false, false};
+        if (modifier.length() != 0 && !modifier.equals("1")) {
+            int modifierInt = Integer.parseInt(modifier) - 1;
+            for (int i = 0; i < 4; i++) {
+                modifierBits[i] = ((modifierInt >> i) & 1) == 1;
+            }
+        }
+
         if (specialKey != null) {
             return new SpecialInputEvent(
                     plugin,
                     specialKey,
-                    modifierKeys[0],
-                    modifierKeys[1],
-                    modifierKeys[2],
-                    modifierKeys[3]
+                    modifierBits[3],
+                    modifierBits[2],
+                    modifierBits[1],
+                    modifierBits[0]
             );
         }
         return null;
-    }
-
-    boolean[] parseModifierKeys(@NotNull String modifier) {
-        // Parse the modifier value into keys
-        // Defaults to {false,false,false,false}, which conveniently happens to be exactly what we need
-        boolean[] bits = new boolean[]{false, false, false, false};
-        // If there are applicable modifiers, parse into bits
-        if (modifier.length() != 0 && !modifier.equals("1")) {
-            int modifierInt = Integer.parseInt(modifier) - 1;
-            for (int i = 0; i < 3; i++) {
-                bits[i] = (modifierInt & (1 << i)) != 0;
-            }
-        }
-        return bits;
     }
 
     // A translation layer
