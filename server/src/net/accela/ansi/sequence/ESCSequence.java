@@ -106,8 +106,10 @@ public class ESCSequence implements CharSequence {
     @Override
     public boolean equals(Object obj) {
         if (ESCSequence.class.isAssignableFrom(obj.getClass())) {
-            // todo Casting might be unnecessary here
-            return this.toString().equals(((ESCSequence) obj).toString());
+            // todo Undo this comment if the code breaks.
+            //  // Casting might be unnecessary here
+            //  return this.toString().equals(((ESCSequence) obj).toString());
+            return this.toString().equals(obj.toString());
         }
         return false;
     }

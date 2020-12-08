@@ -218,7 +218,6 @@ public class Rect implements Shape {
      * @return True if item fits inside container
      */
     public static boolean fits(@NotNull Rect container, @NotNull Rect item) {
-        //System.out.println(container + " vs " + item + " = " + result);
         return container.getMinX() <= item.getMinX() && container.getMinY() <= item.getMinY() &&
                 container.getMaxX() >= item.getMaxX() && container.getMaxY() >= item.getMaxY();
     }
@@ -344,9 +343,13 @@ public class Rect implements Shape {
         int width = maxX - minX + 1;
         int height = maxY - minY + 1;
 
+        // FIXME: 12/8/20 remove
+        /*
         System.out.println("rectA=" + rectA + "\nrectB=" + rectB
                 + "\nminX=" + minX + ",minY=" + minY + ",maxX=" + maxX + ",maxY=" + maxY
                 + ",width=" + width + ",height=" + height);
+
+         */
 
         if (width < 1 || height < 1) {
             return null;
@@ -354,6 +357,7 @@ public class Rect implements Shape {
             return new Rect(minX, minY, width, height);
         }
 
+        // fixme remove
         /*
         int tx1 = rectA.minX;
         int ty1 = rectA.minY;
@@ -462,7 +466,7 @@ public class Rect implements Shape {
     @NotNull
     public String toString() {
         return this.getClass().getName() +
-                "[minX=" + minX + ",minY=" + minY + ",maxX=" + getMaxX() + ",maxY=" + getMaxY()
-                + ",width=" + width + ",height=" + height + "]";
+                "[x1=" + minX + ",y1=" + minY + ",x2=" + getMaxX() + ",y2=" + getMaxY()
+                + ",w=" + width + ",h=" + height + "]";
     }
 }

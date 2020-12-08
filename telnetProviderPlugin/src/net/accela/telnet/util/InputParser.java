@@ -28,7 +28,7 @@ import java.util.logging.Level;
  */
 // FIXME: 11/9/20 Make this into a separate thread to prevent freezes
 //  note, this is no longer that big of an issue as callEvent
-//  is now multithreaded and offhands tasks to hypervisor.
+//  is now multithreaded and offhands tasks to thread.
 //  Still worth looking into however.
 public class InputParser {
     final TelnetSession session;

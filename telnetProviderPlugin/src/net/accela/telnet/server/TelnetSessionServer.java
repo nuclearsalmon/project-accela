@@ -328,8 +328,6 @@ public final class TelnetSessionServer extends Thread {
                 }});
             } else {
                 responseList.add(response);
-                // fixme maybe unnecessary?
-                negotiationFlow.replace(trigger, responseList);
             }
         }
     }
@@ -343,8 +341,6 @@ public final class TelnetSessionServer extends Thread {
             List<TelnetResponse> responseList = negotiationFlow.get(trigger);
             if (responseList != null) {
                 responseList.remove(response);
-                // fixme maybe unnecessary?
-                negotiationFlow.replace(trigger, responseList);
             }
         }
     }
