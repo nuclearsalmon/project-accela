@@ -145,22 +145,11 @@ public class Canvas {
         return cells.get(idx);
     }
 
-    // todo investigate whether we actually need both capacity and amount methods, or if one will do
-
     /**
      * @return The capacity; width * height, or how many {@link Cell}s this {@link Canvas} can hold.
-     * @see #getCellAmount()
      */
     public int getCapacity() {
         return size.getCapacity();
-    }
-
-    /**
-     * @return number of {@link Cell}s in {@link Canvas}, including null {@link Cell}s.
-     * @see #getCapacity()
-     */
-    public int getCellAmount() {
-        return cells.size();
     }
 
     //

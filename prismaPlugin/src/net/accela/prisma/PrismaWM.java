@@ -63,7 +63,6 @@ public class PrismaWM implements Container {
 
     // The current mode
     @NotNull MouseMode mouseMode = MouseMode.NONE;
-    @NotNull Point mousePoint = new Point(0, 0);
 
     // Drawables
     // The Drawable objects attached to this
@@ -245,16 +244,16 @@ public class PrismaWM implements Container {
                     final Canvas.Cell cell = canvas.get(x - targetRect.getMinX(), y - targetRect.getMinY());
 
                     // Reset painting attributes to prevent sequence bleed
+                    // todo replace with a smart system
                     writeToSession(SGRSequence.RESET);
 
                     if (cell == null) {
-                    /*
-                    if(sequencePainter.getCurrentStatements().size() > 0){
-                        sequencePainter.reset();
-                        writeToSession(SGRSequence.RESET);
-                    }
-                     */
-
+                        /*
+                        if(sequencePainter.getCurrentStatements().size() > 0){
+                            sequencePainter.reset();
+                            writeToSession(SGRSequence.RESET);
+                        }
+                         */
                         writeToSession(" ");
                     } else {
                         // Update current SGR statements
@@ -264,28 +263,28 @@ public class PrismaWM implements Container {
                         SGRSequence sequence = cell.getSequence();
                         if (sequence != null) writeToSession(sequence);
 
-                    /*
-                    SGRSequence sequence = cell.getSequence();
-                    if(sequence != null){
-                        // Add new statements
-                        sequencePainter.eliminate(cell.getSequence().toSGRStatements());
+                        /*
+                        SGRSequence sequence = cell.getSequence();
+                        if(sequence != null){
+                            // Add new statements
+                            sequencePainter.eliminate(cell.getSequence().toSGRStatements());
 
-                        List<SGRStatement> currentStatements = sequencePainter.getCurrentStatements();
-                        if(currentStatements.size() > 0){
+                            List<SGRStatement> currentStatements = sequencePainter.getCurrentStatements();
+                            if(currentStatements.size() > 0){
 
+                            } else {
+                                if(sequencePainter.getCurrentStatements().size() > 0){
+                                    sequencePainter.reset();
+                                    writeToSession(SGRSequence.RESET);
+                                }
+                            }
                         } else {
                             if(sequencePainter.getCurrentStatements().size() > 0){
                                 sequencePainter.reset();
                                 writeToSession(SGRSequence.RESET);
                             }
                         }
-                    } else {
-                        if(sequencePainter.getCurrentStatements().size() > 0){
-                            sequencePainter.reset();
-                            writeToSession(SGRSequence.RESET);
-                        }
-                    }
-                     */
+                         */
 
                         // code point logic
                         String codePoint = cell.getCodepoint();
@@ -323,8 +322,9 @@ public class PrismaWM implements Container {
                 if (focusedNode.getDrawable().cursorEnabled()) writeToSession(AnsiLib.showCursor);
             }
 
+            // fixme remove this
             // Show cursor
-            writeToSession(AnsiLib.showCursor);
+            //writeToSession(AnsiLib.showCursor);
         } finally {
             paintLock.unlock();
         }
@@ -593,7 +593,6 @@ public class PrismaWM implements Container {
             // Send the event to the drawable
             EventChannel channel = subDrawable.getChannel();
             AccelaAPI.getPluginManager().callEvent(event, channel);
-            //fixme remove thisPlugin.getLogger().log(Level.INFO, "Called an event... " + event);
 
             // Check if it contains more drawables. If yes, then add those to the list
             if (subDrawable instanceof DrawableContainer) {
@@ -621,35 +620,6 @@ public class PrismaWM implements Container {
         for (Node node : childNodes) {
             AccelaAPI.getPluginManager().callEvent(event, node.drawable.getChannel());
         }
-
-        /*
-        List<Node> childNodes = tree.getChildNodes();
-        for (Node node : childNodes) {
-            // A list of drawables to send the events to
-            List<Drawable> drawableList = new ArrayList<>();
-            drawableList.add(node.getDrawable());
-
-            while (drawableList.size() > 0) {
-                Drawable subDrawable = drawableList.remove(0);
-
-                // Send the event to the drawable
-                EventChannel channel = subDrawable.getChannel();
-                AccelaAPI.getPluginManager().callEvent(event, channel);
-                //fixme remove thisPlugin.getLogger().log(Level.INFO, "Called an event... " + event);
-
-                // Check if it contains more drawables. If yes, then add those to the list
-                if (subDrawable instanceof DrawableContainer) {
-                    try {
-                        // Add (immediate) child drawables to the list
-                        Branch branch = ((DrawableContainer) subDrawable).getBranch();
-                        drawableList.addAll(branch.getChildDrawables());
-                    } catch (NodeNotFoundException ex) {
-                        session.getLogger().log(Level.WARNING, "Node not found", ex);
-                    }
-                }
-            }
-        }
-         */
     }
 
     /**
@@ -687,8 +657,7 @@ public class PrismaWM implements Container {
 
                 Node focusNode = null;
                 int index = 0;
-                // fixme Can probably be simplified to just "intersectingChildNodes.size() > index"
-                while (intersectingChildNodes.size() > 0 && intersectingChildNodes.size() > index) {
+                while (intersectingChildNodes.size() > index) {
                     focusNode = intersectingChildNodes.get(index);
 
                     if (!focusNode.drawable.wantsFocus()) {

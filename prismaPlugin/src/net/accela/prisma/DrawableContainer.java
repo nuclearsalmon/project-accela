@@ -38,6 +38,7 @@ public class DrawableContainer extends Drawable implements Container {
      * {@inheritDoc}
      */
     @Override
+    // TODO: 12/7/20 remove the plugin argument and instantiate drawables with plugins directly
     public synchronized void attach(@NotNull Drawable drawable, @NotNull Plugin plugin) throws RectOutOfBoundsException, NodeNotFoundException {
         if (!Rect.fits(getZeroRect(), drawable.getRelativeRect())) {
             throw new RectOutOfBoundsException("Drawable does not fit within the container");
