@@ -2,9 +2,9 @@ package net.accela.prisma.session;
 
 import net.accela.prisma.PrismaWM;
 import net.accela.prisma.geometry.Size;
-import net.accela.server.permissions.Permission;
-import net.accela.server.permissions.PermissionAttachment;
-import net.accela.server.permissions.PermissionAttachmentInfo;
+import net.accela.server.permission.Permission;
+import net.accela.server.permission.PermissionAttachment;
+import net.accela.server.permission.PermissionAttachmentInfo;
 import net.accela.server.plugin.Plugin;
 import net.accela.server.session.Session;
 import net.accela.server.session.SessionLogger;
@@ -254,7 +254,7 @@ public abstract class TextGraphicsSession extends Session {
     }
 
     /**
-     * Recalculates the permissions for this object, if the attachments have
+     * Recalculates the permission for this object, if the attachments have
      * changed values.
      * <p>
      * This should very rarely need to be called from a plugin.
@@ -265,10 +265,10 @@ public abstract class TextGraphicsSession extends Session {
     }
 
     /**
-     * Gets a set containing all of the permissions currently in effect by
+     * Gets a set containing all of the permission currently in effect by
      * this object
      *
-     * @return Set of currently effective permissions
+     * @return Set of currently effective permission
      */
     @Override
     public Set<PermissionAttachmentInfo> getEffectivePermissions() {
