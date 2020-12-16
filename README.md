@@ -36,10 +36,14 @@ as it's not quite ready yet and I'm dissatisfied with the current code quality.
 * I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. 
 However, as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
 
-## Install
+<br>
+
+---
+
+## Dependencies
 TBD.
 
-### Dependencies
+## Install
 TBD.
 
 ## Usage
@@ -48,6 +52,7 @@ TBD.
 <br>
 
 ---
+
 ## Modules and Plugins
 In this context, modules refers to a feature from the IDE that I use,
 not Java 9 modules. See: [IntelliJ IDEA/Modules][out_intellij_modules].
