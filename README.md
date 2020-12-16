@@ -5,7 +5,7 @@ The idea behind Project accela to provide a safe and easy-to-use framework for
 building modular, plugin-driven servers. The plugins can be loaded into the server at any point during runtime 
 and will run in a sandboxed environment where they only have access to certain exposed parts of the system.
 
-This includes a purpose built [TUI window manager][#prismawm-window-manager] (an optional plugin),
+This includes a purpose built [TUI window manager](#prismawm-window-manager) (an optional plugin),
 allowing for plugins to provide a consistent and easy-to-use means of handling concurrent IO to and from client terminals.
 
 ## Table of Contents
