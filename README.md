@@ -1,7 +1,6 @@
 # Project Accela
 A modular framework for building plugin-driven server software, BBSes and MUDs.
 
-## The concept
 The idea behind Project accela to provide a safe and easy-to-use framework for
 building modular, plugin-driven servers. The plugins can be loaded into the server at any point during runtime 
 and will run in a sandboxed environment where they only have access to certain exposed parts of the system.
@@ -9,7 +8,19 @@ and will run in a sandboxed environment where they only have access to certain e
 This includes a [purpose built TUI window manager][plugin_prismawm] (an optional plugin),
 making it easy for other plugins to provide a consistent and easy-to-use means of providing IO to client software.
 
-## The purpose
+## Table of Contents
+- [Background](#background)
+- [Notes](#notes)
+- [Install](#install)
+  - [Dependencies](#dependencies)
+- [Usage](#usage)
+- [Modules and Plugins](#modules-and-plugins)
+  - [Server (core)](#server-core)
+  - [PrismaWM (window manager)](#prismawm-window-manager)
+  - [Telnet Provider](#telnet-provider)
+  - [Session Introducer](#session-introducer)
+
+## Background
 My end goal with Project Accela is to utilize the framework to create a sandboxed virtual network 
 for hackers to play around in, explore and exploit. 
 I want it to be social, highly strategic and to reward those that think out of the box.
@@ -25,15 +36,24 @@ as it's not quite ready yet and I'm dissatisfied with the current code quality.
 * I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. 
 However, as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
 
+## Install
+TBD.
+
+### Dependencies
+TBD.
+
+## Usage
+TBD.
+
 <br>
 
 ---
-# Modules and Plugins
+## Modules and Plugins
 In this context, modules refers to a feature from the IDE that I use,
 not Java 9 modules. See: [IntelliJ IDEA/Modules][out_intellij_modules].
 Plugins are loadable modules that provide additional functionality on top of the core server.
 
-## Server (core)
+### Server (core)
 This is what will provide the essential frameworks and functionality behind the project.
 Including, but not limited to:
 - Plugin, services and permissions management.
@@ -46,7 +66,7 @@ This is so that any future protocols can be easily implemented and interacted wi
 
 Link: [Server (core)][module_server]
 
-## PrismaWM Window Manager
+### PrismaWM (window manager)
 PrismaWM lets multiple plugins simultaneously provide text-based output (and input!) to users, 
 without interfering with each other. 
 
@@ -55,7 +75,7 @@ This includes buttons, dropdown menus, input boxes, etc.
 
 Link: [PrismaWM Window Manager][plugin_prismawm]
 
-## Telnet Provider
+### Telnet Provider
 A plugin that adds support for communication through the telnet protocol.
 It provides users a means of connecting to the system and interacting with it.
 
@@ -65,7 +85,7 @@ The plugin can be configured to listen on multiple ports.
 
 Link: [Telnet Provider][plugin_telnet]
 
-## Session Introducer
+### Session Introducer
 A simple plugin that listens for when a TextGraphicsSession is created. 
 It will attempt to load a [window manager][plugin_prismawm] into the Session if it doesn't already have one loaded.
 
@@ -77,6 +97,7 @@ without having to modify the code of a *SessionCreator* (such as the [Telnet Pro
 
 Link: [Session Introducer][plugin_session_introducer]
 
+<!-- Links -->
 [module_server]: ./server/src "Server/\"Core\""
 [library_ansi]: ./server/src/net/accela/ansi "ANSI EscSeq library"
 [plugin_prismawm]: ./prismaPlugin/src "PrismaWM"
