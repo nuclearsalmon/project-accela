@@ -11,8 +11,8 @@ allowing for plugins to provide a consistent and easy-to-use means of handling c
 ## Table of Contents
 - [Background](#background)
 - [Notes](#notes)
+- [Dependencies](#dependencies)
 - [Install](#install)
-  - [Dependencies](#dependencies)
 - [Usage](#usage)
 - [Modules and Plugins](#modules-and-plugins)
   - [Server (core)](#server-core)
@@ -31,7 +31,7 @@ The plugins that will make up this network will be publicly available along with
 I have plenty of plans for this "game", but that is outside the scope of this README.
 
 ## Notes
-* The full code for the [server module][module_server] and [PrismaWM][plugin_prismawm] will be uploaded at a later date,
+* The full code for the [server module][repo_server] and [PrismaWM][repo_prismawm] will be uploaded at a later date,
 as it's not quite ready yet and I'm dissatisfied with the current code quality.
 * I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. 
 However, as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
@@ -65,11 +65,11 @@ Including, but not limited to:
 - Sandbox security features.
 - User management, basic encryption and permissions features.
 - Standard classes for creating *Session Providers* that add support for network communication
-through various client-server protocols (such as [Telnet][plugin_telnet]). 
+through various client-server protocols (such as [Telnet][repo_telnet_provider]). 
 This is so that any future protocols can be easily implemented and interacted with in a standardized fashion.
 - A purpose built library for creating and utilizing [ANSI Escape Sequences][out_ansi].
 
-Link: [Server (core)][module_server]
+Repo link: [Server (core)][repo_server]
 
 ### PrismaWM (window manager)
 PrismaWM lets multiple plugins simultaneously provide text-based output (and input!) to users, 
@@ -78,7 +78,7 @@ without interfering with each other.
 It's lets you build "windows" similar to how one would do for a GUI program. 
 This includes buttons, dropdown menus, input boxes, etc.
 
-Link: [PrismaWM Window Manager][plugin_prismawm]
+Repo link: [PrismaWM Window Manager][repo_prismawm]
 
 ### Telnet Provider
 A plugin that adds support for communication through the telnet protocol.
@@ -88,26 +88,26 @@ The telnet server supports proper telnet negotiation, and can intelligently nego
 for features that the server and client both support or have in common. 
 The plugin can be configured to listen on multiple ports.
 
-Link: [Telnet Provider][plugin_telnet]
+Repo link: [Telnet Provider][repo_telnet_provider]
 
 ### Session Introducer
 A simple plugin that listens for when a TextGraphicsSession is created. 
-It will attempt to load a [window manager][plugin_prismawm] into the Session if it doesn't already have one loaded.
+It will attempt to load a [window manager][repo_prismawm] into the Session if it doesn't already have one loaded.
 
 Having a window manager makes it possible for other plugins to facilitate graphical communication with the client.
 The reason this is a standalone plugin rather than having this functionality being bundled in with the telnet provider 
 is due to modularity. 
 I want the SysOp to be able to pick which window manager to load, 
-without having to modify the code of a *SessionCreator* (such as the [Telnet Provider][plugin_telnet] plugin).
+without having to modify the code of a *SessionCreator* (such as the [Telnet Provider][repo_telnet_provider] plugin).
 
-Link: [Session Introducer][plugin_session_introducer]
+Repo link: [Session Introducer][repo_session_introducer]
 
 <!-- Links -->
-[module_server]: ./server/src "Server/\"Core\""
-[library_ansi]: ./server/src/net/accela/ansi "ANSI EscSeq library"
-[plugin_prismawm]: ./prismaPlugin/src "PrismaWM"
-[plugin_telnet]: ./telnetProviderPlugin/src "Telnet Provider"
-[plugin_session_introducer]: ./sessionIntroducerPlugin/src "Session Introducer"
+[repo_server]: ./server/src "Server/\"Core\""
+[repo_ansi_library]: ./server/src/net/accela/ansi "ANSI EscSeq library"
+[repo_prismawm]: ./prismaPlugin/src "PrismaWM"
+[repo_telnet_provider]: ./telnetProviderPlugin/src "Telnet Provider"
+[repo_session_introducer]: ./sessionIntroducerPlugin/src "Session Introducer"
 
 [out_ansi]: https://en.wikipedia.org/wiki/ANSI_escape_code "ANSI Escape Code"
 [out_bbs]: https://sv.wikipedia.org/wiki/Bulletin_board_system "Bulletin Board System"
