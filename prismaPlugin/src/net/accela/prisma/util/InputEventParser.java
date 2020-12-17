@@ -13,68 +13,6 @@ import java.util.logging.Logger;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-/*
-SEQUENCES
- vt sequences:
-   <esc>[1~    - Home        <esc>[16~   -            <esc>[31~   - F17
-   <esc>[2~    - Insert      <esc>[17~   - F6         <esc>[32~   - F18
-   <esc>[3~    - Delete      <esc>[18~   - F7         <esc>[33~   - F19
-   <esc>[4~    - End         <esc>[19~   - F8         <esc>[34~   - F20
-   <esc>[5~    - PgUp        <esc>[20~   - F9         <esc>[35~   -
-   <esc>[6~    - PgDn        <esc>[21~   - F10
-   <esc>[7~    - Home        <esc>[22~   -
-   <esc>[8~    - End         <esc>[23~   - F11
-   <esc>[9~    -             <esc>[24~   - F12
-   <esc>[10~   - F0          <esc>[25~   - F13
-   <esc>[11~   - F1          <esc>[26~   - F14
-   <esc>[12~   - F2          <esc>[27~   -
-   <esc>[13~   - F3          <esc>[28~   - F15
-   <esc>[14~   - F4          <esc>[29~   - F16
-   <esc>[15~   - F5          <esc>[30~   -
- xterm sequences:
-   <esc>[A     - Up          <esc>[K     -            <esc>[U     -
-   <esc>[B     - Down        <esc>[L     -            <esc>[V     -
-   <esc>[C     - Right       <esc>[M     -            <esc>[W     -
-   <esc>[D     - Left        <esc>[N     -            <esc>[X     -
-   <esc>[E     -             <esc>[O     -            <esc>[Y     -
-   <esc>[F     - End         <esc>[1P    - F1         <esc>[Z     -
-   <esc>[G     - Keypad 5    <esc>[1Q    - F2
-   <esc>[H     - Home        <esc>[1R    - F3
-   <esc>[I     -             <esc>[1S    - F4
-   <esc>[J     -             <esc>[T     -
-
-MODIFIER KEYS
- If the terminating character is '~', the first number must be present and is a keycode number,
- the second number is an optional modifier value.
-
- If the terminating character is a letter, the letter is the keycode value,
- and the optional number is the modifier value.
-
- The modifier defaults to 1, and after subtracting 1 is a bitmap of modifier keys being pressed:
- Meta-Ctrl-Alt-Shift. (8-4-2-1)
- So, for example, <esc>[4;2~ is Shift-End, <esc>[20~ is function key 9, <esc>[5C is Ctrl-Right.
-
- Modifier key codes according to xterm (https://invisible-island.net/xterm/ctlseqs/ctlseqs.txt)
-    Code     Modifiers
-  ---------+---------------------------
-     2     | Shift
-     3     | Alt
-     4     | Shift + Alt
-     5     | Control
-     6     | Shift + Control
-     7     | Alt + Control
-     8     | Shift + Alt + Control
-     9     | Meta
-     10    | Meta + Shift
-     11    | Meta + Alt
-     12    | Meta + Alt + Shift
-     13    | Meta + Ctrl
-     14    | Meta + Ctrl + Shift
-     15    | Meta + Ctrl + Alt
-     16    | Meta + Ctrl + Alt + Shift
-  ---------+---------------------------
- */
-
 /**
  * An input parser intended to make it easier to decode the otherwise raw input.
  * <p>
@@ -386,10 +324,12 @@ public class InputEventParser {
         }
         System.out.println("]");
 
-        String keycode, modifier = "";
+        final String keycode;
+        int modifierInt = 0;
 
         // Grab the last split item as a char
         char lastChar = sequence.charAt(sequence.length() - 1);
+
         // If the modifier comes last ( for example <esc>[14~ or <esc>[4;2~ )
         if (lastChar == '~') {
             String[] split = Pattern.compile("[;~]").split(sequence);
@@ -398,11 +338,11 @@ public class InputEventParser {
 
             // Don't try to add a modifier if there isn't one.
             if (split.length > 1) {
-                modifier = split[1];
+                modifierInt = Integer.parseInt(split[1]);
             }
 
             // We now have a keycode, and possibly a modifier as well.
-            return parseSpecialKey(keycode, modifier);
+            return parseSpecialKey(keycode, modifierInt);
         }
         // If the modifier comes first ( for example <esc>[5C or <esc>[1;5C )
         else if (Character.isLetter(lastChar)) {
@@ -427,20 +367,18 @@ public class InputEventParser {
             if (split.length == 1) {
                 keycode = split[0];
             } else {
-                modifier = split[0];
+                modifierInt = Integer.parseInt(split[0]);
                 keycode = split[1];
             }
 
             // We now have a keycode, and possibly a modifier as well.
             // If it's a Point
-            if (lastChar == 'R' && Character.isDigit(modifier.charAt(0)) && Character.isDigit(keycode.charAt(0))) {
-                return new PointInputEvent(plugin, new Point(
-                        Integer.parseInt(keycode.substring(0, keycode.length() - 1)), Integer.parseInt(modifier)
-                ));
+            if (lastChar == 'R') {
+                return new PointInputEvent(plugin, new Point(Integer.parseInt(keycode), modifierInt));
             }
             // Else parse as normal
             else {
-                return parseSpecialKey(keycode, modifier);
+                return parseSpecialKey(keycode, modifierInt);
 
             }
         } else {
@@ -451,29 +389,31 @@ public class InputEventParser {
         }
     }
 
-    SpecialInputEvent parseSpecialKey(@NotNull String keycode, @NotNull String modifier) {
+    SpecialInputEvent parseSpecialKey(@NotNull String keycode, int modifier) {
         SpecialInputEvent.SpecialKey specialKey = sequenceMap.get(keycode);
+        // If there's no special key we don't need to continue
+        if (specialKey == null) return null;
 
-        // Parse the modifier value into keys
+        // Comes in an order of SHIFT, CTRL, ALT, META
         boolean[] modifierBits = new boolean[]{false, false, false, false};
-        if (modifier.length() != 0 && !modifier.equals("1")) {
-            int modifierInt = Integer.parseInt(modifier) - 1;
-            for (int i = 0; i < 4; i++) {
-                modifierBits[i] = ((modifierInt >> i) & 1) == 1;
-            }
+
+        // Subtract 1 to create a valid bitmap
+        modifier--;
+
+        // Calculate which modifier keys were active
+        for (int i = 3; i >= 0; i--) {
+            modifierBits[i] = ((modifier >> i) & 1) == 1;
         }
 
-        if (specialKey != null) {
-            return new SpecialInputEvent(
-                    plugin,
-                    specialKey,
-                    modifierBits[3],
-                    modifierBits[2],
-                    modifierBits[1],
-                    modifierBits[0]
-            );
-        }
-        return null;
+        // Return the resulting values
+        return new SpecialInputEvent(
+                plugin,
+                specialKey,
+                modifierBits[0],
+                modifierBits[1],
+                modifierBits[2],
+                modifierBits[3]
+        );
     }
 
     // A translation layer
