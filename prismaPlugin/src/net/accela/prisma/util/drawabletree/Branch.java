@@ -13,9 +13,10 @@ import java.util.List;
 /**
  * A simple {@link Node} implementation that can store other {@link Node}s.
  */
-public final class Branch extends Node {
-    final List<Node> childNodes = new ArrayList<>();
+public class Branch extends Node {
+    final List<Node> childNodeList = new ArrayList<>();
 
+    Node childFocusNode;
 
     /**
      * DO NOT instantiate manually.
@@ -51,9 +52,9 @@ public final class Branch extends Node {
             node = new Node(this.tree, getRoot(), this, drawable, this.plugin);
         }
 
-        childNodes.add(node);
-        tree.allNodes.add(node);
-        DrawableTree.globalAllNodes.put(drawable, node);
+        addNodeCorrectly(node, true);
+        tree.treeNodeList.add(node);
+        DrawableTree.staticDrawableNodeMap.put(drawable, node);
         return node;
     }
 
@@ -72,8 +73,8 @@ public final class Branch extends Node {
      * @see Node#kill()
      */
     public void killNodes() {
-        while (childNodes.size() > 0) {
-            childNodes.get(0).kill();
+        while (childNodeList.size() > 0) {
+            childNodeList.get(0).kill();
         }
     }
 
@@ -96,8 +97,8 @@ public final class Branch extends Node {
     /**
      * @return A list of {@link Node}s that are immediately connected to this SecureTree
      */
-    public @NotNull List<@NotNull Node> getChildNodes() {
-        return List.copyOf(childNodes);
+    public @NotNull List<@NotNull Node> getChildNodeList() {
+        return List.copyOf(childNodeList);
     }
 
     /**
@@ -106,7 +107,7 @@ public final class Branch extends Node {
      */
     public @NotNull List<@NotNull Drawable> getChildDrawables() {
         List<Drawable> childDrawables = new ArrayList<>();
-        for (Node childNode : childNodes) {
+        for (Node childNode : childNodeList) {
             childDrawables.add(childNode.getDrawable());
         }
         return childDrawables;
@@ -126,7 +127,7 @@ public final class Branch extends Node {
      */
     public @NotNull List<@NotNull Node> getIntersectingNodes(@NotNull Rect rect) {
         List<Node> nodes = new ArrayList<>();
-        for (Node node : getChildNodes()) {
+        for (Node node : getChildNodeList()) {
             Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 nodes.add(node);
@@ -141,12 +142,94 @@ public final class Branch extends Node {
      */
     public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
         List<Drawable> drawables = new ArrayList<>();
-        for (Node node : getChildNodes()) {
+        for (Node node : getChildNodeList()) {
             Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 drawables.add(drawable);
             }
         }
         return drawables;
+    }
+
+    //
+    // Focus
+    //
+
+    /**
+     * @return The currently locally focused {@link Node}.
+     */
+    public @Nullable Node getChildFocusNode() {
+        return childFocusNode;
+    }
+
+    /**
+     * @param node The {@link Node} to be focused.
+     */
+    public void setChildFocusedNode(@Nullable Node node) {
+        if (node == null || (node.isAlive() && childNodeList.contains(node))) {
+            // Set child focus
+            childFocusNode = node;
+        }
+    }
+
+    //
+    // Priority
+    //
+
+    /**
+     * @param priority The priority to search for
+     * @param top      True for top index, false for bottom index
+     * @return -1 means not found, anything over that is a valid index.
+     */
+    int getIndexByPriority(@NotNull Priority priority, boolean top) {
+        synchronized (childNodeList) {
+            int start = top ? childNodeList.size() - 1 : 0;
+            int end = top ? 0 : childNodeList.size() - 1;
+
+            for (int i = start; i <= end; i++) {
+                if (childNodeList.get(i).priority == priority) {
+                    if (childNodeList.get(i).priority != priority) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    public void setPriority(@NotNull Node node, @NotNull Priority priority) {
+        setPriority(node, priority, false);
+    }
+
+    public void setPriority(@NotNull Node node, @NotNull Priority priority, boolean moveToTop) {
+        synchronized (childNodeList) {
+            if (priority.ordinal() < DrawableTree.PRIORITY_MIN_ALLOWED.ordinal()
+                    || priority.ordinal() > DrawableTree.PRIORITY_MAX_ALLOWED.ordinal()) {
+                throw new IllegalArgumentException(String.format(
+                        "Priority %s is not within the allowed range of (%s - %s)",
+                        priority, DrawableTree.PRIORITY_MIN_ALLOWED, DrawableTree.PRIORITY_MAX_ALLOWED
+                ));
+            } else {
+                node.priority = priority;
+            }
+
+            // List changes
+            childNodeList.remove(node);
+            // Add to bottom
+            childNodeList.add(getIndexByPriority(priority, moveToTop), node);
+        }
+    }
+
+    //
+    // Focusing and priority - internal methods
+    //
+
+    @SuppressWarnings("SameParameterValue")
+    void addNodeCorrectly(@NotNull Node node, boolean top) {
+        Priority priority = node.getPriority();
+
+        synchronized (childNodeList) {
+            childNodeList.add(getIndexByPriority(priority, top), node);
+        }
     }
 }

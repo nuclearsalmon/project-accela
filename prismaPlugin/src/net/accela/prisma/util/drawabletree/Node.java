@@ -30,7 +30,15 @@ public class Node {
      */
     public final @NotNull Drawable drawable;
 
+    /**
+     * The {@link Plugin} that created this node
+     */
     public final @NotNull Plugin plugin;
+
+    /**
+     * Represents layering and focus priority
+     */
+    @NotNull Priority priority = Priority.DEFAULT_VALUE;
 
     /**
      * DO NOT instantiate manually.
@@ -61,16 +69,16 @@ public class Node {
      */
     public void kill() {
         // First unfocus
-        if (tree.getFocusedNode() == this) tree.setFocusedNode(null);
+        if (tree.getTreeFocusNode() == this) tree.setTreeFocusNode(null);
 
         // Change flag
         alive = false;
 
         // Remove references
-        if (parent != null) parent.childNodes.remove(this);
-        tree.allNodes.remove(this);
-        tree.childNodes.remove(this);
-        DrawableTree.globalAllNodes.remove(drawable, this);
+        if (parent != null) parent.childNodeList.remove(this);
+        tree.treeNodeList.remove(this);
+        tree.childNodeList.remove(this);
+        DrawableTree.staticDrawableNodeMap.remove(drawable, this);
     }
 
     /**
@@ -105,7 +113,7 @@ public class Node {
      * @return The {@link PrismaWM} instance that was used to create this {@link DrawableTree}
      */
     public final @NotNull PrismaWM getWindowManager() {
-        return tree.getWindowManager();
+        return tree.windowManager;
     }
 
     /**
@@ -113,5 +121,21 @@ public class Node {
      */
     public final @NotNull Plugin getPlugin() {
         return plugin;
+    }
+
+    //
+    // Priority
+    //
+
+    public final void setPriority(@NotNull Priority priority) {
+        if (parent != null) {
+            parent.setPriority(this, priority);
+        } else {
+            tree.setPriority(this, priority);
+        }
+    }
+
+    public final @NotNull Priority getPriority() {
+        return priority;
     }
 }
