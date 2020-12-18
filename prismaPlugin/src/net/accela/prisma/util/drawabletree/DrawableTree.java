@@ -17,6 +17,7 @@ import java.util.*;
  * it's not accessible from the outside.
  */
 public class DrawableTree {
+    // Static variables
     public static final Priority PRIORITY_MAX_ALLOWED = Priority.HIGH;
     public static final Priority PRIORITY_MIN_ALLOWED = Priority.LOW;
 
@@ -25,17 +26,10 @@ public class DrawableTree {
      */
     public final PrismaWM windowManager;
 
-    //
     // Node lists
-    //
-
-    /**
-     * All immediate child {@link Node}s attached to this {@link DrawableTree}.
-     */
+    /** All immediate child {@link Node}s attached to this {@link DrawableTree}. */
     final List<Node> childNodeList = new ArrayList<>();
-    /**
-     * All {@link Node}s in this {@link DrawableTree}
-     */
+    /** All {@link Node}s in this {@link DrawableTree} */
     final Set<Node> treeNodeList = new HashSet<>();
 
     /**
@@ -44,10 +38,7 @@ public class DrawableTree {
      */
     final static Map<Drawable, Node> staticDrawableNodeMap = new HashMap<>();
 
-    //
     // Layering and focusing
-    //
-
     Node treeFocusNode;
     Node childFocusNode;
 
@@ -179,7 +170,8 @@ public class DrawableTree {
     /**
      * @param node The {@link Node} to be focused.
      */
-    public void setTreeFocusNode(@Nullable Node node) {
+    // TODO: 12/18/20 proper synchronization with R/W locks
+    public synchronized void setTreeFocusNode(@Nullable Node node) {
         if (node == null || (node.isAlive() && treeNodeList.contains(node))) {
             // Set tree focus
             treeFocusNode = node;
@@ -253,10 +245,23 @@ public class DrawableTree {
         return 0;
     }
 
+    /**
+     * Assigns a {@link Priority} to a {@link Node}, and moves it accordingly.
+     *
+     * @param node     the {@link Node} to set a {@link Priority} for.
+     * @param priority the {@link Priority} to set.
+     */
     public void setPriority(@NotNull Node node, @NotNull Priority priority) {
         setPriority(node, priority, false);
     }
 
+    /**
+     * Assigns a {@link Priority} to a {@link Node}, and moves it accordingly.
+     *
+     * @param node      the {@link Node} to set a {@link Priority} for.
+     * @param priority  the {@link Priority} to set.
+     * @param moveToTop whether to move to top or bottom.
+     */
     public void setPriority(@NotNull Node node, @NotNull Priority priority, boolean moveToTop) {
         synchronized (childNodeList) {
             if (priority.ordinal() < PRIORITY_MIN_ALLOWED.ordinal() || priority.ordinal() > PRIORITY_MAX_ALLOWED.ordinal()) {
@@ -279,6 +284,13 @@ public class DrawableTree {
     // Focusing and priority - internal methods
     //
 
+    /**
+     * Adds a {@link Node} to the child {@link Node} list,
+     * at the correct index. The index is derived based on the {@link Node}'s {@link Priority}.
+     *
+     * @param node the node to add.
+     * @param top  whether to prefer adding to the top or bottom of the matching priorities.
+     */
     @SuppressWarnings("SameParameterValue")
     void addNodeCorrectly(@NotNull Node node, boolean top) {
         Priority priority = node.getPriority();

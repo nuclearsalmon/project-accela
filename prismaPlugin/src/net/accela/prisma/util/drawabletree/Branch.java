@@ -203,10 +203,23 @@ public class Branch extends Node {
         return 0;
     }
 
+    /**
+     * Assigns a {@link Priority} to a {@link Node}, and moves it accordingly.
+     *
+     * @param node     the {@link Node} to set a {@link Priority} for.
+     * @param priority the {@link Priority} to set.
+     */
     public void setPriority(@NotNull Node node, @NotNull Priority priority) {
         setPriority(node, priority, false);
     }
 
+    /**
+     * Assigns a {@link Priority} to a {@link Node}, and moves it accordingly.
+     *
+     * @param node      the {@link Node} to set a {@link Priority} for.
+     * @param priority  the {@link Priority} to set.
+     * @param moveToTop whether to move to top or bottom.
+     */
     public void setPriority(@NotNull Node node, @NotNull Priority priority, boolean moveToTop) {
         synchronized (childNodeList) {
             if (priority.ordinal() < DrawableTree.PRIORITY_MIN_ALLOWED.ordinal()
@@ -230,6 +243,13 @@ public class Branch extends Node {
     // Focusing and priority - internal methods
     //
 
+    /**
+     * Adds a {@link Node} to the child {@link Node} list,
+     * at the correct index. The index is derived based on the {@link Node}'s {@link Priority}.
+     *
+     * @param node the node to add.
+     * @param top  whether to prefer adding to the top or bottom of the matching priorities.
+     */
     @SuppressWarnings("SameParameterValue")
     void addNodeCorrectly(@NotNull Node node, boolean top) {
         Priority priority = node.getPriority();
