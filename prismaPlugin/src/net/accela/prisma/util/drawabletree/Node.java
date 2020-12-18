@@ -20,24 +20,16 @@ public class Node {
      * The root {@link Node} of the whole branch
      */
     public final @Nullable Branch root;
-    /**
-     * The parent of this {@link Node}
-     */
+    /** The parent of this {@link Node} */
     public final @Nullable Branch parent;
 
-    /**
-     * The {@link Drawable} data this {@link Node} represents
-     */
+    /** The {@link Drawable} data this {@link Node} represents */
     public final @NotNull Drawable drawable;
 
-    /**
-     * The {@link Plugin} that created this node
-     */
+    /** The {@link Plugin} that created this node */
     public final @NotNull Plugin plugin;
 
-    /**
-     * Represents layering and focus priority
-     */
+    /** Represents layering and focus priority */
     @NotNull Priority priority = Priority.DEFAULT_VALUE;
 
     /**
@@ -127,6 +119,15 @@ public class Node {
     // Priority
     //
 
+    /**
+     * Asks the parent or tree to set this {@link Node}'s priority.
+     *
+     * @param priority The priority requested
+     * @see Branch#setPriority(Node, Priority)
+     * @see Branch#setPriority(Node, Priority, boolean)
+     * @see DrawableTree#setPriority(Node, Priority)
+     * @see DrawableTree#setPriority(Node, Priority, boolean)
+     */
     public final void setPriority(@NotNull Priority priority) {
         if (parent != null) {
             parent.setPriority(this, priority);
