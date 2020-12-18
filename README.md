@@ -52,6 +52,8 @@ TBD.
 ## Usage
 TBD.
 
+Also, feel free to check out the [wiki](https://github.com/gustavdersjo/project-accela/wiki).
+
 <br>
 
 ---
