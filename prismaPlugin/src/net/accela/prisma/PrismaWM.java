@@ -236,7 +236,7 @@ public class PrismaWM implements Container {
             }
 
             // Paint terminal from canvas
-            SequenceCompressor sequencePainter = new SequenceCompressor();
+            SequenceCompressor sequenceCompressor = new SequenceCompressor(getTerminalAccessor());
             for (int y = targetRect.getMinY(); y < targetRect.getMaxY() + 1; y++) {
                 // Move the cursor into position
                 writeToSession(AnsiLib.CUP(targetRect.getMinX() + 1, y + 1));
