@@ -52,6 +52,8 @@ TBD.
 ## Usage
 TBD.
 
+Also, feel free to check out the [wiki][wiki].
+
 <br>
 
 ---
@@ -111,6 +113,8 @@ Repo link: [Session Introducer][repo_session_introducer]
 [repo_prismawm]: ./prismaPlugin/src "PrismaWM"
 [repo_telnet_provider]: ./telnetProviderPlugin/src "Telnet Provider"
 [repo_session_introducer]: ./sessionIntroducerPlugin/src "Session Introducer"
+
+[wiki]: https://github.com/gustavdersjo/project-accela/wiki
 
 [out_ansi]: https://en.wikipedia.org/wiki/ANSI_escape_code "ANSI Escape Code"
 [out_bbs]: https://sv.wikipedia.org/wiki/Bulletin_board_system "Bulletin Board System"
