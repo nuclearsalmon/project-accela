@@ -1,4 +1,4 @@
-package net.accela.ansi;
+package net.accela.prisma.util.ansi;
 
 import net.accela.ansi.exception.ESCSequenceException;
 import net.accela.ansi.sequence.CSISequence;
@@ -7,47 +7,22 @@ import net.accela.ansi.sequence.SGRStatement;
 import net.accela.ansi.sequence.color.StandardColor;
 import net.accela.ansi.sequence.color.TableColor;
 import net.accela.ansi.sequence.color.standard.RGB;
+import net.accela.prisma.session.TerminalAccessor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
+ * @deprecated Replaced with {@link SequenceCompressor}.
  * Makes it easy to maintain compatibility, by adding tools for converting
  * incompatible {@link SGRSequence}s into their compatible equivalents.
  */
+@Deprecated
 public class CompatibilityConverter {
-    boolean supportsICEColor;
-    boolean supportsAixtermColor;
-    boolean supportsRGBColor;
+    final TerminalAccessor terminal;
 
-    public CompatibilityConverter(boolean ICEColor, boolean RGBColor, boolean AixtermColor) {
-        this.supportsICEColor = ICEColor;
-        this.supportsAixtermColor = AixtermColor;
-        this.supportsRGBColor = RGBColor;
-    }
-
-    public void setSupportsICEColor(boolean supportsICEColor) {
-        this.supportsICEColor = supportsICEColor;
-    }
-
-    public void setSupportsAixtermColor(boolean supportsAixtermColor) {
-        this.supportsAixtermColor = supportsAixtermColor;
-    }
-
-    public void setSupportsRGBColor(boolean supportsRGBColor) {
-        this.supportsRGBColor = supportsRGBColor;
-    }
-
-    public boolean supportsICEColor() {
-        return supportsICEColor;
-    }
-
-    public boolean supportsAixtermColor() {
-        return supportsAixtermColor;
-    }
-
-    public boolean supportsRGBColor() {
-        return supportsRGBColor;
+    public CompatibilityConverter(@NotNull TerminalAccessor terminal) {
+        this.terminal = terminal;
     }
 
     public @NotNull String makeCompatible(final @NotNull List<@NotNull SGRStatement> statements) {
@@ -62,7 +37,9 @@ public class CompatibilityConverter {
                 case INTENSITY_BRIGHT_OR_BOLD:
                 case INTENSITY_DIM_OR_THIN:
                     intensityType = statement.getType();
-                    if (!supportsICEColor) result.append(statement.getTypeAsInt()).append(';');
+                    if (!terminal.supportsIceColor()) {
+                        result.append(statement.getTypeAsInt()).append(';');
+                    }
                     break;
                 case FG_BLK_BRIGHT:
                 case FG_RED_BRIGHT:
@@ -98,7 +75,8 @@ public class CompatibilityConverter {
                 case BG_CYA:
                 case BG_WHI:
                     if (bright == null) {
-                        bright = intensityType == SGRStatement.Type.INTENSITY_BRIGHT_OR_BOLD && supportsICEColor;
+                        bright = intensityType == SGRStatement.Type.INTENSITY_BRIGHT_OR_BOLD
+                                && terminal.supportsIceColor();
                     }
                     parseStandardColor(new StandardColor(statement.getType(), bright), result);
                     break;
@@ -118,7 +96,7 @@ public class CompatibilityConverter {
     }
 
     void parseRGB(final @NotNull SGRStatement statement, final @NotNull StringBuilder result) {
-        if (supportsRGBColor) {
+        if (terminal.supportsTrueColor()) {
             result.append(statement.getTypeAsInt()).append(';');
             for (int arg : statement.getArguments()) {
                 result.append(arg).append(';');
@@ -139,7 +117,7 @@ public class CompatibilityConverter {
     }
 
     void parseStandardColor(final @NotNull StandardColor standardColor, final @NotNull StringBuilder result) {
-        SGRSequence colorSequence = new SGRSequence(standardColor.toString(supportsAixtermColor));
+        SGRSequence colorSequence = new SGRSequence(standardColor.toString(terminal.supportsAixtermColor()));
 
         for (SGRStatement colorStatement : colorSequence.toSGRStatements()) {
             result.append(colorStatement.getTypeAsInt()).append(';');

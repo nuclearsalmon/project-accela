@@ -1,4 +1,4 @@
-package net.accela.prisma.util;
+package net.accela.prisma.util.ansi;
 
 import net.accela.ansi.sequence.ESCSequence;
 import net.accela.prisma.event.*;

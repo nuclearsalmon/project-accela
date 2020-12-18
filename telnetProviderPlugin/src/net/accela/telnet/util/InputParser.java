@@ -9,7 +9,7 @@ import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
 import net.accela.prisma.session.Terminal;
-import net.accela.prisma.util.InputEventParser;
+import net.accela.prisma.util.ansi.InputEventParser;
 import net.accela.server.AccelaAPI;
 import net.accela.server.plugin.Plugin;
 import net.accela.telnet.server.TelnetSessionServer;

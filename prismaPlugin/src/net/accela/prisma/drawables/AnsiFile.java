@@ -89,7 +89,7 @@ public class AnsiFile {
                     break;
             }
 
-            // CustomMatch sequences in this line
+            // ANSIMatch sequences in this line
             Matcher ANSIMatcher = Patterns.ANSI8Bit.matcher(line);
             while (ANSIMatcher.find()) {
                 ANSIMatches.add(new ANSIMatch(ANSIMatcher.start(), ANSIMatcher.end(), ANSIMatcher.group()));
@@ -101,7 +101,7 @@ public class AnsiFile {
             ANSIMatch nextANSIMatch = null;
             int lineCursor = 0, gridLineCursor = 0, currentMatchIndex = 0;
             while (lineCursor < line.length()) {
-                // If there are still ANSIMatches to get, grab the next CustomMatch
+                // If there are still ANSIMatches to get, grab the next ANSIMatch
                 if (currentMatchIndex < ANSIMatches.size()) {
                     nextANSIMatch = ANSIMatches.get(currentMatchIndex);
                 }

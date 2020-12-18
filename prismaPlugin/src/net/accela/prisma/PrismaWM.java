@@ -9,8 +9,9 @@ import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
+import net.accela.prisma.session.TerminalAccessor;
 import net.accela.prisma.session.TextGraphicsSession;
-import net.accela.prisma.util.SequencePainter;
+import net.accela.prisma.util.ansi.SequenceCompressor;
 import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.canvas.Cell;
 import net.accela.prisma.util.drawabletree.Branch;
@@ -90,6 +91,10 @@ public class PrismaWM implements Container {
         // Enable mouse
         setMouseMode(PrismaWM.MouseMode.NORMAL);
         setMouseMode(PrismaWM.MouseMode.ANY);
+    }
+
+    public @NotNull TerminalAccessor getTerminalAccessor() {
+        return session.getTerminalAccessor();
     }
 
     public @NotNull EventChannel getBroadcastChannel() {
@@ -231,7 +236,7 @@ public class PrismaWM implements Container {
             }
 
             // Paint terminal from canvas
-            SequencePainter sequencePainter = new SequencePainter();
+            SequenceCompressor sequencePainter = new SequenceCompressor();
             for (int y = targetRect.getMinY(); y < targetRect.getMaxY() + 1; y++) {
                 // Move the cursor into position
                 writeToSession(AnsiLib.CUP(targetRect.getMinX() + 1, y + 1));

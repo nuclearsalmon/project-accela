@@ -36,8 +36,12 @@ public abstract class TextGraphicsSession extends Session {
         return windowManager;
     }
 
-    public Terminal getTerminal() {
+    public @NotNull Terminal getTerminal() {
         return terminal;
+    }
+
+    public @NotNull TerminalAccessor getTerminalAccessor() {
+        return new TerminalAccessor(terminal);
     }
 
     /**

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-public class Terminal {
+public class Terminal implements TerminalSafeMethods {
     // Constants - Size
     public final static Size DEFAULT_SIZE = new Size(80, 24);
 
@@ -44,9 +44,9 @@ public class Terminal {
 
     // Colors
     protected boolean supportsAixtermColor = DEFAULT_AIXTERM_COLOR_SUPPORT;
-    protected boolean supports8BitColor = DEFAULT_TABLE_COLOR_SUPPORT;
-    protected boolean supports24BitColor = DEFAULT_TRUE_COLOR_SUPPORT;
-    protected boolean supportsICEColor = DEFAULT_ICE_COLOR_SUPPORT;
+    protected boolean supportsTableColor = DEFAULT_TABLE_COLOR_SUPPORT;
+    protected boolean supportsTrueColor = DEFAULT_TRUE_COLOR_SUPPORT;
+    protected boolean supportsIceColor = DEFAULT_ICE_COLOR_SUPPORT;
 
     public Terminal() {
     }
@@ -55,30 +55,37 @@ public class Terminal {
     // Getters
     //
 
+    @Override
     public @NotNull Size getSize() {
         return terminalSize;
     }
 
-    public boolean getAixtermColorSupport() {
+    @Override
+    public boolean supportsAixtermColor() {
         return supportsAixtermColor;
     }
 
-    public boolean get8BitColorSupport() {
-        return supports8BitColor;
+    @Override
+    public boolean supportsTableColor() {
+        return supportsTableColor;
     }
 
-    public boolean get24BitColorSupport() {
-        return supports24BitColor;
+    @Override
+    public boolean supportsTrueColor() {
+        return supportsTrueColor;
     }
 
-    public boolean getIceColorSupport() {
-        return supportsICEColor;
+    @Override
+    public boolean supportsIceColor() {
+        return supportsIceColor;
     }
 
+    @Override
     public @NotNull List<@NotNull Charset> getSupportedCharsets() {
         return supportedCharsets;
     }
 
+    @Override
     public @NotNull Charset getCharset() {
         return charset;
     }
@@ -89,6 +96,22 @@ public class Terminal {
 
     public void setSize(@NotNull Size size) {
         terminalSize = size;
+    }
+
+    public void supportsAixtermColor(boolean bool) {
+        supportsAixtermColor = bool;
+    }
+
+    public void supportsTableColor(boolean bool) {
+        supportsTableColor = bool;
+    }
+
+    public void supportsTrueColor(boolean bool) {
+        supportsTrueColor = bool;
+    }
+
+    public void supportsIceColor(boolean bool) {
+        supportsIceColor = bool;
     }
 
     public void setCharset(@NotNull Charset charset) {
