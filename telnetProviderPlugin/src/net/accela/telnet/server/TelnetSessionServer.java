@@ -402,8 +402,11 @@ public final class TelnetSessionServer extends Thread {
                             // If there's a match, send a reply that we're now using that charset,
                             // and change the current charset to match
                             if (argString.contains(charset.name())) {
-                                Byte[] replyBytes = ArrayUtil.mergeArrays(new Byte[]{0x2},
-                                        ArrayUtil.bytesToByteObjects(charset.name().getBytes(session.getTerminal().getCharset()))
+                                Byte[] replyBytes = ArrayUtil.mergeArrays(
+                                        new Byte[]{0x2},
+                                        ArrayUtil.bytesToByteObjects(
+                                                charset.name().getBytes(session.getTerminal().getCharset())
+                                        )
                                 );
                                 sendSequenceWhenNotNegotiating(new TelnetSequence(SB, CHARSET, replyBytes));
 

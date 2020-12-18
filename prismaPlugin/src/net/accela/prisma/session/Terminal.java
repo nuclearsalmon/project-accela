@@ -48,10 +48,6 @@ public class Terminal {
     protected boolean supports24BitColor = DEFAULT_TRUE_COLOR_SUPPORT;
     protected boolean supportsICEColor = DEFAULT_ICE_COLOR_SUPPORT;
 
-    // Accessor and other misc data
-    @SuppressWarnings("unused")
-    public final TerminalAccessor accessor = new TerminalAccessor(this);
-
     public Terminal() {
     }
 
