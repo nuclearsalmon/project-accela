@@ -2,6 +2,7 @@ package net.accela.telnet.server;
 
 import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.ESCSequence;
+import net.accela.prisma.session.Terminal;
 import net.accela.telnet.exception.InvalidTelnetSequenceException;
 import net.accela.telnet.exception.TerminationException;
 import net.accela.telnet.session.TelnetSession;
@@ -16,8 +17,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,21 +32,11 @@ public final class TelnetSessionServer extends Thread {
     final InputStream inputStream;
     final OutputStream outputStream;
 
-    // Charset configuration
-    public final static Charset UTF8_CHARSET = StandardCharsets.UTF_8;
-    public final static Charset ASCII_CHARSET = StandardCharsets.US_ASCII;
-    public final static Charset IBM437_CHARSET = Charset.forName("IBM437");
-    public final List<Charset> supportedCharsets = new ArrayList<>() {{
-        add(UTF8_CHARSET);
-        add(ASCII_CHARSET);
-        add(IBM437_CHARSET);
-    }};
-    @NotNull Charset currentCharset = UTF8_CHARSET;
     // CharsetDecoder
     CharsetDecoder charsetDecoder = new CharsetDecoder() {
         @Override
         protected @NotNull Charset getCurrentCharset() {
-            return currentCharset;
+            return session.getTerminal().getCharset();
         }
     };
 
@@ -93,12 +82,6 @@ public final class TelnetSessionServer extends Thread {
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
         this.inputParser = new InputParser(session, this);
-
-        // Register default negotiation for logout
-        registerNegotiationFlow(LOGOUT, fullTrigger -> {
-            sendSequenceWhenNotNegotiating(new TelnetSequence(WILL, LOGOUT));
-            session.close("Logout requested by the client");
-        });
     }
 
     @Override
@@ -111,7 +94,11 @@ public final class TelnetSessionServer extends Thread {
             negotiateEcho(false);
             negotiateSuppressGoAhead(true);
             negotiateTransmitBinary(true);
-            negotiateCharset(supportedCharsets.toArray(new Charset[0]));
+            negotiateCharset(new ArrayList<>() {{
+                add(Terminal.UTF8_CHARSET);
+                add(Terminal.IBM437_CHARSET);
+                add(Terminal.ASCII_CHARSET);
+            }});
 
             // Start reader thread
             while (!isInterrupted()) {
@@ -282,22 +269,6 @@ public final class TelnetSessionServer extends Thread {
     }
 
     //
-    // --- MODE SETTERS ---
-    //
-    public void setCharset(@NotNull Charset charset) {
-        if (supportedCharsets.contains(charset)) {
-            session.getLogger().log(Level.INFO, "Changed charset to " + charset.name());
-            currentCharset = charset;
-        } else {
-            throw new UnsupportedCharsetException(charset.name());
-        }
-    }
-
-    public @NotNull Charset getCharset() {
-        return currentCharset;
-    }
-
-    //
     // --- NEGOTIATION FLOW ---
     //
     // This method name... is rather, hm, verbose..
@@ -363,10 +334,10 @@ public final class TelnetSessionServer extends Thread {
      * first be enabled, as many charsets tend to utilize bytes with
      * a value > 127, and binary mode provides full support up to 255.
      *
-     * @param charsetArray An array of charsets. The ones after
+     * @param charsetList An array of charsets. The ones after
      *                     the first one will be treated as fallback alternatives.
      */
-    public void negotiateCharset(@NotNull Charset[] charsetArray) throws IOException {
+    public void negotiateCharset(@NotNull List<Charset> charsetList) throws IOException {
         // Some constant values here to make the code easier to read.
         // There's more to the charset negotiation (42) than just this, but this is just a basic implementation of it.
         final byte REQUEST = (byte) 0x01;
@@ -379,9 +350,9 @@ public final class TelnetSessionServer extends Thread {
         StringBuilder validCharsetsString = new StringBuilder();
 
         // Filter charsetArray so that only supported charsets can be requested
-        for (Charset charset : charsetArray) {
+        for (Charset charset : charsetList) {
             // First ensure the charset is supported, then ensure it's not already added
-            if (supportedCharsets.contains(charset) && !validCharsets.contains(charset)) {
+            if (session.getTerminal().getSupportedCharsets().contains(charset) && !validCharsets.contains(charset)) {
                 validCharsets.add(charset);
                 validCharsetsString.append(";").append(charset.name());
             }
@@ -389,7 +360,7 @@ public final class TelnetSessionServer extends Thread {
 
         // Prefix with 0x1 (option), and encode request string into bytes
         Byte[] requestBytes = ArrayUtil.mergeArrays(new Byte[]{REQUEST},
-                ArrayUtil.bytesToByteObjects(validCharsetsString.toString().getBytes(ASCII_CHARSET))
+                ArrayUtil.bytesToByteObjects(validCharsetsString.toString().getBytes(Terminal.ASCII_CHARSET))
         );
 
         // De-register any old negotiationFlow for charset handling, and
@@ -424,20 +395,20 @@ public final class TelnetSessionServer extends Thread {
                         }
                         String argString = new String(
                                 argStringBytes,
-                                ASCII_CHARSET
+                                Terminal.ASCII_CHARSET
                         );
 
-                        for (Charset charset : charsetArray) {
+                        for (Charset charset : charsetList) {
                             // If there's a match, send a reply that we're now using that charset,
                             // and change the current charset to match
                             if (argString.contains(charset.name())) {
                                 Byte[] replyBytes = ArrayUtil.mergeArrays(new Byte[]{0x2},
-                                        ArrayUtil.bytesToByteObjects(charset.name().getBytes(session.getCharset()))
+                                        ArrayUtil.bytesToByteObjects(charset.name().getBytes(session.getTerminal().getCharset()))
                                 );
                                 sendSequenceWhenNotNegotiating(new TelnetSequence(SB, CHARSET, replyBytes));
 
                                 // Change the current charset
-                                setCharset(charset);
+                                session.getTerminal().setCharset(charset);
                                 break;
                             }
                         }
@@ -547,7 +518,7 @@ public final class TelnetSessionServer extends Thread {
 
     public void writeToClient(@NotNull String str) {
         try {
-            writeToClient(str.getBytes(currentCharset));
+            writeToClient(str.getBytes(session.getTerminal().getCharset()));
         } catch (IOException ex) {
             session.getLogger().log(Level.WARNING, "Exception when writing to client", ex);
         }
@@ -582,7 +553,7 @@ public final class TelnetSessionServer extends Thread {
     public void interrupt() {
         // Reset terminal
         try {
-            writeToClient((CSISequence.CLR_STRING + ESCSequence.RIS_STRING).getBytes(getCharset()));
+            writeToClient((CSISequence.CLR_STRING + ESCSequence.RIS_STRING).getBytes(session.getTerminal().getCharset()));
         } catch (IOException e) {
             session.getLogger().severe("Failed to write CLR + RIS to client before interrupting");
         }

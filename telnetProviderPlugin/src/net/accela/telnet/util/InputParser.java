@@ -8,7 +8,7 @@ import net.accela.prisma.event.PointInputEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
-import net.accela.prisma.session.TextGraphicsSession;
+import net.accela.prisma.session.Terminal;
 import net.accela.prisma.util.InputEventParser;
 import net.accela.server.AccelaAPI;
 import net.accela.server.plugin.Plugin;
@@ -17,7 +17,6 @@ import net.accela.telnet.session.TelnetSession;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -76,7 +75,7 @@ public class InputParser {
                     PointInputEvent PointInputEvent = (PointInputEvent) inputEvent;
 
                     // Update the size
-                    session.setTerminalSize(
+                    session.getTerminal().setSize(
                             new Size(PointInputEvent.getPoint().getX(), PointInputEvent.getPoint().getY())
                     );
 
@@ -91,7 +90,11 @@ public class InputParser {
 
                     // See https://ryobbs.com/doku/terminal.php for info on the logic behind this.
                     // I probably butchered the idea... but my implementation seems to work *shrug*
-                    session.setUnicodeSupport(PointInputEvent.getPoint().getX() == 7);
+                    if (PointInputEvent.getPoint().getX() == 7) {
+                        session.getTerminal().addCharsetSupport(Terminal.UTF8_CHARSET);
+                    } else {
+                        session.getTerminal().removeCharsetSupport(Terminal.UTF8_CHARSET);
+                    }
 
                     session.getLogger().log(Level.INFO, "point: " + PointInputEvent);
 
@@ -130,7 +133,7 @@ public class InputParser {
                         CSISequence.CSI_STRING + "6n";
 
         // Send the request
-        sessionServer.writeToClient(request.getBytes(session.getCharset()));
+        sessionServer.writeToClient(request.getBytes(session.getTerminal().getCharset()));
 
         return latch;
     }
@@ -143,12 +146,12 @@ public class InputParser {
         // Wait for the detection to complete, or time out
         latch.await(1000, TimeUnit.MILLISECONDS);
 
-        System.out.println("Updated terminal size! New value: " + session.getTerminalSize());
+        System.out.println("Updated terminal size! New value: " + session.getTerminal().getSize());
 
         // Clear and redraw
-        sessionServer.writeToClient(CSISequence.CLR_STRING.getBytes(session.getCharset()));
+        sessionServer.writeToClient(CSISequence.CLR_STRING.getBytes(session.getTerminal().getCharset()));
         PrismaWM windowManager = session.getWindowManager();
-        if (windowManager != null) windowManager.paint(new Rect(session.getTerminalSize()));
+        if (windowManager != null) windowManager.paint(new Rect(session.getTerminal().getSize()));
     }
 
     @NotNull
@@ -157,7 +160,7 @@ public class InputParser {
         latch = new CountDownLatch(1);
 
         // Change to UTF-8 temporarily so that we can perform this detection
-        session.setCharset(TextGraphicsSession.UTF8_CHARSET);
+        session.getTerminal().setCharset(Terminal.UTF8_CHARSET);
 
         // Change mode
         mode = Mode.DETECT_UNICODE;
@@ -174,7 +177,7 @@ public class InputParser {
                         CSISequence.CSI_STRING + "6n";
 
         // Send the request
-        sessionServer.writeToClient(request.getBytes(session.getCharset()));
+        sessionServer.writeToClient(request.getBytes(session.getTerminal().getCharset()));
 
         return latch;
     }
@@ -182,7 +185,6 @@ public class InputParser {
     public void builtinUpdateUnicodeSupport() throws IOException, InterruptedException, NodeNotFoundException {
         System.out.println("Updating terminal size");
 
-        Charset oldCharset = session.getCharset();
         CountDownLatch latch = updateUnicodeSupport();
 
         latch.await(1000, TimeUnit.MILLISECONDS);
@@ -191,14 +193,17 @@ public class InputParser {
         // If we DON'T support unicode, change the charset so that
         // CP437/IBM437 extended characters works.
         // If we DO support unicode, don't change anything, it's good as-is already.
-        if (!session.getUnicodeSupport()) session.setCharset(TextGraphicsSession.IBM437_CHARSET);
-        else session.setCharset(oldCharset);
+        boolean unicodeSupport = true;
+        if (!session.getTerminal().getSupportedCharsets().contains(Terminal.UTF8_CHARSET)) {
+            session.getTerminal().setCharset(Terminal.IBM437_CHARSET);
+            unicodeSupport = false;
+        }
 
-        System.out.println("Updated unicode support! New value: " + session.getUnicodeSupport());
+        System.out.println("Updated unicode support! New value: " + unicodeSupport);
 
         // Clear and redraw
-        sessionServer.writeToClient(CSISequence.CLR_STRING.getBytes(session.getCharset()));
+        sessionServer.writeToClient(CSISequence.CLR_STRING.getBytes(session.getTerminal().getCharset()));
         PrismaWM windowManager = session.getWindowManager();
-        if (windowManager != null) windowManager.paint(new Rect(session.getTerminalSize()));
+        if (windowManager != null) windowManager.paint(new Rect(session.getTerminal().getSize()));
     }
 }

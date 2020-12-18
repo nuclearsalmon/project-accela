@@ -10,8 +10,9 @@ import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
 import net.accela.prisma.session.TextGraphicsSession;
-import net.accela.prisma.util.Canvas;
 import net.accela.prisma.util.SequencePainter;
+import net.accela.prisma.util.canvas.Canvas;
+import net.accela.prisma.util.canvas.Cell;
 import net.accela.prisma.util.drawabletree.Branch;
 import net.accela.prisma.util.drawabletree.DrawableTree;
 import net.accela.prisma.util.drawabletree.Node;
@@ -164,7 +165,7 @@ public class PrismaWM implements Container {
      */
     @Override
     public @NotNull Rect getRelativeRect() {
-        return new Rect(session.getTerminalSize());
+        return new Rect(session.getTerminal().getSize());
     }
 
     /**
@@ -237,7 +238,7 @@ public class PrismaWM implements Container {
 
                 for (int x = targetRect.getMinX(); x < targetRect.getMaxX() + 1; x++) {
                     // Get the cell we're at
-                    final Canvas.Cell cell = canvas.get(x - targetRect.getMinX(), y - targetRect.getMinY());
+                    final Cell cell = canvas.get(x - targetRect.getMinX(), y - targetRect.getMinY());
 
                     // Reset painting attributes to prevent sequence bleed
                     // todo replace with a smart system

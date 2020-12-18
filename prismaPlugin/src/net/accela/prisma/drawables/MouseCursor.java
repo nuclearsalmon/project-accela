@@ -8,7 +8,8 @@ import net.accela.prisma.event.SpecialInputEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
-import net.accela.prisma.util.Canvas;
+import net.accela.prisma.util.canvas.Canvas;
+import net.accela.prisma.util.canvas.Cell;
 import net.accela.server.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,7 @@ public class MouseCursor extends Drawable {
         int b = ThreadLocalRandom.current().nextInt(256);
         SGRSequence color = new Crayon().rgbBg(r, g, b).blackFg();
 
-        canvas.set(0, 0, new Canvas.Cell(":", color));
+        canvas.set(0, 0, new Cell(":", color));
 
         return canvas;
     }

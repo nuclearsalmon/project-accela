@@ -3,7 +3,9 @@ package net.accela.prisma.drawables;
 import net.accela.ansi.Patterns;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.prisma.geometry.Size;
-import net.accela.prisma.util.MutableGrid;
+import net.accela.prisma.util.canvas.Canvas;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,8 +44,7 @@ public class AnsiFile {
     List<String> tmpComments = new ArrayList<>();
 
     // Character and SGR grids
-    MutableGrid<Character> charGrid;
-    MutableGrid<SGRSequence> SGRGrid;
+    final Canvas canvas;
 
     // Sauce
     Sauce sauce;
@@ -88,7 +89,7 @@ public class AnsiFile {
                     break;
             }
 
-            // ANSIMatch sequences in this line
+            // CustomMatch sequences in this line
             Matcher ANSIMatcher = Patterns.ANSI8Bit.matcher(line);
             while (ANSIMatcher.find()) {
                 ANSIMatches.add(new ANSIMatch(ANSIMatcher.start(), ANSIMatcher.end(), ANSIMatcher.group()));
@@ -100,7 +101,7 @@ public class AnsiFile {
             ANSIMatch nextANSIMatch = null;
             int lineCursor = 0, gridLineCursor = 0, currentMatchIndex = 0;
             while (lineCursor < line.length()) {
-                // If there are still ANSIMatches to get, grab the next ANSIMatch
+                // If there are still ANSIMatches to get, grab the next CustomMatch
                 if (currentMatchIndex < ANSIMatches.size()) {
                     nextANSIMatch = ANSIMatches.get(currentMatchIndex);
                 }
@@ -152,8 +153,7 @@ public class AnsiFile {
         else gridHeight = SGRLinesAmount;
 
         // Set the sizes accordingly
-        charGrid = new MutableGrid<>(new Size(gridWidth, gridHeight));
-        SGRGrid = new MutableGrid<>(new Size(gridWidth, gridHeight));
+        canvas = new Canvas(new Size(gridWidth, gridHeight));
 
         // Populate the charGrid
         int col = 0, row = 0;
@@ -255,73 +255,69 @@ public class AnsiFile {
             TInfoS = line.substring(122, 143);         // 22
         }
 
-        public String getVersion() {
+        public @Nullable String getVersion() {
             return version;
         }
 
-        public String getTitle() {
+        public @Nullable String getTitle() {
             return title;
         }
 
-        public String getAuthor() {
+        public @Nullable String getAuthor() {
             return author;
         }
 
-        public String getGroup() {
+        public @Nullable String getGroup() {
             return group;
         }
 
-        public String getDate() {
+        public @Nullable String getDate() {
             return date;
         }
 
-        public String getFileSize() {
+        public @Nullable String getFileSize() {
             return fileSize;
         }
 
-        public String getDataType() {
+        public @Nullable String getDataType() {
             return dataType;
         }
 
-        public String getFileType() {
+        public @Nullable String getFileType() {
             return fileType;
         }
 
-        public String getTInfo1() {
+        public @Nullable String getTInfo1() {
             return TInfo1;
         }
 
-        public String getTInfo2() {
+        public @Nullable String getTInfo2() {
             return TInfo2;
         }
 
-        public String getTInfo3() {
+        public @Nullable String getTInfo3() {
             return TInfo3;
         }
 
-        public String getTInfo4() {
+        public @Nullable String getTInfo4() {
             return TInfo4;
         }
 
-        public String getCommentsAmount() {
+        public @Nullable String getCommentsAmount() {
             return commentsAmount;
         }
 
-        public String getTFlags() {
+        public @Nullable String getTFlags() {
             return TFlags;
         }
 
-        public String getTInfoS() {
+        public @Nullable String getTInfoS() {
             return TInfoS;
         }
     }
 
-    public MutableGrid<Character> getCharGrid() {
-        return charGrid;
-    }
-
-    public MutableGrid<SGRSequence> getSGRGrid() {
-        return SGRGrid;
+    public @NotNull Canvas getCanvas() {
+        return canvas;
     }
 
     public Sauce getSauce() {

@@ -1,7 +1,6 @@
 package net.accela.prisma.session;
 
 import net.accela.prisma.PrismaWM;
-import net.accela.prisma.geometry.Size;
 import net.accela.server.permission.Permission;
 import net.accela.server.permission.PermissionAttachment;
 import net.accela.server.permission.PermissionAttachmentInfo;
@@ -13,38 +12,20 @@ import net.accela.server.session.user.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
 public abstract class TextGraphicsSession extends Session {
-    // Charset configuration
-    public final static Charset UTF8_CHARSET = StandardCharsets.UTF_8;
-    public final static Charset ASCII_CHARSET = StandardCharsets.US_ASCII;
-    public final static Charset IBM437_CHARSET = Charset.forName("IBM437");
-
-    protected final SessionLogger sessionLogger;
+    protected final SessionLogger sessionLogger = new SessionLogger(this);
+    protected final Terminal terminal = new Terminal();
     protected PrismaWM windowManager;
     protected User user;
 
-    // Terminal feature compatibility flags
-    protected boolean supportsAixtermColor = true;
-    protected boolean supports8BitColor = true;
-    protected boolean supports24BitColor = true;
-    protected boolean supportsICEColor = true;
-    protected boolean supportsUnicode = true;
-    protected @NotNull Size terminalSize = new Size(80, 24);
-
-    public TextGraphicsSession(@NotNull final SessionCreator sessionCreator, @NotNull final UUID uuid) {
+    public TextGraphicsSession(@NotNull SessionCreator sessionCreator,
+                               @NotNull UUID uuid) {
         // Perform default actions
         super(sessionCreator, uuid);
-
-        // Create a session logger
-        this.sessionLogger = new SessionLogger(this);
     }
 
     public abstract void writeToClient(@NotNull String str);
@@ -55,43 +36,9 @@ public abstract class TextGraphicsSession extends Session {
         return windowManager;
     }
 
-    public void setTerminalSize(@NotNull Size size) {
-        terminalSize = size;
+    public Terminal getTerminal() {
+        return terminal;
     }
-
-    public @NotNull Size getTerminalSize() {
-        return terminalSize;
-    }
-
-    public boolean setAixtermColorSupport() {
-        return supportsAixtermColor;
-    }
-
-    public boolean set8BitColorSupport() {
-        return supports8BitColor;
-    }
-
-    public boolean set24BitColorSupport() {
-        return supports24BitColor;
-    }
-
-    public boolean setIceColorSupport() {
-        return supportsICEColor;
-    }
-
-    public boolean getUnicodeSupport() {
-        return supportsUnicode;
-    }
-
-    public void setUnicodeSupport(boolean enable) {
-        supportsUnicode = enable;
-    }
-
-    public abstract @NotNull Charset getCharset();
-
-    public abstract @NotNull List<@NotNull Charset> getSupportedCharsets();
-
-    public abstract void setCharset(@NotNull Charset charset) throws UnsupportedCharsetException;
 
     /**
      * @return This sessions logger

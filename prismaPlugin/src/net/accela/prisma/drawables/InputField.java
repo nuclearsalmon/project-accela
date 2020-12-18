@@ -9,7 +9,8 @@ import net.accela.prisma.event.StringInputEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
-import net.accela.prisma.util.Canvas;
+import net.accela.prisma.util.canvas.Canvas;
+import net.accela.prisma.util.canvas.Cell;
 import net.accela.server.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,9 +65,9 @@ public class InputField extends Drawable {
         for (int x = 0; x < getWidth(); x++) {
             // Submit to cache
             if (base + x < textContent.length()) {
-                Canvas.Cell cell = canvas.get(x, 0);
+                Cell cell = canvas.get(x, 0);
                 canvas.set(x, 0,
-                        new Canvas.Cell(Character.toString(textContent.charAt(base + x)),
+                        new Cell(Character.toString(textContent.charAt(base + x)),
                                 cell == null ? null : cell.getSequence())
                 );
             } else break;
@@ -249,7 +250,6 @@ public class InputField extends Drawable {
         super.onActivation(event);
 
         DrawableIdentifier identifier = event.getTarget();
-        boolean isActiveOld = isActive;
         isActive = identifier == this.identifier;
 
         apply();

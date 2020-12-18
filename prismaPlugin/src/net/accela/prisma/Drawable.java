@@ -5,7 +5,7 @@ import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
-import net.accela.prisma.util.Canvas;
+import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.drawabletree.Branch;
 import net.accela.prisma.util.drawabletree.DrawableTree;
 import net.accela.prisma.util.drawabletree.Node;

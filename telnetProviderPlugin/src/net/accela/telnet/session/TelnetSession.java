@@ -1,12 +1,15 @@
 package net.accela.telnet.session;
 
 import net.accela.prisma.PrismaWM;
+import net.accela.prisma.session.Terminal;
 import net.accela.prisma.session.TextGraphicsSession;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;
 import net.accela.server.event.server.SessionAssignedEngineEvent;
+import net.accela.telnet.server.TelnetSequence;
 import net.accela.telnet.server.TelnetSessionServer;
 import net.accela.telnet.server.TelnetSocketServer;
+import net.accela.telnet.util.TelnetBytes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,11 +17,10 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
+
+import static net.accela.telnet.util.TelnetBytes.WILL;
 
 public final class TelnetSession extends TextGraphicsSession {
     // Session IO
@@ -33,8 +35,16 @@ public final class TelnetSession extends TextGraphicsSession {
         // Assign these values
         this.socket = socket;
 
-        // Construct a sessionServer
+        // Configure sessionServer
         sessionServer = new TelnetSessionServer(this, socket);
+        // Register default negotiation for logout
+        sessionServer.registerNegotiationFlow(TelnetBytes.LOGOUT, fullTrigger -> {
+            sessionServer.sendSequenceWhenNotNegotiating(new TelnetSequence(WILL, TelnetBytes.LOGOUT));
+            close("Logout requested by the client");
+        });
+
+        // Configure terminal
+        terminal.setCharset(Terminal.UTF8_CHARSET);
 
         // Start the sessionServer
         sessionServer.start();
@@ -91,24 +101,6 @@ public final class TelnetSession extends TextGraphicsSession {
                 close("Failed WindowManager swap to default implementation");
             }
         }
-    }
-
-    @Override
-    public @NotNull Charset getCharset() {
-        return sessionServer.getCharset();
-    }
-
-    @Override
-    public @NotNull List<Charset> getSupportedCharsets() {
-        return sessionServer.supportedCharsets;
-    }
-
-    @Override
-    public void setCharset(@NotNull Charset charset) throws UnsupportedCharsetException {
-        if (getSupportedCharsets().contains(charset)) {
-            sessionServer.setCharset(charset);
-            getLogger().log(Level.INFO, "Set charset to '" + charset + "'.");
-        } else throw new UnsupportedCharsetException(charset.toString());
     }
 
     /**
