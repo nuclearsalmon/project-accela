@@ -230,22 +230,27 @@ public class DrawableTree {
     /**
      * @param priority The priority to search for
      * @param top      True for top index, false for bottom index
-     * @return -1 means not found, anything over that is a valid index.
      */
-    int getIndexByPriority(@NotNull Priority priority, boolean top) {
+    int getIndexByPriority(final @NotNull Priority priority, final boolean top) {
         synchronized (childNodeList) {
-            int start = top ? childNodeList.size() - 1 : 0;
-            int end = top ? 0 : childNodeList.size() - 1;
+            int lastIndex = 0;
+            if (top) {
+                for (int i = childNodeList.size() - 1; i >= 0; i--) {
+                    Priority currentPriority = childNodeList.get(i).priority;
 
-            for (int i = start; i <= end; i++) {
-                if (childNodeList.get(i).priority == priority) {
-                    if (childNodeList.get(i).priority != priority) {
-                        return i;
-                    }
+                    if (currentPriority.ordinal() < priority.ordinal()) return lastIndex;
+                    else lastIndex = i;
+                }
+            } else {
+                for (int i = 0; i < childNodeList.size(); i++) {
+                    Priority currentPriority = childNodeList.get(i).priority;
+
+                    if (currentPriority.ordinal() > priority.ordinal()) return lastIndex;
+                    else lastIndex = i;
                 }
             }
         }
-        return -1;
+        return 0;
     }
 
     public void setPriority(@NotNull Node node, @NotNull Priority priority) {
