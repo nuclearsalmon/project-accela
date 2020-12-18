@@ -75,7 +75,7 @@ public class DrawableContainer extends Drawable implements Container {
 
         // Attempt to grab a new drawable, if any are still attached.
         // If yes, then focus that one. If it's null, then focus null instead to show the change.
-        List<Node> nodes = getBranch().getChildNodes();
+        List<Node> nodes = getBranch().getChildNodeList();
         DrawableIdentifier focusIdentifier = nodes.size() > 0 ? nodes.get(0).getDrawable().getIdentifier() : null;
         getWindowManager().broadcastEvent(new ActivationEvent(getPlugin(), focusIdentifier));
     }
@@ -130,7 +130,7 @@ public class DrawableContainer extends Drawable implements Container {
 
     private List<@NotNull Drawable> getIntersectingImmediateDrawables(@NotNull Rect rect) throws NodeNotFoundException {
         final List<Drawable> drawables = new ArrayList<>();
-        for (Node node : getBranch().getChildNodes()) {
+        for (Node node : getBranch().getChildNodeList()) {
             Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 drawables.add(drawable);

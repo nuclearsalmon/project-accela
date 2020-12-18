@@ -155,7 +155,7 @@ public class PrismaWM implements Container {
 
         // Attempt to grab a new drawable, if any are still attached.
         // If yes, then focus that one. If it's null, then focus null instead to show the change.
-        List<Node> nodes = tree.getChildNodes();
+        List<Node> nodes = tree.getChildNodeList();
         broadcastEvent(new ActivationEvent(thisPlugin, nodes.size() > 0 ? nodes.get(0).getDrawable().identifier : null));
     }
 
@@ -309,7 +309,7 @@ public class PrismaWM implements Container {
                 }
             }
 
-            Node focusedNode = tree.getFocusedNode();
+            Node focusedNode = tree.getTreeFocusNode();
             if (focusedNode != null) {
                 // The cursor has moved a lot during the drawing process,
                 // so move it back to where it's supposed to be.
@@ -325,7 +325,7 @@ public class PrismaWM implements Container {
 
     private List<@NotNull Drawable> getIntersectingImmediateDrawables(@NotNull Rect rect) {
         final List<Drawable> drawables = new ArrayList<>();
-        for (Node node : tree.getChildNodes()) {
+        for (Node node : tree.getChildNodeList()) {
             Drawable drawable = node.getDrawable();
             if (rect.intersects(drawable.getRelativeRect())) {
                 drawables.add(drawable);
@@ -337,26 +337,6 @@ public class PrismaWM implements Container {
     //
     // TEXT CURSOR
     //
-
-    /**
-     * Enables the terminal cursor used for text editing.
-     *
-     * @param caller The caller, which has to be focused.
-     */
-    public void enableTextCursor(@NotNull Drawable caller) throws NodeNotFoundException {
-        if (tree.getFocusedNode() != caller.getNode()) return;
-        writeToSession(CSISequence.P_CUR_ON);
-    }
-
-    /**
-     * Disables the terminal cursor used for text editing.
-     *
-     * @param caller The caller, which has to be focused.
-     */
-    public void disableTextCursor(@NotNull Drawable caller) throws NodeNotFoundException {
-        if (tree.getFocusedNode() != caller.getNode()) return;
-        writeToSession(CSISequence.P_CUR_OFF);
-    }
 
     /**
      * Moves the terminal cursor used for text editing.
@@ -471,7 +451,7 @@ public class PrismaWM implements Container {
     void performBroadcast(@NotNull WMEvent event) {
         thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
 
-        List<Node> childNodes = tree.getAllNodes();
+        List<Node> childNodes = tree.getTreeNodeList();
         for (Node node : childNodes) {
             AccelaAPI.getPluginManager().callEvent(event, node.drawable.getChannel());
         }
@@ -491,9 +471,9 @@ public class PrismaWM implements Container {
                 SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
 
                 if (specialInputEvent.getKey() == SpecialInputEvent.SpecialKey.HT) {
-                    Node focusedNode = tree.getFocusedNode();
+                    Node focusedNode = tree.getTreeFocusNode();
                     if (focusedNode != null) {
-                        List<Node> nodes = tree.getChildNodes();
+                        List<Node> nodes = tree.getChildNodeList();
 
                         int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
                         if (index + 1 > nodes.size()) index = 0;
