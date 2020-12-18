@@ -324,8 +324,8 @@ public class InputEventParser {
         }
         System.out.println("]");
 
-        final String keycode;
-        int modifierInt = 0;
+        final @NotNull String keycode;
+        final @NotNull String modifier;
 
         // Grab the last split item as a char
         char lastChar = sequence.charAt(sequence.length() - 1);
@@ -337,12 +337,11 @@ public class InputEventParser {
             keycode = split[0];
 
             // Don't try to add a modifier if there isn't one.
-            if (split.length > 1) {
-                modifierInt = Integer.parseInt(split[1]);
-            }
+            if (split.length > 1) modifier = split[1];
+            else modifier = "1";
 
             // We now have a keycode, and possibly a modifier as well.
-            return parseSpecialKey(keycode, modifierInt);
+            return parseSpecialKey(keycode, Integer.parseInt(modifier));
         }
         // If the modifier comes first ( for example <esc>[5C or <esc>[1;5C )
         else if (Character.isLetter(lastChar)) {
@@ -366,19 +365,20 @@ public class InputEventParser {
             // Don't try to add a modifier if there isn't one.
             if (split.length == 1) {
                 keycode = split[0];
+                modifier = "1";
             } else {
-                modifierInt = Integer.parseInt(split[0]);
                 keycode = split[1];
+                modifier = split[0];
             }
 
             // We now have a keycode, and possibly a modifier as well.
             // If it's a Point
             if (lastChar == 'R') {
-                return new PointInputEvent(plugin, new Point(Integer.parseInt(keycode), modifierInt));
+                return new PointInputEvent(plugin, new Point(Integer.parseInt(keycode), Integer.parseInt(modifier)));
             }
             // Else parse as normal
             else {
-                return parseSpecialKey(keycode, modifierInt);
+                return parseSpecialKey(keycode, Integer.parseInt(modifier));
 
             }
         } else {
@@ -394,7 +394,7 @@ public class InputEventParser {
         // If there's no special key we don't need to continue
         if (specialKey == null) return null;
 
-        // Comes in an order of SHIFT, CTRL, ALT, META
+        // Order: { META, CTRL, ALT, SHIFT }.
         boolean[] modifierBits = new boolean[]{false, false, false, false};
 
         // Subtract 1 to create a valid bitmap
@@ -402,7 +402,7 @@ public class InputEventParser {
 
         // Calculate which modifier keys were active
         for (int i = 3; i >= 0; i--) {
-            modifierBits[i] = ((modifier >> i) & 1) == 1;
+            modifierBits[3 - i] = ((modifier >> i) & 1) == 1;
         }
 
         // Return the resulting values
