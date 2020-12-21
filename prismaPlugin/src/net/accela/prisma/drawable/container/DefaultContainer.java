@@ -3,6 +3,7 @@ package net.accela.prisma.drawable.container;
 import net.accela.prisma.Drawable;
 import net.accela.prisma.DrawableContainer;
 import net.accela.prisma.DrawableIdentifier;
+import net.accela.prisma.Main;
 import net.accela.prisma.event.ActivationEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
@@ -126,7 +127,8 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
     @Override
     // TODO: 12/7/20 remove the plugin argument and instantiate drawable with plugins directly
     public synchronized void attach(@NotNull Drawable drawable, @NotNull Plugin plugin) throws RectOutOfBoundsException, NodeNotFoundException {
-        if (!Rect.fits(getZeroRect(), drawable.getRelativeRect())) {
+        if (Main.DBG_RESPECT_CONTAINER_BOUNDS
+                && !Rect.fits(getZeroRect(), drawable.getRelativeRect())) {
             throw new RectOutOfBoundsException("Drawable does not fit within the container");
         }
 
@@ -137,8 +139,9 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
         AccelaAPI.getPluginManager().registerEvents(drawable, drawable.findPlugin(), drawable.getChannel());
 
         // Focus
-        // FIXME: 11/25/20 disabled for now, same in wm
-        //getWindowManager().broadcastEvent(new ActivationEvent(getPlugin(), drawable.getIdentifier()));
+        if (Main.DBG_FOCUS_ON_DRAWABLE_CONTAINER_ATTACHMENT) {
+            getBranch().setFocusedNode(drawable.findNode());
+        }
     }
 
     /**

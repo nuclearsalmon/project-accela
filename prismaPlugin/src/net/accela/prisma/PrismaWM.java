@@ -39,18 +39,26 @@ import java.util.logging.Level;
  * A TUI window manager
  */
 public class PrismaWM implements Container {
-    // The session hosting this
+    /**
+     * The session hosting this
+     */
     final TextGraphicsSession session;
 
-    // The listener for this session
-    // Don't forget to close this.
+    /**
+     * The listener for this session
+     */
+    //todo Don't forget to close this.
     final BroadcastListener broadcastListener = new BroadcastListener();
 
-    // The plugin instance for WindowManager
+    /**
+     * The plugin instance for WindowManager
+     */
     protected final Plugin thisPlugin;
 
-    // Flags
-    // Whether the WindowManager is alive or not
+    // - Flags -
+    /**
+     * Whether this instance is alive or not
+     */
     boolean isAlive = true;
 
     // Mouse related
@@ -63,25 +71,29 @@ public class PrismaWM implements Container {
         ANY
     }
 
-    // The current mode
+    /**
+     * The current {@link MouseMode}
+     */
     @NotNull MouseMode mouseMode = MouseMode.NONE;
 
-    // Drawables
-    // The Drawable objects attached to this
+    /**
+     * The {@link DrawableTree} representing all {@link Drawable}s attached to {@link PrismaWM}
+     */
     final DrawableTree tree = new DrawableTree(this);
 
-    // Event
+    /**
+     * The {@link EventChannel} for this instance
+     */
     public final EventChannel broadcast = new EventChannel();
 
     // Locks
     final Lock paintLock = new ReentrantLock();
     final Lock broadcastLock = new ReentrantLock();
 
-    // Smart drawing
+    /**
+     * For tracking terminal states
+     */
     final TerminalState terminalState;
-
-    // Flags
-    boolean focusOnAttachment = false;
 
     public PrismaWM(@NotNull TextGraphicsSession session) {
         // Save the Session
@@ -141,7 +153,8 @@ public class PrismaWM implements Container {
             throws RectOutOfBoundsException, NodeNotFoundException {
         // Checks
         checkClosed();
-        if (!Rect.fits(new Rect(session.getTerminal().getSize()), drawable.getRelativeRect())) {
+        if (Main.DBG_RESPECT_TERMINAL_BOUNDS &&
+                !Rect.fits(new Rect(session.getTerminal().getSize()), drawable.getRelativeRect())) {
             throw new RectOutOfBoundsException("Drawable does not fit within the terminal");
         }
 
@@ -152,7 +165,7 @@ public class PrismaWM implements Container {
         AccelaAPI.getPluginManager().registerEvents(drawable, drawable.findPlugin(), drawable.getChannel());
 
         // Focus
-        if (focusOnAttachment) {
+        if (Main.DBG_FOCUS_ON_WM_ATTACHMENT) {
             broadcastEvent(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
 
             /* todo Show/Hide cursor
@@ -205,8 +218,14 @@ public class PrismaWM implements Container {
             // Get the intersection of the rect of this container vs the rect of the drawable(s)
             final Rect termBounds = new Rect(session.getTerminal().getSize());
             final Rect targetRect = Rect.intersection(termBounds, rect);
-            if (targetRect == null) throw new IllegalStateException(
-                    "\n" + rect + "\n is outside the terminal boundaries \n" + termBounds);
+            if (targetRect == null) {
+                if (Main.DBG_RESPECT_TERMINAL_BOUNDS) {
+                    throw new IllegalStateException(
+                            "\n" + rect + "\n is outside the terminal boundaries \n" + termBounds);
+                } else {
+                    return;
+                }
+            }
 
             // Hide the cursor before painting to prevent flickering
             writeToSession(CSISequence.P_CUR_OFF);
@@ -215,14 +234,14 @@ public class PrismaWM implements Container {
             Canvas canvas = new Canvas(targetRect.getSize());
 
             // Get drawable that intersect with the rectangle
-            final List<Drawable> drawables = getIntersectingImmediateDrawables(targetRect);
+            final List<Node> nodes = tree.getIntersectingChildNodes(targetRect);
 
             // Paint the canvas
             // Iterate in reverse
-            ListIterator<Drawable> drawableIterator = drawables.listIterator(drawables.size());
-            while (drawableIterator.hasPrevious()) {
+            ListIterator<Node> nodeIterator = nodes.listIterator(nodes.size());
+            while (nodeIterator.hasPrevious()) {
                 // Get drawable
-                final Drawable drawable = drawableIterator.previous();
+                final Drawable drawable = nodeIterator.previous().getDrawable();
 
                 // Get rectangles and intersect them
                 final Rect drawableRect = drawable.getRelativeRect();
@@ -313,17 +332,6 @@ public class PrismaWM implements Container {
         } finally {
             paintLock.unlock();
         }
-    }
-
-    List<@NotNull Drawable> getIntersectingImmediateDrawables(@NotNull Rect rect) {
-        final List<Drawable> drawables = new ArrayList<>();
-        for (Node node : tree.getChildNodeList()) {
-            Drawable drawable = node.getDrawable();
-            if (rect.intersects(drawable.getRelativeRect())) {
-                drawables.add(drawable);
-            }
-        }
-        return drawables;
     }
 
     //
@@ -450,7 +458,7 @@ public class PrismaWM implements Container {
 
                 // Get Drawables that intersect with the point
                 Rect pointRect = new Rect(mouseInputEvent.getPoint());
-                List<Node> intersectingChildNodes = tree.getIntersectingNodes(pointRect);
+                List<Node> intersectingChildNodes = tree.getIntersectingChildNodes(pointRect);
 
                 Node focusNode = null;
                 int index = 0;

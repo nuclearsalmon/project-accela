@@ -53,6 +53,7 @@ public class MouseCursor extends Drawable implements PointMutable {
     @Override
     public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
         this.point = point;
+        paint();
     }
 
     /**

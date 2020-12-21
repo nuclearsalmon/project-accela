@@ -158,14 +158,14 @@ public class Branch extends Node {
     /**
      * @return The currently locally focused {@link Node}.
      */
-    public @Nullable Node getChildFocusNode() {
+    public @Nullable Node getFocusedNode() {
         return childFocusNode;
     }
 
     /**
      * @param node The {@link Node} to be focused.
      */
-    public void setChildFocusedNode(@Nullable Node node) {
+    public void setFocusedNode(@Nullable Node node) {
         if (node == null || (node.isAlive() && childNodeList.contains(node))) {
             // Set child focus
             childFocusNode = node;
