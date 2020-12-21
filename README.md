@@ -49,8 +49,6 @@ TBD.
 ## Usage
 TBD.
 
-Also, feel free to check out the [wiki][wiki].
-
 <br>
 
 ---
@@ -117,4 +115,3 @@ Repo link: [Session Introducer][repo_session_introducer]
 [out_bbs]: https://sv.wikipedia.org/wiki/Bulletin_board_system "Bulletin Board System"
 [out_mud]: https://sv.wikipedia.org/wiki/MUD "Multi User Dungeon"
 [out_intellij_modules]: https://www.jetbrains.com/help/idea/creating-and-managing-modules.html "Modules"
-, say,
