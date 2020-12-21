@@ -1,15 +1,20 @@
-package net.accela.prisma.util.ansi;
+package net.accela.prisma.util.ansi.compress;
 
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.SGRStatement;
-import net.accela.prisma.session.TerminalAccessor;
+import net.accela.prisma.session.TerminalReference;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SequenceCompressor {
-    final TerminalAccessor terminal;
+/**
+ * Can be used to record a terminal state,
+ * or to compresses and optimize {@link SGRStatement}s, removing any unnecessary statements.
+ */
+public class TerminalState {
+    final TerminalReference terminal;
 
     /**
      * INTENSITY_BRIGHT, INTENSITY_DIM, INTENSITY_NORMAL
@@ -62,10 +67,13 @@ public class SequenceCompressor {
      */
     SGRStatement propSpacing = null;
 
-    public SequenceCompressor(@NotNull TerminalAccessor terminalAccessor) {
+    public TerminalState(@NotNull TerminalReference terminalAccessor) {
         this.terminal = terminalAccessor;
     }
 
+    /**
+     * Manually resets the active conditions
+     */
     public void reset() {
         intensity = null;
         fgIntensity = null;
@@ -83,10 +91,20 @@ public class SequenceCompressor {
         propSpacing = null;
     }
 
+    /**
+     * Compresses a {@link SGRSequence}, removing overridden and unnecessary statements.
+     *
+     * @param sequence The sequence to compress
+     */
     public void apply(@NotNull SGRSequence sequence) {
         apply(sequence.toSGRStatements());
     }
 
+    /**
+     * Compresses {@link SGRStatement}s, removing overridden and unnecessary statements.
+     *
+     * @param statements The statements to compress
+     */
     public void apply(@NotNull List<SGRStatement> statements) {
         // Search for a reset marker
         int resetMarker = -1;
@@ -108,6 +126,11 @@ public class SequenceCompressor {
         }
     }
 
+    /**
+     * Compresses a {@link SGRStatement}, removing overridden and unnecessary statements.
+     *
+     * @param statement The statement to compress
+     */
     public void apply(@NotNull SGRStatement statement) {
         switch (statement.getType()) {
             case RESET:
@@ -137,6 +160,13 @@ public class SequenceCompressor {
 
             case FG_RGB:
             case FG_DEFAULT:
+                if (terminal.supportsIceColor()) intensity = null;
+
+                // FIXME: 12/21/20 incomplete code
+                int[] args = statement.getArguments();
+
+                fgColor = statement;
+                break;
 
             case FG_BLK_BRIGHT:
             case FG_RED_BRIGHT:
@@ -240,6 +270,9 @@ public class SequenceCompressor {
         }
     }
 
+    /**
+     * @return a compressed list of {@link SGRStatement}s
+     */
     public @NotNull List<@NotNull SGRStatement> getStatements() {
         List<SGRStatement> statements = new ArrayList<>();
 
@@ -262,5 +295,64 @@ public class SequenceCompressor {
         if (propSpacing != null) statements.add(propSpacing);
 
         return statements;
+    }
+
+    public @Nullable List<@NotNull SGRStatement> cancel(@NotNull List<@NotNull SGRStatement> statements) {
+        TerminalState newTerminalState = new TerminalState(terminal);
+        newTerminalState.apply(statements);
+
+        if (this.equals(newTerminalState)) {
+            return null;
+        } else {
+            // FIXME: 12/19/20 this is stupid
+            //statements.add(0, new SGRStatement(SGRStatement.Type.RESET));
+            return new ArrayList<>(statements) {{
+                add(0, new SGRStatement(SGRStatement.Type.RESET));
+            }};
+        }
+    }
+
+    public @Nullable List<@NotNull SGRStatement> cancelAndApply(@NotNull List<@NotNull SGRStatement> statements) {
+        List<SGRStatement> newStatements = cancel(statements);
+        if (newStatements != null) apply(newStatements);
+        return newStatements;
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return super.toString() + "\n" + propertiesToString();
+    }
+
+    public @NotNull String propertiesToString() {
+        StringBuilder sb = new StringBuilder("[");
+
+        sb.append("intensity=").append(intensity).append(",");
+        sb.append("fgIntensity=").append(fgIntensity).append(",");
+        sb.append("bgIntensity=").append(bgIntensity).append(",\n");
+        sb.append("fgColor=").append(fgColor).append(",");
+        sb.append("bgColor=").append(bgColor).append(",");
+        sb.append("underline=").append(underline).append(",\n");
+        sb.append("underlineColor=").append(underlineColor).append(",");
+        sb.append("strike=").append(strike).append(",");
+        sb.append("invert=").append(invert).append(",\n");
+        sb.append("emphasis=").append(emphasis).append(",");
+        sb.append("blink=").append(blink).append(",");
+        sb.append("font=").append(font).append(",\n");
+        sb.append("conceal=").append(conceal).append(",");
+        sb.append("propSpacing=").append(propSpacing).append(",");
+
+        sb.deleteCharAt(sb.length() - 1).append("]");
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof TerminalState) {
+            TerminalState terminalState = (TerminalState) obj;
+            return this.propertiesToString().equals(terminalState.propertiesToString())
+                    && this.terminal.equals(terminalState.terminal);
+        } else {
+            return false;
+        }
     }
 }

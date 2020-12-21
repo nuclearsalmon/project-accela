@@ -73,6 +73,22 @@ public class Point {
         return Math.sqrt(px * px + py * py);
     }
 
+    public @NotNull Point subtract(@NotNull Point subtraction) {
+        return subtract(this, subtraction);
+    }
+
+    public static @NotNull Point subtract(@NotNull Point first, @NotNull Point subtraction) {
+        return new Point(first.x - subtraction.x, first.y - subtraction.y);
+    }
+
+    public @NotNull Point add(@NotNull Point addition) {
+        return add(this, addition);
+    }
+
+    public static @NotNull Point add(@NotNull Point first, @NotNull Point addition) {
+        return new Point(first.x + addition.x, first.y + addition.y);
+    }
+
     //
     // Object overrides
     //

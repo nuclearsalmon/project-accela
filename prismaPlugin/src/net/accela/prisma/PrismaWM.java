@@ -4,14 +4,16 @@ import net.accela.ansi.AnsiLib;
 import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.ESCSequence;
 import net.accela.ansi.sequence.SGRSequence;
+import net.accela.ansi.sequence.SGRStatement;
 import net.accela.prisma.event.*;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
-import net.accela.prisma.session.TerminalAccessor;
+import net.accela.prisma.property.Container;
+import net.accela.prisma.session.TerminalReference;
 import net.accela.prisma.session.TextGraphicsSession;
-import net.accela.prisma.util.ansi.SequenceCompressor;
+import net.accela.prisma.util.ansi.compress.TerminalState;
 import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.canvas.Cell;
 import net.accela.prisma.util.drawabletree.Branch;
@@ -24,6 +26,7 @@ import net.accela.server.event.EventHandler;
 import net.accela.server.event.Listener;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +54,7 @@ public class PrismaWM implements Container {
     boolean isAlive = true;
 
     // Mouse related
-    // TODO: 10/23/20 move mouse handling to textGraphicsSession
+    // TODO: 10/23/20 move mouse handling to terminal
     public enum MouseMode {
         NONE,
         ONLY_BUTTON_PRESS,
@@ -74,13 +77,23 @@ public class PrismaWM implements Container {
     final Lock paintLock = new ReentrantLock();
     final Lock broadcastLock = new ReentrantLock();
 
+    // Smart drawing
+    final TerminalState terminalState;
+
+    // Flags
+    boolean focusOnAttachment = false;
+
     public PrismaWM(@NotNull TextGraphicsSession session) {
+        // Save the Session
         this.session = session;
 
         // Get plugin instance
         Plugin instance = Main.getInstance();
         if (instance == null) throw new IllegalStateException("Missing plugin instance");
-        thisPlugin = instance;
+        this.thisPlugin = instance;
+
+        // Setup TerminalState
+        this.terminalState = new TerminalState(getTerminalAccessor());
 
         // Reset the terminal to its initial state and clear it
         writeToSession(ESCSequence.RIS_STRING + CSISequence.CLR_STRING);
@@ -93,7 +106,11 @@ public class PrismaWM implements Container {
         setMouseMode(PrismaWM.MouseMode.ANY);
     }
 
-    public @NotNull TerminalAccessor getTerminalAccessor() {
+    //
+    // Miscellaneous properties
+    //
+
+    public @NotNull TerminalReference getTerminalAccessor() {
         return session.getTerminalAccessor();
     }
 
@@ -112,6 +129,10 @@ public class PrismaWM implements Container {
         return session;
     }
 
+    //
+    // Container methods
+    //
+
     /**
      * {@inheritDoc}
      */
@@ -120,7 +141,7 @@ public class PrismaWM implements Container {
             throws RectOutOfBoundsException, NodeNotFoundException {
         // Checks
         checkClosed();
-        if (!Rect.fits(getRelativeRect(), drawable.getRelativeRect())) {
+        if (!Rect.fits(new Rect(session.getTerminal().getSize()), drawable.getRelativeRect())) {
             throw new RectOutOfBoundsException("Drawable does not fit within the terminal");
         }
 
@@ -128,18 +149,18 @@ public class PrismaWM implements Container {
         tree.newNode(drawable, plugin);
 
         // Register any events
-        AccelaAPI.getPluginManager().registerEvents(drawable, drawable.getPlugin(), drawable.getChannel());
+        AccelaAPI.getPluginManager().registerEvents(drawable, drawable.findPlugin(), drawable.getChannel());
 
         // Focus
-        //fixme broadcastEvent(new ActivationEvent(thisPlugin, drawable.identifier));
+        if (focusOnAttachment) {
+            broadcastEvent(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
 
-        /*
-        // Show/Hide cursor
-        //fixme also move cursor
-        if(drawable.cursorEnabled()) writeToSession(AnsiLib.showCursor);
-        else writeToSession(AnsiLib.hideCursor);
-         */
-        thisPlugin.getLogger().log(Level.INFO, "Attached drawable '" + drawable + "'");
+            /* todo Show/Hide cursor
+            //todo also move cursor
+            if(drawable.cursorEnabled()) writeToSession(AnsiLib.showCursor);
+            else writeToSession(AnsiLib.hideCursor);
+             */
+        }
     }
 
     /**
@@ -162,41 +183,40 @@ public class PrismaWM implements Container {
         // Attempt to grab a new drawable, if any are still attached.
         // If yes, then focus that one. If it's null, then focus null instead to show the change.
         List<Node> nodes = tree.getChildNodeList();
-        broadcastEvent(new ActivationEvent(thisPlugin, nodes.size() > 0 ? nodes.get(0).getDrawable().identifier : null));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NotNull Rect getRelativeRect() {
-        return new Rect(session.getTerminal().getSize());
-    }
-
-    /**
-     * Synonymous to {@link PrismaWM#getRelativeRect()}.
-     */
-    @Override
-    public @NotNull Rect getAbsoluteRect() {
-        return getRelativeRect();
+        broadcastEvent(new ActivationEvent(thisPlugin, nodes.size() > 0 ? nodes.get(0).getDrawable().getIdentifier() : null));
     }
 
     //
     // Painting
     //
 
+    /**
+     * Draws the contents of the requested {@link Drawable}, as well as any intersecting {@link Drawable}'s.
+     *
+     * @param drawable the {@link Drawable} to draw.
+     */
     @Override
-    public void paint(@NotNull Rect initialTargetRect) throws NodeNotFoundException {
+    public void paint(@NotNull Drawable drawable) throws NodeNotFoundException {
+        paint(drawable.getAbsoluteRect());
+    }
+
+    /**
+     * Draws the contents of the requested {@link Drawable}, as well as any intersecting {@link Drawable}'s.
+     *
+     * @param rect the {@link Rect} to draw.
+     */
+    @Override
+    public void paint(@NotNull Rect rect) throws NodeNotFoundException {
         paintLock.lock();
         try {
             // Confirm WM status
             checkClosed();
 
             // Get the intersection of the rect of this container vs the rect of the drawable(s)
-            final Rect termBounds = getRelativeRect();
-            final Rect targetRect = Rect.intersection(termBounds, initialTargetRect);
+            final Rect termBounds = new Rect(session.getTerminal().getSize());
+            final Rect targetRect = Rect.intersection(termBounds, rect);
             if (targetRect == null) throw new IllegalStateException(
-                    "\n" + initialTargetRect + "\n is outside the terminal boundaries \n" + termBounds);
+                    "\n" + rect + "\n is outside the terminal boundaries \n" + termBounds);
 
             // Hide the cursor before painting to prevent flickering
             writeToSession(CSISequence.P_CUR_OFF);
@@ -204,7 +224,7 @@ public class PrismaWM implements Container {
             // Create a new canvas
             Canvas canvas = new Canvas(targetRect.getSize());
 
-            // Get drawables that intersect with the rectangle
+            // Get drawable that intersect with the rectangle
             final List<Drawable> drawables = getIntersectingImmediateDrawables(targetRect);
 
             // Paint the canvas
@@ -236,7 +256,6 @@ public class PrismaWM implements Container {
             }
 
             // Paint terminal from canvas
-            SequenceCompressor sequenceCompressor = new SequenceCompressor(getTerminalAccessor());
             for (int y = targetRect.getMinY(); y < targetRect.getMaxY() + 1; y++) {
                 // Move the cursor into position
                 writeToSession(AnsiLib.CUP(targetRect.getMinX() + 1, y + 1));
@@ -245,50 +264,27 @@ public class PrismaWM implements Container {
                     // Get the cell we're at
                     final Cell cell = canvas.get(x - targetRect.getMinX(), y - targetRect.getMinY());
 
-                    // Reset painting attributes to prevent sequence bleed
-                    // todo replace with a smart system
-                    writeToSession(SGRSequence.RESET);
-
                     if (cell == null) {
-                        /*
-                        if(sequencePainter.getCurrentStatements().size() > 0){
-                            sequencePainter.reset();
-                            writeToSession(SGRSequence.RESET);
-                        }
-                         */
-                        writeToSession(" ");
+                        // Reset painting attributes to prevent sequence bleed
+                        terminalState.reset();
+                        writeToSession(SGRSequence.RESET + " ");
                     } else {
+                        // Sequence logic
                         // Update current SGR statements
-                        // sequence logic
-                        // fixme no sequence logic for now, using dumb graphics to lessen the risk
-                        //  of bugs during first tests...
                         SGRSequence sequence = cell.getSequence();
-                        if (sequence != null) writeToSession(sequence);
-
-                        /*
-                        SGRSequence sequence = cell.getSequence();
-                        if(sequence != null){
-                            // Add new statements
-                            sequencePainter.eliminate(cell.getSequence().toSGRStatements());
-
-                            List<SGRStatement> currentStatements = sequencePainter.getCurrentStatements();
-                            if(currentStatements.size() > 0){
-
-                            } else {
-                                if(sequencePainter.getCurrentStatements().size() > 0){
-                                    sequencePainter.reset();
-                                    writeToSession(SGRSequence.RESET);
-                                }
+                        if (sequence != null) {
+                            @Nullable List<@NotNull SGRStatement> statements =
+                                    terminalState.cancelAndApply(sequence.toSGRStatements());
+                            if (statements != null) {
+                                writeToSession(new SGRSequence(statements).toString());
                             }
                         } else {
-                            if(sequencePainter.getCurrentStatements().size() > 0){
-                                sequencePainter.reset();
-                                writeToSession(SGRSequence.RESET);
-                            }
+                            // Reset painting attributes to prevent sequence bleed
+                            terminalState.reset();
+                            writeToSession(SGRSequence.RESET);
                         }
-                         */
 
-                        // code point logic
+                        // CodePoint logic
                         String codePoint = cell.getCodepoint();
                         if (codePoint != null) {
                             switch (cell.getCharacterWidth()) {
@@ -329,7 +325,7 @@ public class PrismaWM implements Container {
         }
     }
 
-    private List<@NotNull Drawable> getIntersectingImmediateDrawables(@NotNull Rect rect) {
+    List<@NotNull Drawable> getIntersectingImmediateDrawables(@NotNull Rect rect) {
         final List<Drawable> drawables = new ArrayList<>();
         for (Node node : tree.getChildNodeList()) {
             Drawable drawable = node.getDrawable();
@@ -341,7 +337,7 @@ public class PrismaWM implements Container {
     }
 
     //
-    // TEXT CURSOR
+    // Cursor
     //
 
     /**
@@ -357,10 +353,6 @@ public class PrismaWM implements Container {
         //if(areaMapper.getTopDrawable() != caller) return;
         writeToSession(AnsiLib.CUP(point.getX() + 1, point.getY() + 1));
     }
-
-    //
-    // MOUSE RELATED
-    //
 
     void setMouseMode(@NotNull MouseMode mode) {
         //if(!doorwayModeEnabled) enableDoorwayMode();
@@ -386,33 +378,7 @@ public class PrismaWM implements Container {
     }
 
     //
-    // I/O
-    //
-
-    /**
-     * Properly shuts down the WindowManager, closes streams, etc.
-     * What this method actually does depends heavily on the implementation,
-     * and thus it should not be relied upon. It is simply intended to make
-     * the shutdown process a little less jarring.
-     */
-    public void close() {
-        checkClosed();
-        isAlive = false;
-
-        // Detach all drawables
-        tree.killNodes();
-
-        // Unregister events
-        AccelaAPI.getPluginManager().unregisterEvents(broadcastListener);
-    }
-
-    void writeToSession(@NotNull CharSequence characters) {
-        checkClosed();
-        session.writeToClient(characters.toString());
-    }
-
-    //
-    // EVENT RELATED
+    // Events
     //
 
     /**
@@ -424,7 +390,7 @@ public class PrismaWM implements Container {
      * @param drawable The drawable to target.
      */
     public void callEvent(@NotNull WMEvent event, @NotNull Drawable drawable) {
-        // A list of drawables to send the events to
+        // A list of drawable to send the events to
         List<Drawable> drawableList = new ArrayList<>();
         drawableList.add(drawable);
 
@@ -435,10 +401,10 @@ public class PrismaWM implements Container {
             EventChannel channel = subDrawable.getChannel();
             AccelaAPI.getPluginManager().callEvent(event, channel);
 
-            // Check if it contains more drawables. If yes, then add those to the list
+            // Check if it contains more drawable. If yes, then add those to the list
             if (subDrawable instanceof DrawableContainer) {
                 try {
-                    // Add (immediate) child drawables to the list
+                    // Add (immediate) child drawable to the list
                     Branch branch = ((DrawableContainer) subDrawable).getBranch();
                     drawableList.addAll(branch.getChildDrawables());
                 } catch (NodeNotFoundException ex) {
@@ -484,7 +450,7 @@ public class PrismaWM implements Container {
                         int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
                         if (index + 1 > nodes.size()) index = 0;
                         Drawable drawable = nodes.get(index).getDrawable();
-                        performBroadcast(new ActivationEvent(thisPlugin, drawable.identifier));
+                        performBroadcast(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
                     }
                 }
             }
@@ -501,7 +467,7 @@ public class PrismaWM implements Container {
                 while (intersectingChildNodes.size() > index) {
                     focusNode = intersectingChildNodes.get(index);
 
-                    if (!focusNode.drawable.wantsFocus()) {
+                    if (!focusNode.drawable.isFocusable()) {
                         index++;
                         System.out.println("drawable '" + focusNode.drawable + "' does not want focus, skipping");
                         continue;
@@ -521,7 +487,7 @@ public class PrismaWM implements Container {
                 }
 
                 if (focusNode != null) {
-                    performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.identifier));
+                    performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.getIdentifier()));
                 }
             }
 
@@ -558,5 +524,31 @@ public class PrismaWM implements Container {
         public void onStringInputEvent(StringInputEvent event) {
             broadcastEvent(event);
         }
+    }
+
+    //
+    // I/O
+    //
+
+    /**
+     * Properly shuts down the WindowManager, closes streams, etc.
+     * What this method actually does depends heavily on the implementation,
+     * and thus it should not be relied upon. It is simply intended to make
+     * the shutdown process a little less jarring.
+     */
+    public void close() {
+        checkClosed();
+        isAlive = false;
+
+        // Detach all drawable
+        tree.killNodes();
+
+        // Unregister events
+        AccelaAPI.getPluginManager().unregisterEvents(broadcastListener);
+    }
+
+    void writeToSession(@NotNull CharSequence characters) {
+        checkClosed();
+        session.writeToClient(characters.toString());
     }
 }

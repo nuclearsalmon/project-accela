@@ -1,12 +1,14 @@
 package net.accela.prisma.geometry;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * Represents the size (width and height) of something.
  * Minimum allowed value is 1, the size cannot be 0 in any dimension.
  */
 public class Size {
+    @Range(from = 1, to = Integer.MAX_VALUE)
     private final int width, height;
 
     //
@@ -17,7 +19,7 @@ public class Size {
         this(0, 0);
     }
 
-    public Size(int side) throws IndexOutOfBoundsException {
+    public Size(@Range(from = 1, to = Integer.MAX_VALUE) int side) throws IndexOutOfBoundsException {
         this(side, side);
     }
 
@@ -26,7 +28,8 @@ public class Size {
         this.height = size.height;
     }
 
-    public Size(int width, int height) {
+    public Size(@Range(from = 1, to = Integer.MAX_VALUE) int width,
+                @Range(from = 1, to = Integer.MAX_VALUE) int height) {
         this.width = width;
         this.height = height;
     }
@@ -38,6 +41,7 @@ public class Size {
     /**
      * @return The width
      */
+    @Range(from = 1, to = Integer.MAX_VALUE)
     public final int getWidth() {
         return width;
     }
@@ -45,6 +49,7 @@ public class Size {
     /**
      * @return The height
      */
+    @Range(from = 1, to = Integer.MAX_VALUE)
     public final int getHeight() {
         return height;
     }
@@ -52,6 +57,7 @@ public class Size {
     /**
      * @return The width multiplied with the height
      */
+    @Range(from = 1, to = Integer.MAX_VALUE)
     public final int getCapacity() {
         return width * height;
     }

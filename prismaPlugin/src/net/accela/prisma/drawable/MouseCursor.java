@@ -1,4 +1,4 @@
-package net.accela.prisma.drawables;
+package net.accela.prisma.drawable;
 
 import net.accela.ansi.Crayon;
 import net.accela.ansi.sequence.SGRSequence;
@@ -8,6 +8,7 @@ import net.accela.prisma.event.SpecialInputEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
+import net.accela.prisma.property.PointMutable;
 import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.canvas.Cell;
 import net.accela.server.event.EventHandler;
@@ -15,16 +16,68 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class MouseCursor extends Drawable {
+public class MouseCursor extends Drawable implements PointMutable {
     final Canvas canvas;
+    @NotNull Point point = new Point(0, 0);
 
     public MouseCursor() {
-        super(new Rect(1, 1));
         canvas = new Canvas(getSize());
     }
 
+    //
+    // Properties
+    //
+
     @Override
-    protected @NotNull Canvas getCanvas() {
+    public boolean isFocusable() {
+        return false;
+    }
+
+    @Override
+    public @NotNull CursorMode getCursorMode() {
+        return CursorMode.NONE;
+    }
+
+    @Override
+    public boolean cursorEnabled() {
+        return false;
+    }
+
+    //
+    // Positioning
+    //
+
+    /**
+     * @param point The relative position of this.
+     */
+    @Override
+    public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
+        this.point = point;
+    }
+
+    /**
+     * @return The size and relative position of this {@link Drawable}.
+     */
+    @Override
+    public @NotNull Rect getRelativeRect() throws NodeNotFoundException {
+        return new Rect(point);
+    }
+
+    /**
+     * @return This {@link Drawable}'s relative position.
+     */
+    @Override
+    public @NotNull Point getRelativePoint() {
+        return point;
+    }
+
+    //
+    // Painting
+    //
+
+    @Override
+    @NotNull
+    public Canvas getCanvas() {
         int r = ThreadLocalRandom.current().nextInt(256);
         int g = ThreadLocalRandom.current().nextInt(256);
         int b = ThreadLocalRandom.current().nextInt(256);
@@ -35,19 +88,13 @@ public class MouseCursor extends Drawable {
         return canvas;
     }
 
-    @Override
-    public boolean wantsFocus() {
-        return false;
-    }
-
-    @Override
-    public boolean cursorEnabled() {
-        return false;
-    }
+    //
+    // Event handling
+    //
 
     @EventHandler
     void onMouseInput(MouseInputEvent event) throws NodeNotFoundException {
-        setRect(new Rect(event.getPoint().getX(), event.getPoint().getY(), 1, 1));
+        setRelativePoint(event.getPoint());
     }
 
     @EventHandler
@@ -58,13 +105,13 @@ public class MouseCursor extends Drawable {
         // Direction
         SpecialInputEvent.SpecialKey key = event.getKey();
         if (key == SpecialInputEvent.SpecialKey.UP) {
-            setRect(getRelativeRect().startPointSubtraction(new Point(0, 1)));
+            setRelativePoint(getRelativePoint().subtract(new Point(0, 1)));
         } else if (key == SpecialInputEvent.SpecialKey.DOWN) {
-            setRect(getRelativeRect().startPointAddition(new Point(0, 1)));
+            setRelativePoint(getRelativePoint().add(new Point(0, 1)));
         } else if (key == SpecialInputEvent.SpecialKey.RIGHT) {
-            setRect(getRelativeRect().startPointAddition(new Point(1, 0)));
+            setRelativePoint(getRelativePoint().add(new Point(1, 0)));
         } else if (key == SpecialInputEvent.SpecialKey.LEFT) {
-            setRect(getRelativeRect().startPointSubtraction(new Point(1, 0)));
+            setRelativePoint(getRelativePoint().subtract(new Point(1, 0)));
         }
     }
 }

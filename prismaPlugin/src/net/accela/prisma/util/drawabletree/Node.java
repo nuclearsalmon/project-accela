@@ -20,6 +20,7 @@ public class Node {
      * The root {@link Node} of the whole branch
      */
     public final @Nullable Branch root;
+
     /** The parent of this {@link Node} */
     public final @Nullable Branch parent;
 

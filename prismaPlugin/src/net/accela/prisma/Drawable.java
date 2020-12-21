@@ -4,7 +4,8 @@ import net.accela.prisma.event.ActivationEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
-import net.accela.prisma.geometry.Size;
+import net.accela.prisma.property.Container;
+import net.accela.prisma.property.RectReadable;
 import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.drawabletree.Branch;
 import net.accela.prisma.util.drawabletree.DrawableTree;
@@ -19,14 +20,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class Drawable implements Listener {
+public abstract class Drawable implements RectReadable, Listener {
     /**
-     * A lock for any canvas edits
+     * A lock for any canvas edits.
      */
     protected final Lock canvasLock = new ReentrantLock();
 
     /**
-     * The EventChannel for this drawable
+     * The EventChannel for this drawable.
      */
     protected final EventChannel channel = new EventChannel();
 
@@ -37,28 +38,22 @@ public abstract class Drawable implements Listener {
     };
 
     /**
-     * The rectangle bounds of this drawable
-     */
-    @NotNull
-    private Rect rect;
-
-    /**
      * If the Drawable is marked as active, it will be selected to receive Events. It will be "focused".
      * It can still receive Events when inactive, but is less likely to.
      */
     protected boolean isActive = false;
 
-    public Drawable(@NotNull Rect rect) {
-        this.rect = rect;
+    /**
+     * Cached node
+     */
+    private @Nullable Node cachedNode;
+
+    public Drawable() {
     }
 
-    public void setRect(@NotNull Rect newRect) throws NodeNotFoundException {
-        Rect oldRect = this.rect;
-        this.rect = newRect;
-
-        getAnyContainer().paint(oldRect);
-        getAnyContainer().paint(newRect);
-    }
+    //
+    // Properties
+    //
 
     /**
      * @return The {@link DrawableIdentifier} for this {@link Drawable}.
@@ -75,119 +70,6 @@ public abstract class Drawable implements Listener {
     }
 
     /**
-     * Attach this {@link Drawable} to the provided {@link PrismaWM} windowManager, using the provided {@link Plugin}.
-     * <br>
-     * Synonymous to {@link PrismaWM#attach(Drawable, Plugin)}.
-     *
-     * @param windowManager The {@link PrismaWM} windowManager to attach the {@link Drawable} to.
-     * @param plugin        The {@link Plugin} to use when registering.
-     */
-    public final void attach(@NotNull PrismaWM windowManager, @NotNull Plugin plugin) throws NodeNotFoundException {
-        windowManager.attach(this, plugin);
-    }
-
-    public final @NotNull Node getNode() throws NodeNotFoundException {
-        Node selfNode = DrawableTree.getNode(this);
-        if (selfNode == null) throw new NodeNotFoundException("SelfNode not found");
-        else return selfNode;
-    }
-
-    /**
-     * @return The {@link Plugin} that initialized this {@link Drawable}
-     */
-    public final @NotNull Plugin getPlugin() throws NodeNotFoundException {
-        return getNode().getPlugin();
-    }
-
-    /**
-     * @return The {@link PrismaWM} instance hosting this {@link Drawable}.
-     */
-    public final @NotNull PrismaWM getWindowManager() throws NodeNotFoundException {
-        return getNode().getWindowManager();
-    }
-
-    public final @Nullable DrawableContainer getParentContainer() throws NodeNotFoundException {
-        Node selfNode = getNode();
-        Branch parentNode = selfNode.getParent();
-        if (parentNode != null) return parentNode.getDrawable();
-        else return null;
-    }
-
-    public final @NotNull Container getAnyContainer() throws NodeNotFoundException {
-        Node selfNode = getNode();
-        Branch parentNode = selfNode.getParent();
-        if (parentNode != null) return parentNode.getDrawable();
-        else return selfNode.getWindowManager();
-    }
-
-    /**
-     * @return A {@link Rect} representing the size of this {@link Drawable},
-     * with the values of {@link Rect#getStartPoint()} returning [0, 0].
-     * The same result can be achieved using {@link Rect#zero()},
-     * which is what this uses internally.
-     */
-    public final @NotNull Rect getZeroRect() {
-        return getRelativeRect().zero();
-    }
-
-    /**
-     * @return A {@link Rect} representing the relative size and position of this {@link Drawable}.
-     * Relative, in this case, means from the perspective of the {@link Container} of this {@link Drawable}.
-     */
-    public final @NotNull Rect getRelativeRect() {
-        return rect;
-    }
-
-    /**
-     * @return A {@link Rect} representing the absolute size and position of this {@link Drawable}.
-     * Absolute, in this case, means from the perspective of {@link PrismaWM}.
-     * In practise, this means recursively adding the return values of {@link Container#getAbsoluteRect()}
-     * from all the {@link Container}s that are attached to each other,
-     * resulting in the actual terminal {@link Point} of this {@link Drawable}.
-     */
-    @NotNull
-    public final Rect getAbsoluteRect() throws NodeNotFoundException {
-        Rect containerRect = getAnyContainer().getAbsoluteRect();
-        Rect thisRect = getRelativeRect();
-        return new Rect(
-                containerRect.getMinX() + thisRect.getMinX(),
-                containerRect.getMinY() + thisRect.getMinY(),
-                thisRect.getWidth(),
-                thisRect.getHeight()
-        );
-    }
-
-    /**
-     * @return A {@link Size} representing this {@link Drawable}
-     */
-    public final Size getSize() {
-        return getRelativeRect().getSize();
-    }
-
-    /**
-     * @return The width of this {@link Drawable}
-     */
-    public final Integer getWidth() {
-        return getRelativeRect().getWidth();
-    }
-
-    /**
-     * @return The height of this {@link Drawable}
-     */
-    public final Integer getHeight() {
-        return getRelativeRect().getHeight();
-    }
-
-    /**
-     * See {@link Rect#getCapacity()}
-     *
-     * @return The capacity (width * height) of this {@link Drawable}
-     */
-    public final Integer getCapacity() {
-        return getRelativeRect().getCapacity();
-    }
-
-    /**
      * If the Drawable is marked as active, it will be selected to receive Events. It will be "focused".
      * It can still receive Events when inactive, but is less likely to.
      */
@@ -196,23 +78,39 @@ public abstract class Drawable implements Listener {
         return isActive;
     }
 
-    public abstract boolean wantsFocus();
-
     public @NotNull Point getCursorRestingPoint() throws NodeNotFoundException {
         return getAbsoluteRect().getStartPoint();
     }
 
-    public boolean cursorEnabled() {
-        return false;
+    /**
+     * @return whether or not this {@link Drawable} is eligible for being focused.
+     */
+    public abstract boolean isFocusable();
+
+    public enum CursorMode {
+        NONE,
+        TERMINAL_RENDERED,
+        RENDERED
     }
+
+    public abstract @NotNull CursorMode getCursorMode();
+
+    @Deprecated
+    public abstract boolean cursorEnabled();
+
+    //
+    // Painting
+    //
 
     public final void paint() throws NodeNotFoundException {
-        getAnyContainer().paint(this);
+        findAnyContainer().paint(this);
     }
 
-    protected abstract @NotNull Canvas getCanvas() throws NodeNotFoundException;
+    @NotNull
+    public abstract Canvas getCanvas() throws NodeNotFoundException;
 
-    protected @NotNull Canvas getCanvas(@NotNull Rect rect) throws NodeNotFoundException {
+    @NotNull
+    public Canvas getCanvas(@NotNull Rect rect) throws NodeNotFoundException {
         Canvas cutCanvas = new Canvas(rect.getSize());
         Canvas.paintHard(
                 cutCanvas, rect.getStartPoint(),
@@ -222,9 +120,150 @@ public abstract class Drawable implements Listener {
     }
 
     //
-    // EVENTS
+    // Container methods
     //
 
+    /**
+     * Attach this {@link Drawable} to the provided {@link PrismaWM}, using the provided {@link Plugin}.
+     * <br>
+     * Synonymous to {@link PrismaWM#attach(Drawable, Plugin)}.
+     *
+     * @param container The {@link Container} to attach to.
+     * @param plugin    The {@link Plugin} to use when registering.
+     */
+    public final void attachTo(@NotNull PrismaWM container, @NotNull Plugin plugin) throws NodeNotFoundException {
+        container.attach(this, plugin);
+    }
+
+    /**
+     * Detach this {@link Drawable} from its {@link Container}.
+     * <br>
+     * Synonymous to {@link Container#detach(Drawable)}.
+     */
+    public final void detach() throws NodeNotFoundException {
+        findAnyContainer().detach(this);
+    }
+
+    //
+    // Node / Tree details
+    //
+
+    /**
+     * @return the {@link Node} representing this {@link Drawable}.
+     * @throws NodeNotFoundException If not found.
+     */
+    public final @NotNull Node findNode() throws NodeNotFoundException {
+        // Retrieve node if needed
+        if (this.cachedNode == null) {
+            // Let's cache it
+            // Will be null if not found. We'll check that later.
+            this.cachedNode = DrawableTree.getNode(this);
+        }
+
+        // Confirm that the node is not null (null = not found), and that it's alive.
+        if (!(cachedNode != null && this.cachedNode.isAlive())) {
+            // Set it to null so that we don't maintain any references to dead nodes.
+            this.cachedNode = null;
+            throw new NodeNotFoundException("Self node not found");
+        }
+
+        // All went smoothly, let's return the node
+        return this.cachedNode;
+    }
+
+    /**
+     * @return The {@link Plugin} that initialized this {@link Drawable}.
+     */
+    public final @NotNull Plugin findPlugin() throws NodeNotFoundException {
+        return findNode().getPlugin();
+    }
+
+    /**
+     * @return The {@link PrismaWM} instance hosting this {@link Drawable}.
+     */
+    public final @NotNull PrismaWM findWindowManager() throws NodeNotFoundException {
+        return findNode().getWindowManager();
+    }
+
+    public final @Nullable DrawableContainer findParentContainer() throws NodeNotFoundException {
+        Node selfNode = findNode();
+        Branch parentNode = selfNode.getParent();
+        if (parentNode != null) return parentNode.getDrawable();
+        else return null;
+    }
+
+    /**
+     * Tries to find any parent {@link Container} for this {@link Drawable},
+     * whether that is {@link PrismaWM} itself or a {@link DrawableContainer}.
+     *
+     * @return Any parent {@link Container} for this {@link Drawable}.
+     * @throws NodeNotFoundException If nothing is found.
+     */
+    public final @NotNull Container findAnyContainer() throws NodeNotFoundException {
+        Node selfNode = findNode();
+        Branch parentNode = selfNode.getParent();
+        if (parentNode != null) return parentNode.getDrawable();
+        else return selfNode.getWindowManager();
+    }
+
+    //
+    // Positioning
+    //
+
+    /**
+     * @return The size and absolute position of this {@link Drawable}.
+     */
+    @NotNull
+    public Rect getAbsoluteRect() throws NodeNotFoundException {
+        Rect thisRect = getRelativeRect();
+
+        DrawableContainer parentContainer = findParentContainer();
+        if (parentContainer != null) {
+            Rect absParentRect = parentContainer.getAbsoluteRect();
+            return new Rect(
+                    absParentRect.getMinX() + thisRect.getMinX(),
+                    absParentRect.getMinY() + thisRect.getMinY(),
+                    thisRect.getWidth(),
+                    thisRect.getHeight()
+            );
+        } else {
+            return thisRect;
+        }
+    }
+
+    /**
+     * @return This {@link Drawable}'s absolute position.
+     */
+    public @NotNull Point getAbsolutePoint() throws NodeNotFoundException {
+        Point thisPoint = getRelativePoint();
+
+        DrawableContainer parentContainer = findParentContainer();
+        if (parentContainer != null) {
+            Point absParentPoint = parentContainer.getAbsolutePoint();
+            return new Point(
+                    absParentPoint.getX() + thisPoint.getX(),
+                    absParentPoint.getY() + thisPoint.getY()
+            );
+        } else {
+            return thisPoint;
+        }
+    }
+
+    //
+    // Events
+    //
+
+    /**
+     * A default/built-in reaction to {@link ActivationEvent}s.
+     * It is used to track whether or not this {@link Drawable} is active or inactive.<br>
+     * Feel free to override it with custom code if so is desired.
+     *
+     * @param event An {@link ActivationEvent}.
+     * @throws NodeNotFoundException If self node isn't found.
+     * @see EventHandler
+     * @see net.accela.server.event.Event
+     * @see ActivationEvent
+     */
     @EventHandler
     protected void onActivation(ActivationEvent event) throws NodeNotFoundException {
         DrawableIdentifier identifier = event.getTarget();
@@ -237,6 +276,11 @@ public abstract class Drawable implements Listener {
 
     @Override
     public String toString() {
-        return super.toString() + " : \nrect=" + rect.toString();
+        try {
+            return super.toString() + " : \nrect=" + getRelativeRect();
+        } catch (NodeNotFoundException e) {
+            e.printStackTrace();
+        }
+        return super.toString();
     }
 }

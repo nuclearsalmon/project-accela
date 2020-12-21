@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class SGRStatement {
     @NotNull
     final SGRStatement.Type type;
-    int[] arguments;
+    final int[] arguments;
 
     public SGRStatement(int typeAsInt) throws ESCSequenceException {
         this(typeAsInt, null);
@@ -63,16 +63,18 @@ public class SGRStatement {
     }
 
     public @NotNull String getTypeAsString() {
-        return Integer.toString(getTypeAsInt());
+        return getType().name();
     }
 
     public int[] toIntArray() {
-        final int[] statementAsIntArray = new int[1 + arguments.length];
+        final int[] statementAsIntArray = new int[1 + (arguments == null ? 0 : arguments.length)];
         statementAsIntArray[0] = getTypeAsInt();
 
         int index = 1;
-        for (int arg : arguments) {
-            statementAsIntArray[index] = arg;
+        if (arguments != null) {
+            for (int arg : arguments) {
+                statementAsIntArray[index] = arg;
+            }
         }
 
         return statementAsIntArray;
@@ -977,6 +979,7 @@ public class SGRStatement {
         @NotWidelySupported @NonStandard SUPERSCRIPT,
     }
 
+    // TODO: 12/19/20 rewrite to leverage existing enum instead of a unnecessary hashmap
     @SuppressWarnings("unused")
     public static final HashMap<Integer, Type> intToTypeMap = new HashMap<>() {{
         put(0, Type.RESET);
@@ -1063,6 +1066,7 @@ public class SGRStatement {
         put(107, Type.BG_WHI_BRIGHT);
     }};
 
+    // TODO: 12/19/20 rewrite to leverage existing enum instead of a unnecessary hashmap
     @SuppressWarnings("unused")
     public static final HashMap<Type, Integer> typeToIntMap = new HashMap<>() {{
         put(Type.RESET, 0);

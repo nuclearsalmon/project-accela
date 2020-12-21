@@ -5,6 +5,7 @@ import java.io.IOException;
 /**
  * A response getting triggered after the {@link TelnetSessionServer}
  */
+@FunctionalInterface
 public interface TelnetResponse {
     /**
      * This may do any number of things, but the intended purpose of it is to

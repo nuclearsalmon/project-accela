@@ -6,7 +6,7 @@ import net.accela.prisma.Drawable;
  * Thrown when attempting to use a {@link Drawable} without it having a {@link net.accela.prisma.util.drawabletree.Node}
  * associated with it. Typically this means the {@link Drawable} is not attached.
  */
-public class NodeNotFoundException extends Exception {
+public class NodeNotFoundException extends RuntimeException {
     /**
      * Constructs a new {@link NodeNotFoundException}
      */

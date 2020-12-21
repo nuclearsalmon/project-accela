@@ -4,6 +4,7 @@ import net.accela.ansi.sequence.SGRSequence;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
+import net.accela.prisma.property.SizeMutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,17 +14,17 @@ import java.util.List;
 
 /**
  * Represents a 2 dimensional canvas.
- * Behaves as expected, with index 0 always being the beginning (top left corner to be precise!)
+ * Behaves as expected, with index 0 always being the beginning (top left corner).
  */
-public class Canvas {
+public class Canvas implements SizeMutable {
     /**
      * {@link Cell}s can either be empty or null if its position on the {@link Canvas} isn't occupied.
      */
-    private List<@Nullable Cell> cells;
+    List<@Nullable Cell> cells;
     /**
      * The {@link Size} of this {@link Canvas}.
      */
-    private Size size;
+    Size size;
 
     public Canvas(@NotNull Size size) {
         this.size = size;
@@ -204,7 +205,7 @@ public class Canvas {
     }
 
     //
-    // Various calculations and utility methods
+    // Painting
     //
 
     /**

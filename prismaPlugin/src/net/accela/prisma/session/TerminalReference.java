@@ -6,10 +6,10 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class TerminalAccessor implements TerminalSafeMethods {
+public class TerminalReference implements TerminalSafeMethods {
     final Terminal terminal;
 
-    public TerminalAccessor(@NotNull Terminal terminal) {
+    public TerminalReference(@NotNull Terminal terminal) {
         this.terminal = terminal;
     }
 
