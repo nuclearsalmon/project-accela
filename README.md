@@ -4,6 +4,8 @@ A framework for building modular, plugin-driven server software, BBSes and MUDs.
 It also includes a purpose built [TUI window manager](#prismawm-window-manager) (optional) that plugins can interact with,
 allowing for a consistent and easy-to-use means of handling concurrent IO to and from client terminals.
 
+Feel free to check out the [wiki].
+
 ## Table of Contents
 - [Background](#background)
 - [Notes](#notes)
@@ -97,7 +99,7 @@ A simple plugin that listens for when a TextGraphicsSession is created.
 It will attempt to load a [window manager][repo_prismawm] into the Session if it doesn't already have one loaded.
 Having a window manager makes it possible for other plugins to facilitate graphical communication with the user.
 
-The reason this is a standalone plugin rather than having this functionality being bundled in with, say, the [[#telnet-provider]] 
+The reason this is a standalone plugin rather than having this functionality being bundled in with the [[#telnet-provider]] 
 is due to modularity.
 
 Repo link: [Session Introducer][repo_session_introducer]
@@ -115,3 +117,4 @@ Repo link: [Session Introducer][repo_session_introducer]
 [out_bbs]: https://sv.wikipedia.org/wiki/Bulletin_board_system "Bulletin Board System"
 [out_mud]: https://sv.wikipedia.org/wiki/MUD "Multi User Dungeon"
 [out_intellij_modules]: https://www.jetbrains.com/help/idea/creating-and-managing-modules.html "Modules"
+, say,
