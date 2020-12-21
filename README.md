@@ -97,7 +97,7 @@ A simple plugin that listens for when a TextGraphicsSession is created.
 It will attempt to load a [window manager][repo_prismawm] into the Session if it doesn't already have one loaded.
 Having a window manager makes it possible for other plugins to facilitate graphical communication with the user.
 
-The reason this is a standalone plugin rather than having this functionality being bundled in with the [[#telnet-provider]] 
+The reason this is a standalone plugin rather than having this functionality being included in, say, the telnet provider
 is due to modularity.
 
 Repo link: [Session Introducer][repo_session_introducer]
