@@ -193,16 +193,6 @@ public class PrismaWM implements Container {
     /**
      * Draws the contents of the requested {@link Drawable}, as well as any intersecting {@link Drawable}'s.
      *
-     * @param drawable the {@link Drawable} to draw.
-     */
-    @Override
-    public void paint(@NotNull Drawable drawable) throws NodeNotFoundException {
-        paint(drawable.getAbsoluteRect());
-    }
-
-    /**
-     * Draws the contents of the requested {@link Drawable}, as well as any intersecting {@link Drawable}'s.
-     *
      * @param rect the {@link Rect} to draw.
      */
     @Override

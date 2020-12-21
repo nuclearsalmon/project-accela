@@ -41,7 +41,6 @@ public class AnsiFile {
         NORMAL,
         COMMENTS,
     }
-
     ParserState parserState = ParserState.NORMAL;
 
     // Temporary building list of comments

@@ -48,8 +48,7 @@ public abstract class Drawable implements RectReadable, Listener {
      */
     private @Nullable Node cachedNode;
 
-    public Drawable() {
-    }
+    public Drawable(){ }
 
     //
     // Properties
@@ -95,8 +94,7 @@ public abstract class Drawable implements RectReadable, Listener {
 
     public abstract @NotNull CursorMode getCursorMode();
 
-    @Deprecated
-    public abstract boolean cursorEnabled();
+    @Deprecated public abstract boolean cursorEnabled();
 
     //
     // Painting
