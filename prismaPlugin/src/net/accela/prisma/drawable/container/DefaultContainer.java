@@ -178,7 +178,7 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
         // Attempt to calculate an intersecting Rect, and ensure it's within the boundaries of this container
         final Rect containerBounds = getZeroRect();
         final Rect targetRect = Rect.intersection(containerBounds, rect);
-        if (targetRect == null) throw new IllegalStateException(
+        if (Main.DBG_RESPECT_CONTAINER_BOUNDS && targetRect == null) throw new IllegalStateException(
                 "\n" + rect + "\n is outside the container boundaries \n" + containerBounds);
 
         findAnyContainer().paint(rect.startPointAddition(getRelativeRect().getStartPoint()));

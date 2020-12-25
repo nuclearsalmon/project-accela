@@ -27,7 +27,7 @@ public class Main extends JavaPlugin {
      * Whether to throw exception when out of container bounds or not.
      * Disabling it makes the logs more easily readable.
      */
-    public static final boolean DBG_RESPECT_CONTAINER_BOUNDS = true;
+    public static final boolean DBG_RESPECT_CONTAINER_BOUNDS = false;
 
     //
     // Miscellaneous

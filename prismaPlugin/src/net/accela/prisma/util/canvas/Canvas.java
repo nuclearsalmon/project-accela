@@ -214,7 +214,7 @@ public class Canvas implements SizeMutable {
     public void clear() {
         synchronized (this) {
             List<Cell> tmpCells = new ArrayList<>();
-            for (int capacity = getCapacity(); capacity > 0; capacity--) {
+            for (int i = 0; i < getCapacity(); i++) {
                 tmpCells.add(null);
             }
             this.cells = tmpCells;

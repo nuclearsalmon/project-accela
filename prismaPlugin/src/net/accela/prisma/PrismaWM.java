@@ -88,6 +88,7 @@ public class PrismaWM implements Container {
 
     // Locks
     final Lock paintLock = new ReentrantLock();
+    final Lock sessionWriteLock = new ReentrantLock();
     final Lock broadcastLock = new ReentrantLock();
 
     /**
@@ -123,7 +124,7 @@ public class PrismaWM implements Container {
     //
 
     public @NotNull TerminalReference getTerminalAccessor() {
-        return session.getTerminalAccessor();
+        return session.getTerminalReference();
     }
 
     public @NotNull EventChannel getBroadcastChannel() {
@@ -419,11 +420,16 @@ public class PrismaWM implements Container {
      * @param event The event to broadcast
      */
     void performBroadcast(@NotNull WMEvent event) {
-        thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
+        broadcastLock.lock();
+        try {
+            thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
 
-        List<Node> childNodes = tree.getTreeNodeList();
-        for (Node node : childNodes) {
-            AccelaAPI.getPluginManager().callEvent(event, node.drawable.getChannel());
+            List<Node> childNodes = tree.getTreeNodeList();
+            for (Node node : childNodes) {
+                AccelaAPI.getPluginManager().callEvent(event, node.drawable.getChannel());
+            }
+        } finally {
+            broadcastLock.unlock();
         }
     }
 
@@ -433,67 +439,62 @@ public class PrismaWM implements Container {
      * @param event The event to broadcast
      */
     public void broadcastEvent(final @NotNull WMEvent event) {
-        broadcastLock.lock();
-        try {
-            // Focus mods etc
-            // todo make shortcuts customizable
-            if (event instanceof SpecialInputEvent) {
-                SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
+        // Focus mods etc
+        // todo make shortcuts customizable
+        if (event instanceof SpecialInputEvent) {
+            SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
 
-                if (specialInputEvent.getKey() == SpecialInputEvent.SpecialKey.HT) {
-                    Node focusedNode = tree.getTreeFocusNode();
-                    if (focusedNode != null) {
-                        List<Node> nodes = tree.getChildNodeList();
+            if (specialInputEvent.getKey() == SpecialInputEvent.SpecialKey.HT) {
+                Node focusedNode = tree.getTreeFocusNode();
+                if (focusedNode != null) {
+                    List<Node> nodes = tree.getChildNodeList();
 
-                        int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
-                        if (index + 1 > nodes.size()) index = 0;
-                        Drawable drawable = nodes.get(index).getDrawable();
-                        performBroadcast(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
-                    }
+                    int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
+                    if (index + 1 > nodes.size()) index = 0;
+                    Drawable drawable = nodes.get(index).getDrawable();
+                    performBroadcast(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
                 }
             }
-            // FIXME: 11/24/20 drawable overlap handling
-            else if (event instanceof MouseInputEvent) {
-                MouseInputEvent mouseInputEvent = (MouseInputEvent) event;
-
-                // Get Drawables that intersect with the point
-                Rect pointRect = new Rect(mouseInputEvent.getPoint());
-                List<Node> intersectingChildNodes = tree.getIntersectingChildNodes(pointRect);
-
-                Node focusNode = null;
-                int index = 0;
-                while (intersectingChildNodes.size() > index) {
-                    focusNode = intersectingChildNodes.get(index);
-
-                    if (!focusNode.drawable.isFocusable()) {
-                        index++;
-                        System.out.println("drawable '" + focusNode.drawable + "' does not want focus, skipping");
-                        continue;
-                    }
-
-                    if (focusNode instanceof Branch) {
-                        Branch branch = (Branch) focusNode;
-
-                        Point startPoint = focusNode.drawable.getRelativeRect().getStartPoint();
-                        pointRect = Rect.startPointSubtraction(pointRect, startPoint);
-
-                        intersectingChildNodes = branch.getIntersectingNodes(pointRect);
-                        index = 0;
-                    } else {
-                        break;
-                    }
-                }
-
-                if (focusNode != null) {
-                    performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.getIdentifier()));
-                }
-            }
-
-            // Send the event so that it can be parsed "raw" if need be.
-            performBroadcast(event);
-        } finally {
-            broadcastLock.unlock();
         }
+        // FIXME: 11/24/20 drawable overlap handling
+        else if (event instanceof MouseInputEvent) {
+            MouseInputEvent mouseInputEvent = (MouseInputEvent) event;
+
+            // Get Drawables that intersect with the point
+            Rect pointRect = new Rect(mouseInputEvent.getPoint());
+            List<Node> intersectingChildNodes = tree.getIntersectingChildNodes(pointRect);
+
+            Node focusNode = null;
+            int index = 0;
+            while (intersectingChildNodes.size() > index) {
+                focusNode = intersectingChildNodes.get(index);
+
+                if (!focusNode.drawable.isFocusable()) {
+                    index++;
+                    System.out.println("drawable '" + focusNode.drawable + "' does not want focus, skipping");
+                    continue;
+                }
+
+                if (focusNode instanceof Branch) {
+                    Branch branch = (Branch) focusNode;
+
+                    Point startPoint = focusNode.drawable.getRelativeRect().getStartPoint();
+                    pointRect = Rect.startPointSubtraction(pointRect, startPoint);
+
+                    intersectingChildNodes = branch.getIntersectingNodes(pointRect);
+                    index = 0;
+                } else {
+                    break;
+                }
+            }
+
+            if (focusNode != null) {
+                performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.getIdentifier()));
+            }
+        }
+
+        // Send the event so that it can be parsed "raw" if need be.
+        performBroadcast(event);
     }
 
     // Listener
@@ -547,6 +548,11 @@ public class PrismaWM implements Container {
 
     void writeToSession(@NotNull CharSequence characters) {
         checkClosed();
-        session.writeToClient(characters.toString());
+        sessionWriteLock.lock();
+        try {
+            session.writeToClient(characters.toString());
+        } finally {
+            sessionWriteLock.unlock();
+        }
     }
 }

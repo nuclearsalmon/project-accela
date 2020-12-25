@@ -1,5 +1,6 @@
 package net.accela.prisma.geometry;
 
+import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -16,20 +17,24 @@ public class Size {
     //
 
     public Size() {
-        this(0, 0);
+        this(1, 1);
     }
 
     public Size(@Range(from = 1, to = Integer.MAX_VALUE) int side) throws IndexOutOfBoundsException {
         this(side, side);
     }
 
-    public Size(@NotNull Size size) {
-        this.width = size.width;
-        this.height = size.height;
+    public Size(@NotNull Size size) throws IndexOutOfBoundsException {
+        this(size.getWidth(), size.getHeight());
     }
 
     public Size(@Range(from = 1, to = Integer.MAX_VALUE) int width,
-                @Range(from = 1, to = Integer.MAX_VALUE) int height) {
+                @Range(from = 1, to = Integer.MAX_VALUE) int height) throws IndexOutOfBoundsException {
+        //noinspection ConstantConditions
+        if (width < 1 || height < 1) {
+            throw new RectOutOfBoundsException("Bad dimensions \n" + this);
+        }
+
         this.width = width;
         this.height = height;
     }
@@ -60,10 +65,6 @@ public class Size {
     @Range(from = 1, to = Integer.MAX_VALUE)
     public final int getCapacity() {
         return width * height;
-    }
-
-    public final boolean isNegative() {
-        return width < 0 || height < 0;
     }
 
     //

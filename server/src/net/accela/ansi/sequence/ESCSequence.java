@@ -42,28 +42,15 @@ public class ESCSequence implements CharSequence {
     }
 
     public ESCSequence(@NotNull String sequenceString) throws ESCSequenceException {
-        validate(sequenceString, Patterns.ANSI8Bit);
+        validateString(sequenceString, Patterns.ANSI8Bit);
         this.sequenceString = sequenceString;
     }
 
-    protected static void validate(@NotNull String sequence, @NotNull Pattern pattern) throws ESCSequenceException {
-        // Ensure there's no extra characters besides sequences in the string
-        String filtered = RegexUtil.filterExcludeByPattern(sequence, pattern);
-
-        if (!filtered.equals("")) {
-            throw new ESCSequenceException(sequence,
-                    "No extra characters besides the sequence itself are allowed. Proposed sequence: '" +
-                            sequence + "', filtered sequence: '" + filtered + "'."
-            );
-        }
-
-        // Ensure there's only one sequence in the string
-        long matchCount = pattern.matcher(sequence).results().count();
-        if (matchCount != 1) {
-            throw new ESCSequenceException(sequence,
-                    "The string needs to consist of a single sequence - no more, no less. Proposed sequence: '" +
-                            sequence + "', matches: '" + matchCount + "'."
-            );
+    protected static void validateString(@NotNull String string, @NotNull Pattern pattern) {
+        if (!pattern.matcher(string).matches()) {
+            throw new ESCSequenceException(String.format(
+                    "Sequence '%s' does not match pattern '%s'", string, pattern.toString()
+            ));
         }
     }
 

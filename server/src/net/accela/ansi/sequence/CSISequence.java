@@ -41,7 +41,7 @@ public class CSISequence extends ESCSequence {
     }
 
     public CSISequence(@NotNull String sequence) throws ESCSequenceException {
-        validate(sequence, Patterns.CSI);
+        validateString(sequence, Patterns.CSI);
         this.sequenceString = sequence;
     }
 

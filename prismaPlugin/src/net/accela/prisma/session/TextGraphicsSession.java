@@ -40,7 +40,7 @@ public abstract class TextGraphicsSession extends Session {
         return terminal;
     }
 
-    public @NotNull TerminalReference getTerminalAccessor() {
+    public @NotNull TerminalReference getTerminalReference() {
         return new TerminalReference(terminal);
     }
 

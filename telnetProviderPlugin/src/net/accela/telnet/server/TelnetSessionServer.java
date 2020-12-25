@@ -157,7 +157,6 @@ public final class TelnetSessionServer extends Thread {
                         negotiationState = NegotiationState.WAITING_FOR_IAC_OR_CHR;
                         // Send to window manager
                         writeToWindowManager(decodedString);
-                        System.out.println("Received: " + decodedString);
                         // Break the loop
                         break;
                     }

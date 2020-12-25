@@ -39,7 +39,7 @@ public class SGRSequence extends CSISequence {
      */
     public SGRSequence(@NotNull String sequence) throws ESCSequenceException {
         this.sequenceString = sequence;
-        validate(sequenceString, Patterns.SGR);
+        validateString(sequenceString, Patterns.SGR);
     }
 
     public SGRSequence(@NotNull SGRStatement statement) throws ESCSequenceException {
@@ -54,7 +54,7 @@ public class SGRSequence extends CSISequence {
 
     public SGRSequence(@NotNull List<SGRStatement> statements) throws ESCSequenceException {
         this.sequenceString = toString(statements);
-        validate(sequenceString, Patterns.SGR);
+        validateString(sequenceString, Patterns.SGR);
     }
 
     public @NotNull List<@NotNull SGRStatement> toSGRStatements() throws ESCSequenceException {
@@ -128,8 +128,9 @@ public class SGRSequence extends CSISequence {
     }
 
     @NotNull
-    String toString(List<SGRStatement> statements) {
+    String toString(@NotNull List<@NotNull SGRStatement> statements) {
         StringBuilder stmtSB = new StringBuilder(CSISequence.CSI_STRING);
+
         for (SGRStatement stmt : statements) {
             stmtSB.append(stmt.getTypeAsInt());
             int[] stmtArgs = stmt.getArguments();
@@ -140,7 +141,9 @@ public class SGRSequence extends CSISequence {
             }
             stmtSB.append(';');
         }
-        stmtSB.deleteCharAt(stmtSB.length() - 1).append("m");
+        if (stmtSB.length() > 2) stmtSB.deleteCharAt(stmtSB.length() - 1);
+
+        stmtSB.append("m");
         return stmtSB.toString();
     }
 

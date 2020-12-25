@@ -105,14 +105,19 @@ public class MouseCursor extends Drawable implements PointMutable {
 
         // Direction
         SpecialInputEvent.SpecialKey key = event.getKey();
-        if (key == SpecialInputEvent.SpecialKey.UP) {
-            setRelativePoint(getRelativePoint().subtract(new Point(0, 1)));
-        } else if (key == SpecialInputEvent.SpecialKey.DOWN) {
-            setRelativePoint(getRelativePoint().add(new Point(0, 1)));
-        } else if (key == SpecialInputEvent.SpecialKey.RIGHT) {
-            setRelativePoint(getRelativePoint().add(new Point(1, 0)));
-        } else if (key == SpecialInputEvent.SpecialKey.LEFT) {
-            setRelativePoint(getRelativePoint().subtract(new Point(1, 0)));
+        switch (key) {
+            case UP:
+                setRelativePoint(getRelativePoint().subtract(new Point(0, 1)));
+                break;
+            case DOWN:
+                setRelativePoint(getRelativePoint().add(new Point(0, 1)));
+                break;
+            case LEFT:
+                setRelativePoint(getRelativePoint().subtract(new Point(1, 0)));
+                break;
+            case RIGHT:
+                setRelativePoint(getRelativePoint().add(new Point(1, 0)));
+                break;
         }
     }
 }
