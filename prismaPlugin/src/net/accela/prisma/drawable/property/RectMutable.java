@@ -1,4 +1,4 @@
-package net.accela.prisma.property;
+package net.accela.prisma.drawable.property;
 
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Rect;

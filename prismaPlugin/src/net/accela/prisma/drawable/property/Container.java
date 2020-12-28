@@ -1,9 +1,10 @@
-package net.accela.prisma.property;
+package net.accela.prisma.drawable.property;
 
 import net.accela.prisma.Drawable;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
+import net.accela.prisma.util.drawabletree.Branch;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +13,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface Container {
     //
-    // Container methods
+    // Node methods
+    //
+
+    @NotNull Branch getBranch() throws NodeNotFoundException;
+
+    //
+    // Attachment and detachment methods
     //
 
     /**
