@@ -10,7 +10,6 @@ import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
-import net.accela.prisma.property.Container;
 import net.accela.prisma.session.TerminalReference;
 import net.accela.prisma.session.TextGraphicsSession;
 import net.accela.prisma.util.ansi.compress.TerminalState;
@@ -38,7 +37,7 @@ import java.util.logging.Level;
 /**
  * A TUI window manager
  */
-public class PrismaWM implements Container {
+public class PrismaWM {
     /**
      * The session hosting this
      */
@@ -149,7 +148,6 @@ public class PrismaWM implements Container {
     /**
      * {@inheritDoc}
      */
-    @Override
     public void attach(@NotNull Drawable drawable, @NotNull Plugin plugin)
             throws RectOutOfBoundsException, NodeNotFoundException {
         // Checks
@@ -167,7 +165,7 @@ public class PrismaWM implements Container {
 
         // Focus
         if (Main.DBG_FOCUS_ON_WM_ATTACHMENT) {
-            broadcastEvent(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
+            receiveEvent(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
 
             /* todo Show/Hide cursor
             //todo also move cursor
@@ -180,7 +178,6 @@ public class PrismaWM implements Container {
     /**
      * {@inheritDoc}
      */
-    @Override
     public void detach(@NotNull Drawable drawable) throws NodeNotFoundException {
         thisPlugin.getLogger().log(Level.INFO, "Detaching drawable '" + drawable + "'");
 
@@ -197,7 +194,7 @@ public class PrismaWM implements Container {
         // Attempt to grab a new drawable, if any are still attached.
         // If yes, then focus that one. If it's null, then focus null instead to show the change.
         List<Node> nodes = tree.getChildNodeList();
-        broadcastEvent(new ActivationEvent(thisPlugin, nodes.size() > 0 ? nodes.get(0).getDrawable().getIdentifier() : null));
+        receiveEvent(new ActivationEvent(thisPlugin, nodes.size() > 0 ? nodes.get(0).getDrawable().getIdentifier() : null));
     }
 
     //
@@ -209,7 +206,6 @@ public class PrismaWM implements Container {
      *
      * @param rect the {@link Rect} to draw.
      */
-    @Override
     public void paint(@NotNull Rect rect) throws NodeNotFoundException {
         paintLock.lock();
         try {
@@ -400,10 +396,10 @@ public class PrismaWM implements Container {
             EventChannel channel = subDrawable.getChannel();
             AccelaAPI.getPluginManager().callEvent(event, channel);
 
-            // Check if it contains more drawable. If yes, then add those to the list
+            // Check if it contains more drawables. If yes, then add those to the list
             if (subDrawable instanceof DrawableContainer) {
                 try {
-                    // Add (immediate) child drawable to the list
+                    // Add (immediate) child drawables to the list
                     Branch branch = ((DrawableContainer) subDrawable).getBranch();
                     drawableList.addAll(branch.getChildDrawables());
                 } catch (NodeNotFoundException ex) {
@@ -419,7 +415,7 @@ public class PrismaWM implements Container {
      *
      * @param event The event to broadcast
      */
-    void performBroadcast(@NotNull WMEvent event) {
+    void performEventBroadcast(@NotNull WMEvent event) {
         broadcastLock.lock();
         try {
             thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
@@ -438,7 +434,7 @@ public class PrismaWM implements Container {
      *
      * @param event The event to broadcast
      */
-    public void broadcastEvent(final @NotNull WMEvent event) {
+    void receiveEvent(final @NotNull WMEvent event) {
         // Focus mods etc
         // todo make shortcuts customizable
         if (event instanceof SpecialInputEvent) {
@@ -452,76 +448,45 @@ public class PrismaWM implements Container {
                     int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
                     if (index + 1 > nodes.size()) index = 0;
                     Drawable drawable = nodes.get(index).getDrawable();
-                    performBroadcast(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
+                    performEventBroadcast(new ActivationEvent(thisPlugin, drawable.getIdentifier()));
                 }
-            }
-        }
-        // FIXME: 11/24/20 drawable overlap handling
-        else if (event instanceof MouseInputEvent) {
-            MouseInputEvent mouseInputEvent = (MouseInputEvent) event;
-
-            // Get Drawables that intersect with the point
-            Rect pointRect = new Rect(mouseInputEvent.getPoint());
-            List<Node> intersectingChildNodes = tree.getIntersectingChildNodes(pointRect);
-
-            Node focusNode = null;
-            int index = 0;
-            while (intersectingChildNodes.size() > index) {
-                focusNode = intersectingChildNodes.get(index);
-
-                if (!focusNode.drawable.isFocusable()) {
-                    index++;
-                    System.out.println("drawable '" + focusNode.drawable + "' does not want focus, skipping");
-                    continue;
-                }
-
-                if (focusNode instanceof Branch) {
-                    Branch branch = (Branch) focusNode;
-
-                    Point startPoint = focusNode.drawable.getRelativeRect().getStartPoint();
-                    pointRect = Rect.startPointSubtraction(pointRect, startPoint);
-
-                    intersectingChildNodes = branch.getIntersectingNodes(pointRect);
-                    index = 0;
-                } else {
-                    break;
-                }
-            }
-
-            if (focusNode != null) {
-                performBroadcast(new ActivationEvent(thisPlugin, focusNode.drawable.getIdentifier()));
             }
         }
 
         // Send the event so that it can be parsed "raw" if need be.
-        performBroadcast(event);
+        performEventBroadcast(event);
     }
 
-    // Listener
+    // Event listener
     class BroadcastListener implements Listener {
         @EventHandler
         public void onActivationEvent(ActivationEvent event) {
-            broadcastEvent(event);
+            receiveEvent(event);
         }
 
         @EventHandler
         public void onMouseInputEvent(MouseInputEvent event) {
-            broadcastEvent(event);
+            receiveEvent(event);
         }
 
         @EventHandler
         public void onPointInputEvent(PointInputEvent event) {
-            broadcastEvent(event);
+            receiveEvent(event);
         }
 
         @EventHandler
         public void onSpecialInputEvent(SpecialInputEvent event) {
-            broadcastEvent(event);
+            receiveEvent(event);
         }
 
         @EventHandler
         public void onStringInputEvent(StringInputEvent event) {
-            broadcastEvent(event);
+            receiveEvent(event);
+        }
+
+        @EventHandler
+        public void onMovementEvent(MovementEvent event) {
+            receiveEvent(event);
         }
     }
 

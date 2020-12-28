@@ -2,16 +2,15 @@ package net.accela.prisma.drawable.container;
 
 import net.accela.prisma.Drawable;
 import net.accela.prisma.DrawableContainer;
-import net.accela.prisma.DrawableIdentifier;
 import net.accela.prisma.Main;
-import net.accela.prisma.event.ActivationEvent;
+import net.accela.prisma.drawable.property.RectMutable;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
-import net.accela.prisma.property.RectMutable;
 import net.accela.prisma.util.canvas.Canvas;
+import net.accela.prisma.util.drawabletree.Branch;
 import net.accela.prisma.util.drawabletree.DrawableTree;
 import net.accela.prisma.util.drawabletree.Node;
 import net.accela.server.AccelaAPI;
@@ -162,11 +161,10 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
         // Redraw the now empty rect
         paint(rect);
 
-        // Attempt to grab a new drawable, if any are still attached.
-        // If yes, then focus that one. If it's null, then focus null instead to show the change.
+        // Focusing
         List<Node> nodes = getBranch().getChildNodeList();
-        DrawableIdentifier focusIdentifier = nodes.size() > 0 ? nodes.get(0).getDrawable().getIdentifier() : null;
-        findWindowManager().broadcastEvent(new ActivationEvent(findPlugin(), focusIdentifier));
+        Node focusNode = nodes.size() > 0 ? nodes.get(0) : null;
+        getBranch().setFocusedNode(focusNode);
     }
 
     //
@@ -181,7 +179,12 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
         if (Main.DBG_RESPECT_CONTAINER_BOUNDS && targetRect == null) throw new IllegalStateException(
                 "\n" + rect + "\n is outside the container boundaries \n" + containerBounds);
 
-        findAnyContainer().paint(rect.startPointAddition(getRelativeRect().getStartPoint()));
+        Rect paintRect = rect.startPointAddition(getRelativeRect().getStartPoint());
+
+        Node selfNode = findNode();
+        Branch parentNode = selfNode.getParent();
+        if (parentNode != null) parentNode.getDrawable().paint(paintRect);
+        else selfNode.getWindowManager().paint(paintRect);
     }
 
     @Override

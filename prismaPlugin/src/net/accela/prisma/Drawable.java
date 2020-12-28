@@ -1,11 +1,11 @@
 package net.accela.prisma;
 
+import net.accela.prisma.drawable.property.Container;
+import net.accela.prisma.drawable.property.RectReadable;
 import net.accela.prisma.event.ActivationEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
-import net.accela.prisma.property.Container;
-import net.accela.prisma.property.RectReadable;
 import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.drawabletree.Branch;
 import net.accela.prisma.util.drawabletree.DrawableTree;
@@ -17,15 +17,7 @@ import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public abstract class Drawable implements RectReadable, Listener {
-    /**
-     * A lock for any canvas edits.
-     */
-    protected final Lock canvasLock = new ReentrantLock();
-
     /**
      * The EventChannel for this drawable.
      */
@@ -48,7 +40,8 @@ public abstract class Drawable implements RectReadable, Listener {
      */
     private @Nullable Node cachedNode;
 
-    public Drawable(){ }
+    public Drawable() {
+    }
 
     //
     // Properties
@@ -101,7 +94,10 @@ public abstract class Drawable implements RectReadable, Listener {
     //
 
     public final void paint() throws NodeNotFoundException {
-        findAnyContainer().paint(this);
+        Node selfNode = findNode();
+        Branch parentNode = selfNode.getParent();
+        if (parentNode != null) parentNode.getDrawable().paint(getRelativeRect());
+        else selfNode.getWindowManager().paint(getRelativeRect());
     }
 
     @NotNull
@@ -139,7 +135,10 @@ public abstract class Drawable implements RectReadable, Listener {
      * Synonymous to {@link Container#detach(Drawable)}.
      */
     public final void detach() throws NodeNotFoundException {
-        findAnyContainer().detach(this);
+        Node selfNode = findNode();
+        Branch parentNode = selfNode.getParent();
+        if (parentNode != null) parentNode.getDrawable().detach(this);
+        else selfNode.getWindowManager().detach(this);
     }
 
     //
@@ -190,20 +189,6 @@ public abstract class Drawable implements RectReadable, Listener {
         else return null;
     }
 
-    /**
-     * Tries to find any parent {@link Container} for this {@link Drawable},
-     * whether that is {@link PrismaWM} itself or a {@link DrawableContainer}.
-     *
-     * @return Any parent {@link Container} for this {@link Drawable}.
-     * @throws NodeNotFoundException If nothing is found.
-     */
-    public final @NotNull Container findAnyContainer() throws NodeNotFoundException {
-        Node selfNode = findNode();
-        Branch parentNode = selfNode.getParent();
-        if (parentNode != null) return parentNode.getDrawable();
-        else return selfNode.getWindowManager();
-    }
-
     //
     // Positioning
     //
@@ -212,7 +197,7 @@ public abstract class Drawable implements RectReadable, Listener {
      * @return The size and absolute position of this {@link Drawable}.
      */
     @NotNull
-    public Rect getAbsoluteRect() throws NodeNotFoundException {
+    public final Rect getAbsoluteRect() throws NodeNotFoundException {
         Rect thisRect = getRelativeRect();
 
         DrawableContainer parentContainer = findParentContainer();
@@ -232,7 +217,7 @@ public abstract class Drawable implements RectReadable, Listener {
     /**
      * @return This {@link Drawable}'s absolute position.
      */
-    public @NotNull Point getAbsolutePoint() throws NodeNotFoundException {
+    public final @NotNull Point getAbsolutePoint() throws NodeNotFoundException {
         Point thisPoint = getRelativePoint();
 
         DrawableContainer parentContainer = findParentContainer();
