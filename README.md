@@ -1,12 +1,10 @@
 # Project Accela
-A modular framework for building plugin-driven server software, BBSes and MUDs.
+A framework for building modular, plugin-driven server software, BBSes and MUDs.
 
-The idea behind Project accela to provide a safe and easy-to-use framework for
-building modular, plugin-driven servers. The plugins can be loaded into the server at any point during runtime 
-and will run in a sandboxed environment where they only have access to certain exposed parts of the system.
+It also includes a purpose built [TUI window manager](#prismawm-window-manager) (optional) that plugins can interact with,
+allowing for a consistent and easy-to-use means of handling concurrent IO to and from client terminals.
 
-This includes a purpose built [TUI window manager](#prismawm-window-manager) (optional),
-allowing for plugins to provide a consistent and easy-to-use means of handling concurrent IO to and from client terminals.
+Feel free to check out the [wiki].
 
 ## Table of Contents
 - [Background](#background)
@@ -26,9 +24,8 @@ for hackers to play around in, explore and exploit.
 I want it to be social, highly strategic and to reward those that think out of the box.
 It will look and behave somewhat similarly to a [BBS][out_bbs] or a [MUD][out_mud].
 
-The plugins that will make up this network will be publicly available along with the rest of the project 
-(probably in a separate repository).
-I have plenty of plans for this "game", but that is outside the scope of this README.
+The plugins that will be used to create said environment will be publicly available along with the rest of the project 
+(though probably in a separate repository). I have plenty of plans for this "game", but that is outside the scope of this README.
 
 ## Notes
 * The full code for the [server module][repo_server] and [PrismaWM][repo_prismawm] will be uploaded at a later date,
@@ -52,8 +49,6 @@ TBD.
 ## Usage
 TBD.
 
-Also, feel free to check out the [wiki][wiki].
-
 <br>
 
 ---
@@ -62,6 +57,8 @@ Also, feel free to check out the [wiki][wiki].
 In this context, modules refers to a feature from the IDE that I use,
 not Java 9 modules. See: [IntelliJ IDEA/Modules][out_intellij_modules].
 Plugins are loadable modules that provide additional functionality on top of the core server.
+They can be loaded into the server at any point during runtime 
+and will run in a sandboxed environment where they are only allowed access to certain parts of the framework.
 
 ### Server (core)
 This is what will provide the essential frameworks and functionality behind the project.
@@ -77,10 +74,10 @@ This is so that any future protocols can be easily implemented and interacted wi
 Repo link: [Server (core)][repo_server]
 
 ### PrismaWM (window manager)
-PrismaWM lets multiple plugins simultaneously provide text-based output (and input!) to users, 
-without interfering with each other. 
+PrismaWM lets multiple plugins simultaneously provide terminal-based I/O to and from users, 
+without the plugins interfering with each other.
 
-It's lets you build "windows" similar to how one would do for a GUI program. 
+It lets you build "windows" similar to how one would do for a GUI program. 
 This includes buttons, dropdown menus, input boxes, etc.
 
 Repo link: [PrismaWM Window Manager][repo_prismawm]
@@ -91,19 +88,17 @@ It provides users a means of connecting to the system and interacting with it.
 
 The telnet server supports proper telnet negotiation, and can intelligently negotiate 
 for features that the server and client both support or have in common. 
-The plugin can be configured to listen on multiple ports.
+The plugin can also be configured to listen on multiple ports if needed.
 
 Repo link: [Telnet Provider][repo_telnet_provider]
 
 ### Session Introducer
 A simple plugin that listens for when a TextGraphicsSession is created. 
 It will attempt to load a [window manager][repo_prismawm] into the Session if it doesn't already have one loaded.
+Having a window manager makes it possible for other plugins to facilitate graphical communication with the user.
 
-Having a window manager makes it possible for other plugins to facilitate graphical communication with the client.
-The reason this is a standalone plugin rather than having this functionality being bundled in with the telnet provider 
-is due to modularity. 
-I want the SysOp to be able to pick which window manager to load, 
-without having to modify the code of a *SessionCreator* (such as the [Telnet Provider][repo_telnet_provider] plugin).
+The reason this is a standalone plugin rather than having this functionality being included in, say, the telnet provider
+is due to modularity.
 
 Repo link: [Session Introducer][repo_session_introducer]
 
