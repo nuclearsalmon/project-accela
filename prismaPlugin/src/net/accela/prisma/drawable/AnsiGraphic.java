@@ -19,7 +19,7 @@ public class AnsiGraphic extends Drawable implements PointMutable {
     }
 
     //
-    // Properties
+    // Properties and flags
     //
 
     /**
@@ -37,6 +37,11 @@ public class AnsiGraphic extends Drawable implements PointMutable {
 
     @Override
     public boolean cursorEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean transparent() {
         return false;
     }
 
@@ -66,7 +71,10 @@ public class AnsiGraphic extends Drawable implements PointMutable {
      */
     @Override
     public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
+        Rect oldRect = getRelativeRect();
         this.point = point;
+        Rect newRect = getRelativeRect();
+        paintAfterGeometryChange(oldRect, newRect);
     }
 
     /**

@@ -1,6 +1,7 @@
 package net.accela.prisma;
 
 import net.accela.prisma.drawable.property.Container;
+import net.accela.prisma.drawable.property.Painter;
 import net.accela.prisma.drawable.property.RectReadable;
 import net.accela.prisma.event.ActivationEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
@@ -44,7 +45,7 @@ public abstract class Drawable implements RectReadable, Listener {
     }
 
     //
-    // Properties
+    // Properties and flags
     //
 
     /**
@@ -87,17 +88,17 @@ public abstract class Drawable implements RectReadable, Listener {
 
     public abstract @NotNull CursorMode getCursorMode();
 
-    @Deprecated public abstract boolean cursorEnabled();
+    @Deprecated
+    public abstract boolean cursorEnabled();
+
+    public abstract boolean transparent();
 
     //
     // Painting
     //
 
     public final void paint() throws NodeNotFoundException {
-        Node selfNode = findNode();
-        Branch parentNode = selfNode.getParent();
-        if (parentNode != null) parentNode.getDrawable().paint(getRelativeRect());
-        else selfNode.getWindowManager().paint(getRelativeRect());
+        findPainter().paint(this);
     }
 
     @NotNull
@@ -111,6 +112,19 @@ public abstract class Drawable implements RectReadable, Listener {
                 getCanvas(), Point.ZERO
         );
         return cutCanvas;
+    }
+
+    protected final void paintAfterGeometryChange(@NotNull Rect oldRect, @NotNull Rect newRect) {
+        try {
+            Painter painter = findPainter();
+            if (Rect.intersects(oldRect, newRect)) {
+                painter.paint(Rect.combine(oldRect, newRect));
+            } else {
+                painter.paint(oldRect);
+                painter.paint(newRect);
+            }
+        } catch (NodeNotFoundException ignored) {
+        }
     }
 
     //
@@ -187,6 +201,13 @@ public abstract class Drawable implements RectReadable, Listener {
         Branch parentNode = selfNode.getParent();
         if (parentNode != null) return parentNode.getDrawable();
         else return null;
+    }
+
+    public final @NotNull Painter findPainter() throws NodeNotFoundException {
+        Node selfNode = findNode();
+        Branch parentNode = selfNode.getParent();
+
+        return parentNode == null ? selfNode.getWindowManager() : parentNode.getDrawable();
     }
 
     //

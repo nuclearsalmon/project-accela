@@ -66,6 +66,11 @@ public class InputField extends Drawable implements RectMutable {
         return new Point(startingPoint.getX() + offset, startingPoint.getY());
     }
 
+    @Override
+    public boolean transparent() {
+        return false;
+    }
+
     public String getText() {
         return text;
     }

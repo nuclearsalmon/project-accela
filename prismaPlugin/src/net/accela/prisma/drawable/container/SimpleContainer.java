@@ -22,14 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-public class DefaultContainer extends DrawableContainer implements RectMutable {
+public class SimpleContainer extends DrawableContainer implements RectMutable {
     protected Rect rect;
 
-    public DefaultContainer() {
+    public SimpleContainer() {
         this.rect = new Rect();
     }
 
-    public DefaultContainer(@NotNull Rect rect) {
+    public SimpleContainer(@NotNull Rect rect) {
         this.rect = rect;
     }
 
@@ -53,6 +53,11 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
     @Override
     public boolean cursorEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean transparent() {
+        return false;
     }
 
     //
@@ -80,7 +85,7 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
      */
     @Override
     public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
-        this.rect = new Rect(point, rect.getSize());
+        setRelativeRect(new Rect(point, rect.getSize()));
     }
 
     /**
@@ -89,7 +94,10 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
      */
     @Override
     public void setRelativeRect(@NotNull Rect rect) throws NodeNotFoundException {
+        Rect oldRect = this.rect;
         this.rect = rect;
+        Rect newRect = this.rect;
+        paintAfterGeometryChange(oldRect, newRect);
     }
 
     /**
@@ -97,7 +105,7 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
      */
     @Override
     public void setSize(@NotNull Size size) throws NodeNotFoundException {
-        this.rect = new Rect(rect.getStartPoint(), size);
+        setRelativeRect(new Rect(rect.getStartPoint(), size));
     }
 
     /**
@@ -105,7 +113,7 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
      */
     @Override
     public void setWidth(@Range(from = 1, to = Integer.MAX_VALUE) int width) {
-        this.rect = new Rect(rect.getStartPoint(), new Size(width, rect.getHeight()));
+        setRelativeRect(new Rect(rect.getStartPoint(), new Size(width, rect.getHeight())));
     }
 
     /**
@@ -113,7 +121,7 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
      */
     @Override
     public void setHeight(@Range(from = 1, to = Integer.MAX_VALUE) int height) {
-        this.rect = new Rect(rect.getStartPoint(), new Size(rect.getWidth(), height));
+        setRelativeRect(new Rect(rect.getStartPoint(), new Size(rect.getWidth(), height)));
     }
 
     //
@@ -127,7 +135,7 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
     // TODO: 12/7/20 remove the plugin argument and instantiate drawable with plugins directly
     public synchronized void attach(@NotNull Drawable drawable, @NotNull Plugin plugin) throws RectOutOfBoundsException, NodeNotFoundException {
         if (Main.DBG_RESPECT_CONTAINER_BOUNDS
-                && !Rect.fits(getZeroRect(), drawable.getRelativeRect())) {
+                && !Rect.contains(getZeroRect(), drawable.getRelativeRect())) {
             throw new RectOutOfBoundsException("Drawable does not fit within the container");
         }
 
@@ -221,7 +229,11 @@ public class DefaultContainer extends DrawableContainer implements RectMutable {
             if (targetIntersection == null) throw new IllegalStateException("rect is outside bounds");
 
             // Paint the Canvas
-            Canvas.paintHard(canvas, Point.ZERO, drawable.getCanvas(), drawableRect.getStartPoint());
+            if (drawable.transparent()) {
+                Canvas.paintTransparency(canvas, Point.ZERO, drawable.getCanvas(), drawableRect.getStartPoint());
+            } else {
+                Canvas.paintHard(canvas, Point.ZERO, drawable.getCanvas(), drawableRect.getStartPoint());
+            }
         }
         return canvas;
     }

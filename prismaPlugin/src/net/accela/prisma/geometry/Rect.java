@@ -19,6 +19,8 @@ public class Rect implements Shape {
         this.minY = 0;
         this.width = 1;
         this.height = 1;
+
+        validate();
     }
 
     public Rect(@NotNull Size size) {
@@ -44,6 +46,8 @@ public class Rect implements Shape {
         this.minY = point.getY();
         this.width = 1;
         this.height = 1;
+
+        validate();
     }
 
     public Rect(@NotNull Point point, @NotNull Size size) {
@@ -208,21 +212,6 @@ public class Rect implements Shape {
     }
 
     /**
-     * @return True if this fits inside the provided area
-     */
-    public final boolean fits(@NotNull Rect container) {
-        return fits(container, this);
-    }
-
-    /**
-     * @return True if item fits inside container
-     */
-    public static boolean fits(@NotNull Rect container, @NotNull Rect item) {
-        return container.getMinX() <= item.getMinX() && container.getMinY() <= item.getMinY() &&
-                container.getMaxX() >= item.getMaxX() && container.getMaxY() >= item.getMaxY();
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -257,12 +246,22 @@ public class Rect implements Shape {
     }
 
     /**
-     * {@inheritDoc}
+     * @return True if this fits inside the provided area
      */
-    public boolean contains(@NotNull Rect rect) {
-        return this.contains(rect.minX, rect.minY, rect.width, rect.height);
+    @Override
+    public final boolean contains(@NotNull Rect container) {
+        return contains(container, this);
     }
 
+    /**
+     * @return True if item fits inside container
+     */
+    public static boolean contains(@NotNull Rect container, @NotNull Rect item) {
+        return container.getMinX() <= item.getMinX() && container.getMinY() <= item.getMinY() &&
+                container.getMaxX() >= item.getMaxX() && container.getMaxY() >= item.getMaxY();
+    }
+
+    /*
     public boolean contains(int X, int Y, int W, int H) {
         int w = this.width;
         int h = this.height;
@@ -292,6 +291,7 @@ public class Rect implements Shape {
             }
         }
     }
+    */
 
     /**
      * {@inheritDoc}
@@ -396,12 +396,13 @@ public class Rect implements Shape {
         initialMaxX = Math.max(rectA.getMaxX(), rectB.getMaxX());
         initialMaxY = Math.max(rectA.getMaxY(), rectB.getMaxY());
 
-        final int resultingMinX, resultingMinY, resultingMaxX, resultingMaxY, resultingWidth, resultingHeight;
+        final int resultingMinX, resultingMinY, resultingMaxX, resultingMaxY;
         resultingMinX = Math.min(initialMinX, initialMaxX);
         resultingMinY = Math.min(initialMinY, initialMaxY);
         resultingMaxX = Math.max(initialMinX, initialMaxX);
         resultingMaxY = Math.max(initialMinY, initialMaxY);
 
+        final int resultingWidth, resultingHeight;
         resultingWidth = resultingMaxX - resultingMinX + 1;
         resultingHeight = resultingMaxY - resultingMinY + 1;
 

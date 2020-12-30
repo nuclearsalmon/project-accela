@@ -25,7 +25,7 @@ public class MouseCursor extends Drawable implements PointMutable {
     }
 
     //
-    // Properties
+    // Properties and flags
     //
 
     @Override
@@ -43,6 +43,11 @@ public class MouseCursor extends Drawable implements PointMutable {
         return false;
     }
 
+    @Override
+    public boolean transparent() {
+        return true;
+    }
+
     //
     // Positioning
     //
@@ -52,8 +57,10 @@ public class MouseCursor extends Drawable implements PointMutable {
      */
     @Override
     public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
+        Rect oldRect = getRelativeRect();
         this.point = point;
-        paint();
+        Rect newRect = getRelativeRect();
+        paintAfterGeometryChange(oldRect, newRect);
     }
 
     /**

@@ -5,6 +5,7 @@ import net.accela.ansi.sequence.CSISequence;
 import net.accela.ansi.sequence.ESCSequence;
 import net.accela.ansi.sequence.SGRSequence;
 import net.accela.ansi.sequence.SGRStatement;
+import net.accela.prisma.drawable.property.Painter;
 import net.accela.prisma.event.*;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
@@ -37,7 +38,7 @@ import java.util.logging.Level;
 /**
  * A TUI window manager
  */
-public class PrismaWM {
+public class PrismaWM implements Painter {
     /**
      * The session hosting this
      */
@@ -153,7 +154,7 @@ public class PrismaWM {
         // Checks
         checkClosed();
         if (Main.DBG_RESPECT_TERMINAL_BOUNDS &&
-                !Rect.fits(new Rect(session.getTerminal().getSize()), drawable.getRelativeRect())) {
+                !Rect.contains(new Rect(session.getTerminal().getSize()), drawable.getRelativeRect())) {
             throw new RectOutOfBoundsException("Drawable does not fit within the terminal");
         }
 
@@ -251,7 +252,15 @@ public class PrismaWM {
                 // Only paint to main canvas after validation
                 if (drawableCanvas.getSize().equals(drawableRect.getSize())) {
                     // Paint the Canvas
-                    Canvas.paintHard(canvas, targetRect.getStartPoint(), drawableCanvas, drawableRect.getStartPoint());
+                    if (drawable.transparent()) {
+                        Canvas.paintTransparency(
+                                canvas, targetRect.getStartPoint(), drawableCanvas, drawableRect.getStartPoint()
+                        );
+                    } else {
+                        Canvas.paintHard(
+                                canvas, targetRect.getStartPoint(), drawableCanvas, drawableRect.getStartPoint()
+                        );
+                    }
                 } else {
                     // Warn and add Drawable to list of bad Drawables
                     String warnMsg = drawable.toString() + "\n"
@@ -415,7 +424,7 @@ public class PrismaWM {
      *
      * @param event The event to broadcast
      */
-    void performEventBroadcast(@NotNull WMEvent event) {
+    private void performEventBroadcast(@NotNull WMEvent event) {
         broadcastLock.lock();
         try {
             thisPlugin.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
@@ -438,11 +447,11 @@ public class PrismaWM {
         // Focus mods etc
         // todo make shortcuts customizable
         if (event instanceof SpecialInputEvent) {
-            SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
+            final SpecialInputEvent specialInputEvent = (SpecialInputEvent) event;
 
             if (specialInputEvent.getKey() == SpecialInputEvent.SpecialKey.HT) {
                 Node focusedNode = tree.getTreeFocusNode();
-                if (focusedNode != null) {
+                if (focusedNode == null) {
                     List<Node> nodes = tree.getChildNodeList();
 
                     int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
@@ -455,6 +464,15 @@ public class PrismaWM {
 
         // Send the event so that it can be parsed "raw" if need be.
         performEventBroadcast(event);
+    }
+
+    void paintMovedDrawable(@NotNull Rect newRect, @NotNull Rect oldRect) {
+        if (Rect.intersects(newRect, oldRect)) {
+            paint(Rect.combine(newRect, oldRect));
+        } else {
+            paint(newRect);
+            paint(oldRect);
+        }
     }
 
     // Event listener
@@ -481,11 +499,6 @@ public class PrismaWM {
 
         @EventHandler
         public void onStringInputEvent(StringInputEvent event) {
-            receiveEvent(event);
-        }
-
-        @EventHandler
-        public void onMovementEvent(MovementEvent event) {
             receiveEvent(event);
         }
     }
