@@ -281,8 +281,12 @@ public class PrismaWM implements Painter {
 
                     if (cell == null) {
                         // Reset painting attributes to prevent sequence bleed
+                        /* fixme remove
                         terminalState.reset();
                         writeToSession(SGRSequence.RESET + " ");
+                         */
+                        List<SGRStatement> statements = terminalState.cancelAndApply(terminalState.getStatements());
+                        writeToSession(statements == null ? " " : new SGRSequence(statements));
                     } else {
                         // Sequence logic
                         // Update current SGR statements
