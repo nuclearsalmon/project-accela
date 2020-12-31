@@ -1,6 +1,6 @@
 package net.accela.prisma.util.canvas;
 
-import net.accela.ansi.sequence.SGRSequence;
+import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.drawable.property.SizeMutable;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;

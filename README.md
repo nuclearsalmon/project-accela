@@ -104,7 +104,9 @@ Repo link: [Session Introducer][repo_session_introducer]
 
 <!-- Links -->
 [repo_server]: ./server/src "Server/\"Core\""
-[repo_ansi_library]: ./server/src/net/accela/ansi "ANSI EscSeq library"
+
+[repo_ansi_library]: prismaPlugin/src/net/accela/prisma/ansi "ANSI EscSeq library"
+
 [repo_prismawm]: ./prismaPlugin/src "PrismaWM"
 [repo_telnet_provider]: ./telnetProviderPlugin/src "Telnet Provider"
 [repo_session_introducer]: ./sessionIntroducerPlugin/src "Session Introducer"

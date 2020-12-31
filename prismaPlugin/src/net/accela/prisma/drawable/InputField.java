@@ -1,8 +1,8 @@
 package net.accela.prisma.drawable;
 
-import net.accela.ansi.sequence.SGRSequence;
 import net.accela.prisma.Drawable;
 import net.accela.prisma.DrawableIdentifier;
+import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.drawable.property.RectMutable;
 import net.accela.prisma.event.ActivationEvent;
 import net.accela.prisma.event.SpecialInputEvent;

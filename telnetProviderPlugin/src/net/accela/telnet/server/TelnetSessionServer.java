@@ -1,8 +1,8 @@
 package net.accela.telnet.server;
 
-import net.accela.ansi.sequence.CSISequence;
-import net.accela.ansi.sequence.ESCSequence;
-import net.accela.prisma.session.Terminal;
+import net.accela.prisma.ansi.sequence.CSISequence;
+import net.accela.prisma.ansi.sequence.ESCSequence;
+import net.accela.prisma.ansi.terminal.Terminal;
 import net.accela.telnet.exception.InvalidTelnetSequenceException;
 import net.accela.telnet.exception.TerminationException;
 import net.accela.telnet.session.TelnetSession;

@@ -1,7 +1,7 @@
 package net.accela.telnet.session;
 
 import net.accela.prisma.PrismaWM;
-import net.accela.prisma.session.Terminal;
+import net.accela.prisma.ansi.terminal.Terminal;
 import net.accela.prisma.session.TextGraphicsSession;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;

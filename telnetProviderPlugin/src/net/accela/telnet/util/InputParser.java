@@ -1,15 +1,15 @@
 package net.accela.telnet.util;
 
-import net.accela.ansi.Crayon;
-import net.accela.ansi.sequence.CSISequence;
 import net.accela.prisma.PrismaWM;
+import net.accela.prisma.ansi.sequence.CSISequence;
+import net.accela.prisma.ansi.terminal.Terminal;
+import net.accela.prisma.ansi.util.Crayon;
+import net.accela.prisma.ansi.util.InputEventParser;
 import net.accela.prisma.event.InputEvent;
 import net.accela.prisma.event.PointInputEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.Size;
-import net.accela.prisma.session.Terminal;
-import net.accela.prisma.util.ansi.InputEventParser;
 import net.accela.server.AccelaAPI;
 import net.accela.server.plugin.Plugin;
 import net.accela.telnet.server.TelnetSessionServer;

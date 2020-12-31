@@ -1,6 +1,8 @@
 package net.accela.prisma.session;
 
 import net.accela.prisma.PrismaWM;
+import net.accela.prisma.ansi.terminal.Terminal;
+import net.accela.prisma.ansi.terminal.TerminalReference;
 import net.accela.server.permission.Permission;
 import net.accela.server.permission.PermissionAttachment;
 import net.accela.server.permission.PermissionAttachmentInfo;

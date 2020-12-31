@@ -1,19 +1,19 @@
 package net.accela.prisma;
 
-import net.accela.ansi.AnsiLib;
-import net.accela.ansi.sequence.CSISequence;
-import net.accela.ansi.sequence.ESCSequence;
-import net.accela.ansi.sequence.SGRSequence;
-import net.accela.ansi.sequence.SGRStatement;
+import net.accela.prisma.ansi.compress.TerminalState;
+import net.accela.prisma.ansi.sequence.CSISequence;
+import net.accela.prisma.ansi.sequence.ESCSequence;
+import net.accela.prisma.ansi.sequence.SGRSequence;
+import net.accela.prisma.ansi.sequence.SGRStatement;
+import net.accela.prisma.ansi.terminal.TerminalReference;
+import net.accela.prisma.ansi.util.AnsiLib;
 import net.accela.prisma.drawable.property.Painter;
 import net.accela.prisma.event.*;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
 import net.accela.prisma.geometry.exception.RectOutOfBoundsException;
-import net.accela.prisma.session.TerminalReference;
 import net.accela.prisma.session.TextGraphicsSession;
-import net.accela.prisma.util.ansi.compress.TerminalState;
 import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.canvas.Cell;
 import net.accela.prisma.util.drawabletree.Branch;
