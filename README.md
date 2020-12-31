@@ -71,7 +71,7 @@ through various client-server protocols (such as [Telnet][repo_telnet_provider])
 This is so that any future protocols can be easily implemented and interacted with in a standardized fashion.
 - A purpose built library for creating and utilizing [ANSI Escape Sequences][out_ansi].
 
-Repo link: [Server (core)][repo_server]
+<!--Repo link: [Server (core)][repo_server]-->
 
 ### PrismaWM (window manager)
 PrismaWM lets multiple plugins simultaneously provide terminal-based I/O to and from users, 
