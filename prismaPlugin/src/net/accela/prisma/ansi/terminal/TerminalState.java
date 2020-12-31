@@ -1,8 +1,7 @@
-package net.accela.prisma.ansi.util;
+package net.accela.prisma.ansi.terminal;
 
 import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.ansi.sequence.SGRStatement;
-import net.accela.prisma.ansi.terminal.TerminalReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
