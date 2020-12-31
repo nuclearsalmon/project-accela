@@ -1,16 +1,16 @@
 package net.accela.prisma;
 
+import net.accela.prisma.ansi.util.canvas.Canvas;
 import net.accela.prisma.drawable.property.Container;
 import net.accela.prisma.drawable.property.Painter;
 import net.accela.prisma.drawable.property.RectReadable;
+import net.accela.prisma.drawabletree.Branch;
+import net.accela.prisma.drawabletree.DrawableTree;
+import net.accela.prisma.drawabletree.Node;
 import net.accela.prisma.event.ActivationEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
-import net.accela.prisma.util.canvas.Canvas;
-import net.accela.prisma.util.drawabletree.Branch;
-import net.accela.prisma.util.drawabletree.DrawableTree;
-import net.accela.prisma.util.drawabletree.Node;
 import net.accela.server.event.EventChannel;
 import net.accela.server.event.EventHandler;
 import net.accela.server.event.Listener;

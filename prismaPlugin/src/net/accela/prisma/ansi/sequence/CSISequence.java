@@ -1,7 +1,7 @@
 package net.accela.prisma.ansi.sequence;
 
 import net.accela.prisma.ansi.util.Patterns;
-import net.accela.prisma.util.RegexUtil;
+import net.accela.prisma.ansi.util.RegexUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;

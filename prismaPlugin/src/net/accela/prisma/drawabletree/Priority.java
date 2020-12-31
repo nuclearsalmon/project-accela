@@ -1,4 +1,4 @@
-package net.accela.prisma.util.drawabletree;
+package net.accela.prisma.drawabletree;
 
 public enum Priority {
     LOW, LOWEST, NORMAL, HIGHEST, HIGH;

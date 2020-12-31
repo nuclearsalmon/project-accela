@@ -1,7 +1,7 @@
-package net.accela.prisma.util.canvas;
+package net.accela.prisma.ansi.util.canvas;
 
 import net.accela.prisma.ansi.sequence.SGRSequence;
-import net.accela.prisma.util.WCWidth;
+import net.accela.prisma.ansi.util.WCWidth;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;

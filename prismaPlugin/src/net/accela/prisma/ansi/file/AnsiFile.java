@@ -5,9 +5,9 @@ import net.accela.prisma.ansi.terminal.Terminal;
 import net.accela.prisma.ansi.terminal.TerminalReference;
 import net.accela.prisma.ansi.util.Patterns;
 import net.accela.prisma.ansi.util.TerminalState;
+import net.accela.prisma.ansi.util.canvas.Canvas;
+import net.accela.prisma.ansi.util.canvas.Cell;
 import net.accela.prisma.geometry.Size;
-import net.accela.prisma.util.canvas.Canvas;
-import net.accela.prisma.util.canvas.Cell;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

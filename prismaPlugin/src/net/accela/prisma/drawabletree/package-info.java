@@ -5,4 +5,4 @@
  * such that {@link net.accela.prisma.Drawable}s by different plugins cannot interfere with each other.
  * Thanks to the simplicity of the design, it is both fast, powerful and easy to use.
  */
-package net.accela.prisma.util.drawabletree;
+package net.accela.prisma.drawabletree;

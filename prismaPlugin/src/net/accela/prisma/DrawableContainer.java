@@ -1,8 +1,8 @@
 package net.accela.prisma;
 
 import net.accela.prisma.drawable.property.Container;
+import net.accela.prisma.drawabletree.Branch;
 import net.accela.prisma.exception.NodeNotFoundException;
-import net.accela.prisma.util.drawabletree.Branch;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class DrawableContainer extends Drawable implements Container {

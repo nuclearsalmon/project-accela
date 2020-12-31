@@ -2,11 +2,11 @@ package net.accela.prisma.drawable;
 
 import net.accela.prisma.Drawable;
 import net.accela.prisma.ansi.file.AnsiFile;
+import net.accela.prisma.ansi.util.canvas.Canvas;
 import net.accela.prisma.drawable.property.PointMutable;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
-import net.accela.prisma.util.canvas.Canvas;
 import org.jetbrains.annotations.NotNull;
 
 public class AnsiGraphic extends Drawable implements PointMutable {

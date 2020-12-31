@@ -1,4 +1,4 @@
-package net.accela.prisma.util.canvas;
+package net.accela.prisma.ansi.util.canvas;
 
 import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.drawable.property.SizeMutable;

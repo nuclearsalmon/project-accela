@@ -3,14 +3,14 @@ package net.accela.prisma.drawable;
 import net.accela.prisma.Drawable;
 import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.ansi.util.Crayon;
+import net.accela.prisma.ansi.util.canvas.Canvas;
+import net.accela.prisma.ansi.util.canvas.Cell;
 import net.accela.prisma.drawable.property.PointMutable;
 import net.accela.prisma.event.MouseInputEvent;
 import net.accela.prisma.event.SpecialInputEvent;
 import net.accela.prisma.exception.NodeNotFoundException;
 import net.accela.prisma.geometry.Point;
 import net.accela.prisma.geometry.Rect;
-import net.accela.prisma.util.canvas.Canvas;
-import net.accela.prisma.util.canvas.Cell;
 import net.accela.server.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 

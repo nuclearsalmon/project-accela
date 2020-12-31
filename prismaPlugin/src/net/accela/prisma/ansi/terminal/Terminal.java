@@ -34,7 +34,7 @@ public class Terminal implements TerminalSafeMethods {
     public final static boolean DEFAULT_AIXTERM_COLOR_SUPPORT = true;
     public final static boolean DEFAULT_TABLE_COLOR_SUPPORT = true;
     public final static boolean DEFAULT_TRUE_COLOR_SUPPORT = true;
-    public final static boolean DEFAULT_ICE_COLOR_SUPPORT = true;
+    public final static boolean DEFAULT_ICE_COLOR_SUPPORT = false;
 
     public final static boolean DEFAULT_FONT_CHANGE_SUPPORT = false;
 

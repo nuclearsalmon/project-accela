@@ -1,4 +1,4 @@
-package net.accela.prisma.util.drawabletree;
+package net.accela.prisma.drawabletree;
 
 import net.accela.prisma.Drawable;
 import net.accela.prisma.DrawableContainer;
