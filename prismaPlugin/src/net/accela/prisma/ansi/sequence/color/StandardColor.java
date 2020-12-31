@@ -1,7 +1,7 @@
 package net.accela.prisma.ansi.sequence.color;
 
-import net.accela.prisma.ansi.exception.ESCSequenceException;
 import net.accela.prisma.ansi.sequence.CSISequence;
+import net.accela.prisma.ansi.sequence.ESCSequenceException;
 import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.ansi.sequence.SGRStatement;
 import net.accela.prisma.ansi.sequence.color.standard.RGB;

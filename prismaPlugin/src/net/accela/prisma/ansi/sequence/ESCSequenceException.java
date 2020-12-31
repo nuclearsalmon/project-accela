@@ -1,6 +1,5 @@
-package net.accela.prisma.ansi.exception;
+package net.accela.prisma.ansi.sequence;
 
-import net.accela.prisma.ansi.sequence.ESCSequence;
 import org.jetbrains.annotations.Nullable;
 
 /**

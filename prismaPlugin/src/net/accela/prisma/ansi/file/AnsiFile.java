@@ -1,10 +1,10 @@
 package net.accela.prisma.ansi.file;
 
-import net.accela.prisma.ansi.compress.TerminalState;
 import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.ansi.terminal.Terminal;
 import net.accela.prisma.ansi.terminal.TerminalReference;
 import net.accela.prisma.ansi.util.Patterns;
+import net.accela.prisma.ansi.util.TerminalState;
 import net.accela.prisma.geometry.Size;
 import net.accela.prisma.util.canvas.Canvas;
 import net.accela.prisma.util.canvas.Cell;

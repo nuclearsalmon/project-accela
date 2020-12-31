@@ -1,4 +1,4 @@
-package net.accela.prisma.ansi.compress;
+package net.accela.prisma.ansi.util;
 
 import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.ansi.sequence.SGRStatement;

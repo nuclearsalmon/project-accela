@@ -4,7 +4,6 @@ import net.accela.prisma.ansi.annotation.Inconsistent;
 import net.accela.prisma.ansi.annotation.NonStandard;
 import net.accela.prisma.ansi.annotation.NotWidelySupported;
 import net.accela.prisma.ansi.annotation.RequiresArgument;
-import net.accela.prisma.ansi.exception.ESCSequenceException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;

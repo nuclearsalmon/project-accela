@@ -1,12 +1,12 @@
 package net.accela.prisma;
 
-import net.accela.prisma.ansi.compress.TerminalState;
 import net.accela.prisma.ansi.sequence.CSISequence;
 import net.accela.prisma.ansi.sequence.ESCSequence;
 import net.accela.prisma.ansi.sequence.SGRSequence;
 import net.accela.prisma.ansi.sequence.SGRStatement;
 import net.accela.prisma.ansi.terminal.TerminalReference;
 import net.accela.prisma.ansi.util.AnsiLib;
+import net.accela.prisma.ansi.util.TerminalState;
 import net.accela.prisma.drawable.property.Painter;
 import net.accela.prisma.event.*;
 import net.accela.prisma.exception.NodeNotFoundException;
