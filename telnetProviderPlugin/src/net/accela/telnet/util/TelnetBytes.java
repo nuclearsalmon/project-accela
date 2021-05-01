@@ -1,9 +1,6 @@
 package net.accela.telnet.util;
 
-import net.accela.telnet.server.TelnetSequence;
 import org.jetbrains.annotations.NotNull;
-
-import java.nio.ByteBuffer;
 
 /**
  * Telnet commands, based off of RFC854.
@@ -15,7 +12,7 @@ public final class TelnetBytes {
     public static final byte TRANSMIT_BINARY = (byte) 0x0;
     public static final byte ECHO = (byte) 0x1;
     public static final byte RECONNECTION = (byte) 0x2;
-    public static final byte SUPPRESS_GO_AHEAD = (byte) 0x3;
+    public static final byte SUPPRESS_GA = (byte) 0x3;
     public static final byte APPROX_MESSAGE_SIZE = (byte) 0x4;
     public static final byte STATUS = (byte) 0x5;
     public static final byte TIMING_MARK = (byte) 0x6;
@@ -43,7 +40,10 @@ public final class TelnetBytes {
     public static final byte TERMINAL_LOCATION_NUMBER = (byte) 0x1C;
     public static final byte TELNET_3270_REGIME = (byte) 0x1D;
     public static final byte X3_PAD = (byte) 0x1E;
-    public static final byte WINDOW_SIZE = (byte) 0x1F;
+    /**
+     * Window size
+     */
+    public static final byte NAWS = (byte) 0x1F;
     public static final byte TERMINAL_SPEED = (byte) 0x20;
     public static final byte REMOTE_FLOW_CONTROL = (byte) 0x21;
     public static final byte LINEMODE = (byte) 0x22;
@@ -148,7 +148,7 @@ public final class TelnetBytes {
     public static final byte DONT = (byte) 0xFE;
 
     /**
-     * Interpret as Command - What follows will be byteerpreted as a command sequence.
+     * Interpret as Command - What follows will be interpreted as a command sgr.
      * IAC needs to be doubled to be sent as data rather than a command. Other options should not be doubled.
      */
     public static final byte IAC = (byte) 0xFF;
@@ -214,7 +214,7 @@ public final class TelnetBytes {
     }
 
     @NotNull
-    public static String bytesToString(Byte[] bytes) {
+    public static String bytesToString(byte... bytes) {
         if (bytes == null) return "";
 
         StringBuilder sb = new StringBuilder();
@@ -227,23 +227,14 @@ public final class TelnetBytes {
     }
 
     @NotNull
-    public static String bytesToString(TelnetSequence telnetSequence) {
-        // Allocate a buffer
-        ByteBuffer byteBuffer = ByteBuffer.allocate(telnetSequence.getByteSequence().length);
-        Byte[] bytesToBeTranslated = new Byte[]{telnetSequence.getCommandByte(), telnetSequence.getOptionByte()};
+    public static String bytesToString(Byte[] bytes) {
+        if (bytes == null) return "";
 
-        // Compose a string from it
         StringBuilder sb = new StringBuilder();
-        sb.append(bytesToString(bytesToBeTranslated));
-        // If there are arguments these should be treated as literal bytes,
-        // rather than telnet commands or options
-        if (telnetSequence.getArgumentBytes() != null) {
-            sb.append(", ");
-            for (Byte by : telnetSequence.getArgumentBytes()) {
-                sb.append(by).append(" ");
-            }
-            sb.delete(sb.length() - 2, sb.length());
+        for (Byte by : bytes) {
+            sb.append(byteToString(by)).append(", ");
         }
+        sb.delete(sb.length() - 2, sb.length());
 
         return sb.toString();
     }

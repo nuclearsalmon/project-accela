@@ -37,11 +37,11 @@
 .*~
 
 ## various other potentially unwanted files and directories
-# custom configuration files
+# custom server configuration files
 /config
 # data created by the server
 /data
-# just logs in swedish about what I've been working on, this should not be included
+# just logs about what I've been working on, this should not be included
 /school
-# don't include libraries, that would be against copyright
+# don't include libraries, that would be against copyright (I think?)
 /lib

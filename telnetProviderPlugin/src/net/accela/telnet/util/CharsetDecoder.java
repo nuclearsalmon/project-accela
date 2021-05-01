@@ -39,10 +39,10 @@ public abstract class CharsetDecoder {
      */
     public @Nullable String decodeByte(byte byteStringPart) {
         // Confirm that the charset hasn't changed - if it has,
-        // then discard old byte array to prevent corruption
+        // then discard deprecated byte array to prevent corruption
         Charset currentCharset = getCurrentCharset();
         if (oldCharset != currentCharset) reset();
-        // Update old charset
+        // Update deprecated charset
         oldCharset = currentCharset;
 
         // If we don't have a character in the works, we first need to figure out how many bytes are needed for it

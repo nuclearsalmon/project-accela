@@ -1,6 +1,6 @@
 package net.accela.sessionIntroducer;
 
-import net.accela.prisma.PrismaWM;
+import net.accela.prisma.Prismatic;
 import net.accela.prisma.session.TextGraphicsSession;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;
@@ -37,7 +37,7 @@ public class Main extends JavaPlugin {
                 TextGraphicsSession graphicsSession = (TextGraphicsSession) baseSession;
 
                 // Try swapping WindowManager
-                graphicsSession.swapWM(PrismaWM.class);
+                graphicsSession.swapWM(Prismatic.class);
             }
         }
     }

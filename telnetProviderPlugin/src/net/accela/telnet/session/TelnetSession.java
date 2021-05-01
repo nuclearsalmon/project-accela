@@ -1,15 +1,12 @@
 package net.accela.telnet.session;
 
-import net.accela.prisma.PrismaWM;
-import net.accela.prisma.ansi.terminal.Terminal;
+import net.accela.prisma.Prismatic;
 import net.accela.prisma.session.TextGraphicsSession;
+import net.accela.prisma.terminal.Terminal;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;
 import net.accela.server.event.server.SessionAssignedEngineEvent;
-import net.accela.telnet.server.TelnetSequence;
-import net.accela.telnet.server.TelnetSessionServer;
 import net.accela.telnet.server.TelnetSocketServer;
-import net.accela.telnet.util.TelnetBytes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,12 +17,12 @@ import java.net.Socket;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import static net.accela.telnet.util.TelnetBytes.WILL;
-
 public final class TelnetSession extends TextGraphicsSession {
     // Session IO
     final Socket socket;
-    final TelnetSessionServer sessionServer;
+
+    // StreamTerminal configuration
+    protected final TelnetTerminal terminal;
 
     public TelnetSession(@NotNull final TelnetSocketServer telnetSocketServer,
                          @NotNull final Socket socket, @NotNull final UUID uuid) throws IOException {
@@ -35,33 +32,18 @@ public final class TelnetSession extends TextGraphicsSession {
         // Assign these values
         this.socket = socket;
 
-        // Configure sessionServer
-        sessionServer = new TelnetSessionServer(this, socket);
-        // Register default negotiation for logout
-        sessionServer.registerNegotiationFlow(TelnetBytes.LOGOUT, fullTrigger -> {
-            sessionServer.sendSequenceWhenNotNegotiating(new TelnetSequence(WILL, TelnetBytes.LOGOUT));
-            close("Logout requested by the client");
-        });
-
         // Configure terminal
+        terminal = new TelnetTerminal(this, socket);
         terminal.setCharset(Terminal.UTF8_CHARSET);
-
-        // Start the sessionServer
-        sessionServer.start();
     }
 
     @Override
-    public void writeToClient(@NotNull String str) {
-        sessionServer.writeToClient(str);
-    }
-
-    @Override
-    public void swapWM(@NotNull Class<? extends PrismaWM> engineClass) {
+    public void swapWM(@NotNull Class<? extends Prismatic> engineClass) {
         final String exceptionString = "Exception when creating WindowManager instance";
         boolean success = true;
         // Attempt to instantiate a new WindowManager
         try {
-            // Close the old WindowManager
+            // Close the deprecated WindowManager
             if (windowManager != null) {
                 windowManager.close();
                 // Remove object references
@@ -69,7 +51,7 @@ public final class TelnetSession extends TextGraphicsSession {
             }
 
             // Get a constructor
-            Constructor<? extends PrismaWM> engineConstructor = engineClass.getConstructor(TextGraphicsSession.class);
+            Constructor<? extends Prismatic> engineConstructor = engineClass.getConstructor(TextGraphicsSession.class);
 
             // Create a new instance
             windowManager = engineConstructor.newInstance(this);
@@ -95,12 +77,17 @@ public final class TelnetSession extends TextGraphicsSession {
         } else {
             // Retry, unless it's the default WindowManager implementation that failed,
             // in which case we should close the session
-            if (!PrismaWM.class.equals(engineClass)) {
-                swapWM(PrismaWM.class);
+            if (!Prismatic.class.equals(engineClass)) {
+                swapWM(Prismatic.class);
             } else {
                 close("Failed WindowManager swap to default implementation");
             }
         }
+    }
+
+    @Override
+    public @NotNull TelnetTerminal getTerminal() {
+        return terminal;
     }
 
     /**
@@ -122,9 +109,6 @@ public final class TelnetSession extends TextGraphicsSession {
 
         // Perform the default closing actions
         super.close(reason);
-
-        // Interrupt the negotiation thread
-        sessionServer.interrupt();
 
         // Attempt to close the socket
         try {

@@ -1,8 +1,7 @@
 package net.accela.prisma.session;
 
-import net.accela.prisma.PrismaWM;
-import net.accela.prisma.ansi.terminal.Terminal;
-import net.accela.prisma.ansi.terminal.TerminalReference;
+import net.accela.prisma.Prismatic;
+import net.accela.prisma.terminal.ModernTerminal;
 import net.accela.server.permission.Permission;
 import net.accela.server.permission.PermissionAttachment;
 import net.accela.server.permission.PermissionAttachmentInfo;
@@ -20,8 +19,7 @@ import java.util.logging.Level;
 
 public abstract class TextGraphicsSession extends Session {
     protected final SessionLogger sessionLogger = new SessionLogger(this);
-    protected final Terminal terminal = new Terminal();
-    protected PrismaWM windowManager;
+    protected Prismatic windowManager;
     protected User user;
 
     public TextGraphicsSession(@NotNull SessionCreator sessionCreator,
@@ -30,21 +28,13 @@ public abstract class TextGraphicsSession extends Session {
         super(sessionCreator, uuid);
     }
 
-    public abstract void writeToClient(@NotNull String str);
+    public abstract void swapWM(@NotNull Class<? extends Prismatic> engineClass);
 
-    public abstract void swapWM(@NotNull Class<? extends PrismaWM> engineClass);
-
-    public @Nullable PrismaWM getWindowManager() {
+    public @Nullable Prismatic getWindowManager() {
         return windowManager;
     }
 
-    public @NotNull Terminal getTerminal() {
-        return terminal;
-    }
-
-    public @NotNull TerminalReference getTerminalReference() {
-        return new TerminalReference(terminal);
-    }
+    public abstract @NotNull ModernTerminal getTerminal();
 
     /**
      * @return This sessions logger

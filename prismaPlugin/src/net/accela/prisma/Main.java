@@ -1,5 +1,6 @@
 package net.accela.prisma;
 
+import net.accela.prisma.gui.DrawableContainer;
 import net.accela.server.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
@@ -8,7 +9,7 @@ public class Main extends JavaPlugin {
     //
 
     /**
-     * Whether to focus a Drawable when it gets attached to {@link PrismaWM}
+     * Whether to focus a Drawable when it gets attached to {@link Prismatic}
      */
     public static final boolean DBG_FOCUS_ON_WM_ATTACHMENT = true;
 
@@ -18,7 +19,7 @@ public class Main extends JavaPlugin {
     public static final boolean DBG_FOCUS_ON_DRAWABLE_CONTAINER_ATTACHMENT = true;
 
     /**
-     * Whether to throw exception when out of terminal bounds or not.
+     * Whether to throw exception when out of lowlevel bounds or not.
      * Disabling it makes the logs more easily readable.
      */
     public static final boolean DBG_RESPECT_TERMINAL_BOUNDS = false;
