@@ -13,7 +13,7 @@ import java.nio.charset.*;
  * A hacked-together version of {@link InputStreamReader} and sun's {@code StreamDecoder}.
  * It's able to decode streams with variable charset encodings,
  * meaning the decoding charset can be switched on the fly.
- * <p>
+ *
  * todo test if it works
  */
 @SuppressWarnings("SynchronizeOnNonFinalField")
