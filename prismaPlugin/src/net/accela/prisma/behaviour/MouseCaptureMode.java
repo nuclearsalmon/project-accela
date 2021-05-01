@@ -1,6 +1,6 @@
 package net.accela.prisma.behaviour;
 
-import net.accela.prisma.util.ANSIUtils;
+import net.accela.prisma.util.ANSIConstants;
 
 /**
  * <a href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking">
@@ -38,6 +38,6 @@ public enum MouseCaptureMode {
     }
 
     public byte[] getSequence(boolean enable) {
-        return (ANSIUtils.CSI + "?" + index + (enable ? "h" : "l")).getBytes();
+        return (ANSIConstants.CSI + "?" + index + (enable ? "h" : "l")).getBytes();
     }
 }

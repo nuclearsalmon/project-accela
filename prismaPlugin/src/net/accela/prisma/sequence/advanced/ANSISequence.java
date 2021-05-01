@@ -1,7 +1,7 @@
 package net.accela.prisma.sequence.advanced;
 
 import net.accela.prisma.util.ANSIPatterns;
-import net.accela.prisma.util.RegexUtil;
+import net.accela.prisma.util.RegexUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,25 +46,25 @@ public class ANSISequence extends AbstractSequence implements CharSequence {
     }
 
     public final @NotNull ESCSequenceType getESCSequenceType() {
-        if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.SS2)) {
+        if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.SS2)) {
             return ESCSequenceType.SS2;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.SS3)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.SS3)) {
             return ESCSequenceType.SS3;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.DCS)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.DCS)) {
             return ESCSequenceType.DCS;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI)) {
             return ESCSequenceType.CSI;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.ST)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.ST)) {
             return ESCSequenceType.ST;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.OSC)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.OSC)) {
             return ESCSequenceType.OSC;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.SOS)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.SOS)) {
             return ESCSequenceType.SOS;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.PM)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.PM)) {
             return ESCSequenceType.PM;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.APC)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.APC)) {
             return ESCSequenceType.APC;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.RIS)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.RIS)) {
             return ESCSequenceType.RIS;
         } else return ESCSequenceType.UNKNOWN;
     }

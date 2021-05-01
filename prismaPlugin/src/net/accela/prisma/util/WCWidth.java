@@ -17,7 +17,6 @@ import java.util.PrimitiveIterator;
  * http://www.opensource.org/licenses/bsd-license.php
  * </a>
  */
-@SuppressWarnings("SpellCheckingInspection")
 public class WCWidth {
     /**
      * <h4>Short summary</h4>
@@ -25,7 +24,7 @@ public class WCWidth {
      * 0 : Does not advance the cursor, such as NULL or Combining.<br>
      * 1 : All others.<br>
      * 2 : Characters of category East Asian Wide (W) or East Asian Full-width (F)
-     * which are displayed using two lowlevel cells.<br>
+     * which are displayed using two low level cells.<br>
      * <br>
      * <h4>Long summary:</h4>
      * The following two functions define the column width of an ISO 10646

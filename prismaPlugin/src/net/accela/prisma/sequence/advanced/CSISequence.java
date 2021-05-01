@@ -1,7 +1,7 @@
 package net.accela.prisma.sequence.advanced;
 
 import net.accela.prisma.util.ANSIPatterns;
-import net.accela.prisma.util.RegexUtil;
+import net.accela.prisma.util.RegexUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,55 +28,55 @@ public class CSISequence extends ANSISequence {
     }
 
     public final @NotNull CSISequence.StatementType getCSISequenceType() {
-        if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CUU)) {
+        if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CUU)) {
             return StatementType.CUU;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CUD)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CUD)) {
             return StatementType.CUD;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CUF)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CUF)) {
             return StatementType.CUF;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CUB)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CUB)) {
             return StatementType.CUB;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CNL)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CNL)) {
             return StatementType.CNL;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CPL)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CPL)) {
             return StatementType.CPL;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CHA)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CHA)) {
             return StatementType.CHA;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_CUP)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_CUP)) {
             return StatementType.CUP;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_EID)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_EID)) {
             return StatementType.EID;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_EIL)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_EIL)) {
             return StatementType.EIL;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_SU)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_SU)) {
             return StatementType.SU;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_SD)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_SD)) {
             return StatementType.SD;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_HVP)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_HVP)) {
             return StatementType.HVP;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.SGR_sequenceCapture)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.SGR_sequenceCapture)) {
             return StatementType.SGR;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_AP_ON)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_AP_ON)) {
             return StatementType.AP_ON;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_AP_OFF)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_AP_OFF)) {
             return StatementType.AP_OFF;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_DSR)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_DSR)) {
             return StatementType.DSR;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_SCP)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_SCP)) {
             return StatementType.P_SCP;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_RCP)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_RCP)) {
             return StatementType.P_RCP;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_CUR_ON)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_CUR_ON)) {
             return StatementType.P_CUR_ON;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_CUR_OFF)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_CUR_OFF)) {
             return StatementType.P_CUR_OFF;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_ASB_ON)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_ASB_ON)) {
             return StatementType.P_ASB_ON;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_ASB_OFF)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_ASB_OFF)) {
             return StatementType.P_ASB_OFF;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_BP_ON)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_BP_ON)) {
             return StatementType.P_BP_ON;
-        } else if (RegexUtil.testForMatch(sequenceString, ANSIPatterns.CSI_P_BP_OFF)) {
+        } else if (RegexUtils.testForMatch(sequenceString, ANSIPatterns.CSI_P_BP_OFF)) {
             return StatementType.P_BP_OFF;
         } else {
             return StatementType.UNKNOWN;

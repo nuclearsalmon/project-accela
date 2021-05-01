@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RegexUtil {
+public class RegexUtils {
     /**
      * Includes any pattern matches from the string and excludes everything else
      */
