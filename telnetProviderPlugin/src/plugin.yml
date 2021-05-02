@@ -1,5 +1,5 @@
 name: 'TelnetProvider'
+main: 'net.accela.telnet.Main'
 version: '3.0'
 author: 'gustavdersjo'
-main: 'net.accela.telnet.Main'
-depend: [ 'PrismaWM' ]
+depend: [ 'Prismatic' ]

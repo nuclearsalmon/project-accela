@@ -219,9 +219,6 @@ public class Prismatic implements Container, Closeable {
             final Rect termBounds = new Rect(session.getTerminal().getSize());
             final Rect targetRect = Rect.intersection(termBounds, rect);
 
-            System.out.println("rect:" + rect);// fixme remove
-            System.out.println("target:" + targetRect);// fixme remove
-
             if (targetRect == null) {
                 if (Main.DBG_RESPECT_TERMINAL_BOUNDS) {
                     throw new IllegalStateException(
@@ -240,9 +237,6 @@ public class Prismatic implements Container, Closeable {
 
             // Hide the cursor before painting to prevent flickering
             terminal.setCursorVisible(false);
-
-            // Create a new canvas
-            // fixme remove BasicTextGrid canvas = new BasicTextGrid(targetRect.getSize());
 
             // Get drawable that intersect with the rectangle
             final List<Node> nodes = tree.getIntersectingChildNodes(targetRect);
@@ -264,8 +258,7 @@ public class Prismatic implements Container, Closeable {
 
                 // Only paint to main canvas after validation
                 if (drawableTextGrid.getSize().equals(drawableRect.getSize())) {
-                    // Paint the BasicTextGrid
-                    // todo remove BasicTextGrid.copyTo(backBuffer, targetRect.getStartPoint(), drawableTextGrid, drawableRect.getStartPoint());
+                    // Insert into backBuffer
                     drawableTextGrid.copyTo(
                             backBuffer,
                             targetIntersection.getMinY() - drawableRect.getMinY(),

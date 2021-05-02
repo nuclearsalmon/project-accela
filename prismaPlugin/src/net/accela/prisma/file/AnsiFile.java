@@ -166,8 +166,6 @@ public class AnsiFile {
             // For keeping track of the various SGRStatements
             StyleSet.Set styleSet = new StyleSet.Set();
 
-            //fixme remove
-            System.out.println("Reading file:");
             while (true) {
                 // Scan a line
                 String line = reader.readLine();
@@ -176,9 +174,6 @@ public class AnsiFile {
                 if (line == null || (line.length() > 0 && line.charAt(0) == SAUCE_INIT_CHAR)) break;
                     // Empty line
                 else if (line.length() == 0) continue;
-
-                //fixme remove
-                System.out.println(line);
 
                 // A list of textCharacters in this row
                 List<TextCharacter> textCharacterRow = new ArrayList<>();
@@ -230,17 +225,6 @@ public class AnsiFile {
                     fileLineCursor++;
                 }
 
-                //fixme remove
-                for (TextCharacter tc : textCharacterRow) {
-                    System.out.println(
-                            "char:" + tc.getCharacter() +
-                                    " | fg:'" + tc.getForegroundColor() + "'" +
-                                    " | bg:'" + tc.getBackgroundColor() + "'" +
-                                    " | mods:'" + tc.getModifiers());
-                }
-
-                //fixme remove
-                System.out.println();
                 // Add to the list of rows;
                 textCharacterRows.add(textCharacterRow);
             }
