@@ -18,7 +18,7 @@ Feel free to check out the [wiki].
   - [Telnet Provider](#telnet-provider)
 
 ## Background
-My end goal with Project Accela is to utilize the framework to create a sandboxed virtual network 
+My end goal with Project Accela is to utilize the framework to create a sandboxed virtual network "game"
 for hackers to play around in, explore and exploit. 
 I want it to be social, highly strategic and to reward those that think out of the box.
 It will look and behave somewhat similarly to a [BBS][out_bbs] or a [MUD][out_mud].
