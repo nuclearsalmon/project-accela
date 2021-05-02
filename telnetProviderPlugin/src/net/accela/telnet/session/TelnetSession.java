@@ -1,8 +1,8 @@
 package net.accela.telnet.session;
 
-import net.accela.prisma.Prismatic;
-import net.accela.prisma.session.TextGraphicsSession;
-import net.accela.prisma.terminal.Terminal;
+import net.accela.prismatic.Prismatic;
+import net.accela.prismatic.session.TextGraphicsSession;
+import net.accela.prismatic.terminal.Terminal;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;
 import net.accela.server.event.server.SessionAssignedEngineEvent;

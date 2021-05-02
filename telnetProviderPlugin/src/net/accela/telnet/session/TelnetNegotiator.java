@@ -1,6 +1,6 @@
 package net.accela.telnet.session;
 
-import net.accela.prisma.terminal.Terminal;
+import net.accela.prismatic.terminal.Terminal;
 import net.accela.telnet.Main;
 import net.accela.telnet.util.TelnetBytes;
 import org.jetbrains.annotations.NotNull;

@@ -1,6 +1,6 @@
 package net.accela.telnet.session;
 
-import net.accela.prisma.terminal.ModernTerminal;
+import net.accela.prismatic.terminal.ModernTerminal;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
