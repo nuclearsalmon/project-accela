@@ -214,16 +214,17 @@ public class Prismatic implements Container, Closeable {
             // Confirm WM status
             checkClosed();
 
-            // Get the intersection of the rect of this container vs the rect of the drawable(s)
-            final Size termSize = getTerminal().getSize(); //fixme removeme
+            // Establish terminal boundaries
+            final Size termSize = getTerminal().getSize();
             final Rect termBounds = new Rect(termSize);
             onTerminalResize(termSize);
+            // Get the intersection of the rect of this container vs the rect of the drawable(s)
             final Rect targetRect = Rect.intersection(termBounds, rect);
 
             if (targetRect == null) {
                 if (Main.DBG_RESPECT_TERMINAL_BOUNDS) {
                     throw new IllegalStateException(
-                            "\n" + rect + "\n is outside the terminal boundaries \n" + termBounds);
+                            "\n" + rect + "\n is completely outside the terminal boundaries \n" + termBounds);
                 } else {
                     return;
                 }
