@@ -13,7 +13,7 @@ Feel free to check out the [wiki].
 - [Install](#install)
 - [Usage](#usage)
 - [Modules and Plugins](#modules-and-plugins)
-  - [Server (Core)](#server-core)
+  - [Server Core](#server-core)
   - [Prismatic (Window manager)](#prismatic-window-manager)
   - [Telnet Provider](#telnet-provider)
 
@@ -59,7 +59,7 @@ Plugins are loadable modules that provide additional functionality on top of the
 They can be loaded into the server at any point during runtime 
 and will run in a sandboxed environment where they are only allowed access to certain parts of the framework.
 
-### Server (core)
+### Server Core
 This is what will provide the essential frameworks and functionality behind the project.
 Including, but not limited to:
 - Plugin, services and permissions management.
@@ -69,9 +69,9 @@ Including, but not limited to:
 through various client-server protocols (such as [Telnet][repo_telnet_provider]). 
 This is so that any future protocols can be easily implemented and interacted with in a standardized fashion.
 
-<!--Repo link: [Server (core)][repo_server]-->
+<!--Repo link: [Server (Core)][repo_server]-->
 
-### Prismatic (window manager)
+### Prismatic Window Manager
 Prismatic lets multiple plugins simultaneously provide terminal-based I/O to and from users, 
 without the plugins interfering with each other.
 
@@ -91,11 +91,11 @@ The plugin can also be configured to listen on multiple ports if needed.
 Repo link: [Telnet Provider][repo_telnet_provider]
 
 <!-- Links -->
-[repo_server]: ./server/src "Server/\"Core\""
+[repo_server]: ./server/src "Server Core"
 
 [repo_ansi_library]: prismaPlugin/src/net/accela/prisma/ansi "ANSI EscSeq library"
 
-[repo_prismatic]: ./prismaPlugin/src "Prismatic"
+[repo_prismatic]: ./prismaPlugin/src "Prismatic Window Manager"
 [repo_telnet_provider]: ./telnetProviderPlugin/src "Telnet Provider"
 
 [wiki]: https://github.com/gustavdersjo/project-accela/wiki
