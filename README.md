@@ -64,14 +64,18 @@ and will run in a sandboxed environment where they are only allowed access to ce
 
 
 ### Server Core
-The server core provides the essential frameworks and functionality behind the project. Including, but not limited to:
-- Plugin, service and permission management.
-- Sandbox security features.
-- Basic user data and permissions management.
+The server core provides the essential frameworks and functionality behind the project.
+Including, but not limited to (keep in mind some of this is not implemented yet):
+- Plugin framework.
+- Service scheduling.
+- Event-based cross-plugin communication separated by channels.
+- Sandbox security features, including a permissions system for limiting plugin access.
+- Basic user data and per-user permissions management.
 - Standard classes for creating *Session Providers* that add support for network communication
 through various client-server protocols (such as [Telnet][repo_telnet_provider]). 
 This is so that any future protocols can be easily implemented and interacted with in a standardized fashion.
-- Event-based cross-plugin communication separated by channels.
+- Logging.
+
 
 <!--Repo link: [Server (Core)][repo_server]-->
 
