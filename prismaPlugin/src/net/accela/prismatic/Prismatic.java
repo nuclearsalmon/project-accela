@@ -20,6 +20,7 @@ import net.accela.prismatic.gui.text.TextGrid;
 import net.accela.prismatic.gui.text.color.TextColor;
 import net.accela.prismatic.gui.text.effect.TextEffect;
 import net.accela.prismatic.input.lanterna.actions.KeyStroke;
+import net.accela.prismatic.input.lanterna.actions.KeyType;
 import net.accela.prismatic.session.TextGraphicsSession;
 import net.accela.prismatic.terminal.AbstractTerminal;
 import net.accela.prismatic.terminal.ModernTerminal;
@@ -425,6 +426,13 @@ public class Prismatic implements Container, Closeable {
      */
     private void performEventBroadcast(@NotNull Event event) {
         broadcastLock.lock();
+        if (event instanceof KeyStroke) {
+            KeyStroke keyStroke = (KeyStroke) event;
+            if (keyStroke.getKeyType() == KeyType.EOF) {
+                throw new IllegalStateException();
+            }
+        }
+
         try {
             pluginInstance.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
 
