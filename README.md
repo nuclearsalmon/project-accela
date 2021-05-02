@@ -1,7 +1,7 @@
 # Project Accela
 A framework for building modular, plugin-driven server software, BBSes and MUDs.
 
-It also includes a purpose built [TUI window manager](#prismawm-window-manager) (optional) that plugins can interact with,
+It also includes a purpose built [TUI window manager](#prismatic-window-manager) (optional) that plugins can interact with,
 allowing for a consistent and easy-to-use means of handling concurrent IO to and from client terminals.
 
 Feel free to check out the [wiki].
@@ -13,8 +13,8 @@ Feel free to check out the [wiki].
 - [Install](#install)
 - [Usage](#usage)
 - [Modules and Plugins](#modules-and-plugins)
-  - [Server (core)](#server-core)
-  - [PrismaWM (window manager)](#prismawm-window-manager)
+  - [Server (Core)](#server-core)
+  - [Prismatic (Window manager)](#prismatic-window-manager)
   - [Telnet Provider](#telnet-provider)
   - [Session Introducer](#session-introducer)
 
@@ -28,7 +28,7 @@ The plugins that will be used to create said environment will be publicly availa
 (though probably in a separate repository). I have plenty of plans for this "game", but that is outside the scope of this README.
 
 ## Notes
-* The full code for the [server module][repo_server] and [PrismaWM][repo_prismawm] will be uploaded at a later date,
+* The full code for the [server module][repo_server] and [Prismatic][repo_prismatic] will be uploaded at a later date,
 as it's not quite ready yet and I'm dissatisfied with the current code quality.
 * I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. 
 However, as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
@@ -72,14 +72,14 @@ This is so that any future protocols can be easily implemented and interacted wi
 
 <!--Repo link: [Server (core)][repo_server]-->
 
-### PrismaWM (window manager)
-PrismaWM lets multiple plugins simultaneously provide terminal-based I/O to and from users, 
+### Prismatic (window manager)
+Prismatic lets multiple plugins simultaneously provide terminal-based I/O to and from users, 
 without the plugins interfering with each other.
 
 It lets you build "windows" similar to how one would do for a GUI program. 
 This includes buttons, dropdown menus, input boxes, etc.
 
-Repo link: [PrismaWM Window Manager][repo_prismawm]
+Repo link: [Prismatic Window Manager][repo_prismatic]
 
 ### Telnet Provider
 A plugin that adds support for communication through the telnet protocol.
@@ -93,7 +93,7 @@ Repo link: [Telnet Provider][repo_telnet_provider]
 
 ### Session Introducer
 A simple plugin that listens for when a TextGraphicsSession is created. 
-It will attempt to load a [window manager][repo_prismawm] into the Session if it doesn't already have one loaded.
+It will attempt to load a [window manager][repo_prismatic] into the Session if it doesn't already have one loaded.
 Having a window manager makes it possible for other plugins to facilitate graphical communication with the user.
 
 The reason this is a standalone plugin rather than having this functionality being included in, say, the telnet provider
@@ -106,7 +106,7 @@ Repo link: [Session Introducer][repo_session_introducer]
 
 [repo_ansi_library]: prismaPlugin/src/net/accela/prisma/ansi "ANSI EscSeq library"
 
-[repo_prismawm]: ./prismaPlugin/src "PrismaWM"
+[repo_prismatic]: ./prismaPlugin/src "Prismatic"
 [repo_telnet_provider]: ./telnetProviderPlugin/src "Telnet Provider"
 [repo_session_introducer]: ./sessionIntroducerPlugin/src "Session Introducer"
 
