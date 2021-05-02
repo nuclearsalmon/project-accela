@@ -4,7 +4,6 @@ import java.util.regex.Pattern;
 
 /**
  * A collection of various regex patterns used for matching various ANSI control sequences.
- * Don't write any methods in this class, just regex patterns. Refer to {@link ANSIConstants} for that.
  */
 @SuppressWarnings("unused")
 public class ANSIPatterns {

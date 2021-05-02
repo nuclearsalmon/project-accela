@@ -2,7 +2,7 @@ package net.accela.prisma.gui.text;
 
 import net.accela.prisma.gui.text.color.TextColor;
 import net.accela.prisma.gui.text.effect.TextEffect;
-import net.accela.prisma.util.TerminalTextUtils;
+import net.accela.prisma.input.lanterna.TerminalTextUtils;
 import net.accela.prisma.util.WCWidth;
 import org.jetbrains.annotations.NotNull;
 

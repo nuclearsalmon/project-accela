@@ -2,7 +2,7 @@ package net.accela.prisma.sequence.advanced;
 
 import net.accela.prisma.sequence.SGRAttribute;
 import net.accela.prisma.sequence.SGRStatement;
-import net.accela.prisma.util.ANSIConstants;
+import net.accela.prisma.terminal.chars.C0ControlCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,7 +115,7 @@ public class SGRSequence extends CSISequence {
 
     @NotNull
     static String toString(@NotNull List<@NotNull SGRStatement> statements) {
-        StringBuilder stmtSB = new StringBuilder(ANSIConstants.CSI);
+        StringBuilder stmtSB = new StringBuilder(C0ControlCode.ESC + "[");
 
         for (SGRStatement stmt : statements) {
             stmtSB.append(stmt.getAttribute().getIndex());
