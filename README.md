@@ -16,7 +16,6 @@ Feel free to check out the [wiki].
   - [Server (Core)](#server-core)
   - [Prismatic (Window manager)](#prismatic-window-manager)
   - [Telnet Provider](#telnet-provider)
-  - [Session Introducer](#session-introducer)
 
 ## Background
 My end goal with Project Accela is to utilize the framework to create a sandboxed virtual network 
@@ -91,16 +90,6 @@ The plugin can also be configured to listen on multiple ports if needed.
 
 Repo link: [Telnet Provider][repo_telnet_provider]
 
-### Session Introducer
-A simple plugin that listens for when a TextGraphicsSession is created. 
-It will attempt to load a [window manager][repo_prismatic] into the Session if it doesn't already have one loaded.
-Having a window manager makes it possible for other plugins to facilitate graphical communication with the user.
-
-The reason this is a standalone plugin rather than having this functionality being included in, say, the telnet provider
-is due to modularity.
-
-Repo link: [Session Introducer][repo_session_introducer]
-
 <!-- Links -->
 [repo_server]: ./server/src "Server/\"Core\""
 
@@ -108,7 +97,6 @@ Repo link: [Session Introducer][repo_session_introducer]
 
 [repo_prismatic]: ./prismaPlugin/src "Prismatic"
 [repo_telnet_provider]: ./telnetProviderPlugin/src "Telnet Provider"
-[repo_session_introducer]: ./sessionIntroducerPlugin/src "Session Introducer"
 
 [wiki]: https://github.com/gustavdersjo/project-accela/wiki
 
