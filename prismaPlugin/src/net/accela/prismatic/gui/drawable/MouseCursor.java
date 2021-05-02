@@ -17,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MouseCursor extends Drawable implements PointMutable {
-    final TextGrid canvas;
+    final TextGrid textGrid;
     @NotNull Point point = new Point(0, 0);
 
     public MouseCursor() {
-        canvas = new BasicTextGrid(getSize());
+        textGrid = new BasicTextGrid(getSize());
     }
 
     //
@@ -90,9 +90,9 @@ public class MouseCursor extends Drawable implements PointMutable {
         int g = ThreadLocalRandom.current().nextInt(256);
         int b = ThreadLocalRandom.current().nextInt(256);
 
-        canvas.setCharacterAt(0, 0, TextCharacter.fromCharacter(':', TextColor.ANSI.DEFAULT, new TextColor.RGB(r, g, b)));
+        textGrid.setCharacterAt(0, 0, TextCharacter.fromCharacter(':', TextColor.ANSI.DEFAULT, new TextColor.RGB(r, g, b)));
 
-        return canvas;
+        return textGrid;
     }
 
     //
@@ -100,10 +100,12 @@ public class MouseCursor extends Drawable implements PointMutable {
     //
 
     @EventHandler
-    void onKeyStroke(@NotNull KeyStroke keyStroke) {
-        // Shift must be held down
-        if (!keyStroke.isShiftDown()) return;
+    void onMouseAction(@NotNull MouseAction mouseAction) {
+        setRelativePoint(mouseAction.getPosition());
+    }
 
+    @EventHandler
+    void onKeyStroke(@NotNull KeyStroke keyStroke) {
         switch (keyStroke.getKeyType()) {
             case MouseEvent:
                 setRelativePoint(((MouseAction) keyStroke).getPosition());
