@@ -76,8 +76,8 @@ public class Size {
         if (!(obj instanceof Size)) {
             return false;
         } else {
-            Size d = (Size) obj;
-            return this.width == d.width && this.height == d.height;
+            Size sizeObj = (Size) obj;
+            return this.width == sizeObj.width && this.height == sizeObj.height;
         }
     }
 

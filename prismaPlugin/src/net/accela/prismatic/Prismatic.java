@@ -71,11 +71,13 @@ public class Prismatic implements Container, Closeable {
     final BasicTextGrid backBuffer;
     final BasicTextGrid frontBuffer;
 
+    private Size previousTerminalSize;
+
     public Prismatic(@NotNull TextGraphicsSession session) throws IOException {
         this.session = session;
-        Size size = getTerminal().getSize();
-        this.backBuffer = new BasicTextGrid(size);
-        this.frontBuffer = new BasicTextGrid(size);
+        previousTerminalSize = getTerminal().getSize();
+        this.backBuffer = new BasicTextGrid(previousTerminalSize);
+        this.frontBuffer = new BasicTextGrid(previousTerminalSize);
 
         // Get plugin instance
         pluginInstance = Main.getPluginInstance();
@@ -195,14 +197,6 @@ public class Prismatic implements Container, Closeable {
         return frontBuffer;
     }
 
-    private synchronized void onTerminalResize(Size size) {
-        backBuffer.resize(size, TextCharacter.DEFAULT);
-
-        System.out.println("test: " + backBuffer.getCharacterAt(size.getWidth() - 1, size.getHeight() - 1));
-
-        frontBuffer.resize(size, TextCharacter.DEFAULT);
-    }
-
     /**
      * Draws the contents of the requested {@link Drawable}, as well as any intersecting {@link Drawable}'s.
      *
@@ -217,9 +211,9 @@ public class Prismatic implements Container, Closeable {
             // Establish terminal boundaries
             final Size termSize = getTerminal().getSize();
             final Rect termBounds = new Rect(termSize);
-            onTerminalResize(termSize);
             // Get the intersection of the rect of this container vs the rect of the drawable(s)
             final Rect targetRect = Rect.intersection(termBounds, rect);
+            onTerminalResize(termSize);
 
             if (targetRect == null) {
                 if (Main.DBG_RESPECT_TERMINAL_BOUNDS) {
@@ -535,6 +529,28 @@ public class Prismatic implements Container, Closeable {
         @EventHandler
         public void onTerminalResizeEvent(TerminalResizeEvent event) {
             onTerminalResize(event.getSize());
+        }
+    }
+
+    private synchronized void onTerminalResize(Size size) {
+        try {
+            sessionWriteLock.lock();
+
+            if (!previousTerminalSize.equals(size)) {
+                previousTerminalSize = size;
+                backBuffer.resize(size, TextCharacter.DEFAULT);
+                frontBuffer.resize(size, TextCharacter.DEFAULT);
+
+                getTerminal().resetColorAndSGR();
+                getTerminal().clear();
+                backBuffer.setAllCharacters(TextCharacter.DEFAULT);
+                frontBuffer.setAllCharacters(TextCharacter.DEFAULT);
+                paint(new Rect(size));
+            }
+        } catch (IOException e) {
+            session.getLogger().log(Level.WARNING, "Exception when clearing terminal after resize event", e);
+        } finally {
+            sessionWriteLock.unlock();
         }
     }
 }
