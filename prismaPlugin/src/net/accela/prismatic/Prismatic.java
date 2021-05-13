@@ -19,7 +19,7 @@ import net.accela.prismatic.gui.text.TextCharacter;
 import net.accela.prismatic.gui.text.TextGrid;
 import net.accela.prismatic.gui.text.color.TextColor;
 import net.accela.prismatic.gui.text.effect.TextEffect;
-import net.accela.prismatic.input.lanterna.actions.KeyStroke;
+import net.accela.prismatic.input.lanterna.actions.InputEvent;
 import net.accela.prismatic.session.TextGraphicsSession;
 import net.accela.prismatic.terminal.AbstractTerminal;
 import net.accela.prismatic.terminal.ModernTerminal;
@@ -88,11 +88,11 @@ public class Prismatic implements Container, Closeable {
             public void run() {
                 String closeReason = "Unknown";
                 while (!isInterrupted()) {
-                    KeyStroke keyStroke = null;
+                    InputEvent inputEvent = null;
                     try {
-                        keyStroke = getTerminal().pollInput();
-                        if (keyStroke == null) continue;
-                        receiveEvent(keyStroke);
+                        inputEvent = getTerminal().pollInput();
+                        if (inputEvent == null) continue;
+                        receiveEvent(inputEvent);
                     } catch (IOException ex) {
                         closeReason = "IOException";
                         ex.printStackTrace();
@@ -522,7 +522,7 @@ public class Prismatic implements Container, Closeable {
         }
 
         @EventHandler
-        public void onInputEvent(KeyStroke event) {
+        public void onInputEvent(InputEvent event) {
             receiveEvent(event);
         }
     }

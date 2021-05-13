@@ -13,7 +13,7 @@ import net.accela.prismatic.gui.text.BasicTextGrid;
 import net.accela.prismatic.gui.text.TextCharacter;
 import net.accela.prismatic.gui.text.TextGrid;
 import net.accela.prismatic.gui.text.effect.TextEffect;
-import net.accela.prismatic.input.lanterna.actions.KeyStroke;
+import net.accela.prismatic.input.lanterna.actions.InputEvent;
 import net.accela.server.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -226,12 +226,12 @@ public class InputField extends Drawable implements RectMutable {
     //
 
     @EventHandler
-    public void onKeyStroke(KeyStroke keyStroke) throws IOException {
+    public void onKeyStroke(InputEvent inputEvent) throws IOException {
         if (!isActive()) return;
 
-        switch (keyStroke.getKeyType()) {
+        switch (inputEvent.getKeyType()) {
             case Character:
-                Character character = keyStroke.getCharacter();
+                Character character = inputEvent.getCharacter();
                 if (character != null) {
                     write(character);
                     paint();

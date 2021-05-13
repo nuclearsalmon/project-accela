@@ -9,8 +9,8 @@ import net.accela.prismatic.gui.text.BasicTextGrid;
 import net.accela.prismatic.gui.text.TextCharacter;
 import net.accela.prismatic.gui.text.TextGrid;
 import net.accela.prismatic.gui.text.color.TextColor;
-import net.accela.prismatic.input.lanterna.actions.KeyStroke;
-import net.accela.prismatic.input.lanterna.actions.MouseAction;
+import net.accela.prismatic.input.events.mouse.MouseInputEvent;
+import net.accela.prismatic.input.lanterna.actions.InputEvent;
 import net.accela.server.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,15 +81,15 @@ public class MouseCursor extends Drawable implements PointMutable {
     //
 
     @EventHandler
-    void onMouseAction(@NotNull MouseAction mouseAction) {
-        setRelativePoint(mouseAction.getPosition());
+    void onMouseAction(@NotNull MouseInputEvent mouseInputEvent) {
+        setRelativePoint(mouseInputEvent.getPosition());
     }
 
     @EventHandler
-    void onKeyStroke(@NotNull KeyStroke keyStroke) {
-        switch (keyStroke.getKeyType()) {
+    void onKeyStroke(@NotNull InputEvent inputEvent) {
+        switch (inputEvent.getKeyType()) {
             case MouseEvent:
-                setRelativePoint(((MouseAction) keyStroke).getPosition());
+                setRelativePoint(((MouseInputEvent) inputEvent).getPosition());
                 break;
             case ArrowUp:
                 setRelativePoint(getRelativePoint().withRelative(0, -1));

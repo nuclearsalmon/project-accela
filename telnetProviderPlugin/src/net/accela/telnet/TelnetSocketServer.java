@@ -1,4 +1,4 @@
-package net.accela.telnet.server;
+package net.accela.telnet;
 
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;

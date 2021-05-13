@@ -1,6 +1,6 @@
 package net.accela.prismatic.annotation;
 
-import net.accela.prismatic.input.lanterna.actions.KeyStroke;
+import net.accela.prismatic.input.lanterna.actions.InputEvent;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ public interface InputProvider {
      * @throws java.io.IOException Propagated error if the underlying stream gave errors
      * @see #readInput()
      */
-    KeyStroke pollInput() throws IOException;
+    InputEvent pollInput() throws IOException;
 
     /**
      * Returns the next {@code Key} off the input queue or blocks until one is available.
@@ -29,5 +29,5 @@ public interface InputProvider {
      * @throws java.io.IOException Propagated error if the underlying stream gave errors
      * @see #pollInput()
      */
-    KeyStroke readInput() throws IOException;
+    InputEvent readInput() throws IOException;
 }

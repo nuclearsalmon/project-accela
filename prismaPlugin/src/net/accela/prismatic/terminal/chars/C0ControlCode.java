@@ -462,6 +462,10 @@ public enum C0ControlCode {
         return by;
     }
 
+    public char getChar() {
+        return (char) getByte();
+    }
+
     public @NotNull String getCaretNotation() {
         return caretNotation;
     }

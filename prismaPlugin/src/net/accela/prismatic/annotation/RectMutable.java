@@ -17,7 +17,6 @@ public interface RectMutable extends RectReadable, PointMutable, SizeMutable {
      */
     default void setAbsoluteRect(@NotNull Rect rect) throws NodeNotFoundException {
         Rect absCurrentRect = getAbsoluteRect();
-        // todo move into combine method
         Rect relNewRect = new Rect(
                 rect.getMinX() - absCurrentRect.getMinX(),
                 rect.getMinY() - absCurrentRect.getMinY(),

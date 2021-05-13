@@ -1,7 +1,6 @@
 package net.accela.telnet;
 
 import net.accela.server.plugin.java.JavaPlugin;
-import net.accela.telnet.server.TelnetSocketServer;
 
 import java.io.IOException;
 import java.util.ArrayList;

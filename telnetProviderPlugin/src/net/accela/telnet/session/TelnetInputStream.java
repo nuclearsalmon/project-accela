@@ -116,7 +116,7 @@ public class TelnetInputStream extends InputStream {
 
     void parseCommand(byte[] buffer, int position, int max) throws IOException {
         if (position + 1 >= max) {
-            throw new IllegalStateException("State error, we got a command signal from the remote telnet client but "
+            throw new IllegalStateException("We got a command signal from the remote telnet client but "
                     + "not enough characters available in the stream");
         }
         byte command = buffer[position];

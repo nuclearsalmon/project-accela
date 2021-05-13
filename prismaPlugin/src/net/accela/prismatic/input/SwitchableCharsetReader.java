@@ -19,6 +19,10 @@ import java.nio.charset.CodingErrorAction;
  * meaning the decoding charset can be switched on the fly.
  * <p>
  * todo test if it works
+ * <p>
+ * todo figure out/try and remember why I didn't end up using this (I'm using {@link StreamDecoder} instead),
+ * and if it's safe to delete. The code is clearly different from {@link StreamDecoder},
+ * but I'm not sure what is functionally different.
  */
 @SuppressWarnings("SynchronizeOnNonFinalField")
 public class SwitchableCharsetReader extends Reader {

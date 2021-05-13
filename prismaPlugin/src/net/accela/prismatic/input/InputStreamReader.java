@@ -7,6 +7,12 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 
+/**
+ * Derived from decompiled classes and various github findings.
+ * It's not actually used in the code (hence the @Deprecated), but it gets to stay as a reference piece.
+ * It was used as reference when making {@link StreamDecoder} and {@link SwitchableCharsetReader}.
+ */
+@Deprecated
 public class InputStreamReader extends Reader {
     private final StreamDecoder sd;
 

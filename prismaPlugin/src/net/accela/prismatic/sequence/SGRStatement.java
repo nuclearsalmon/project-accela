@@ -113,7 +113,7 @@ public class SGRStatement {
             for (int index = 0; index < intValues.size(); index++) {
                 final int typeAsInt = intValues.get(index);
                 // If it has arguments
-                // fixme migrate to using the methods provided by SGRAttribute for arguments.
+                // todo migrate to using the methods provided by SGRAttribute for arguments.
                 if (typeAsInt == 38 | typeAsInt == 48 | typeAsInt == 58) {
                     // Advance by one
                     index++;

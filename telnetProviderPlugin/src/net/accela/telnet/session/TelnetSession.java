@@ -6,7 +6,7 @@ import net.accela.prismatic.terminal.Terminal;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;
 import net.accela.server.event.server.SessionAssignedEngineEvent;
-import net.accela.telnet.server.TelnetSocketServer;
+import net.accela.telnet.TelnetSocketServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
