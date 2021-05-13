@@ -24,13 +24,13 @@
 .*.sw[a-p]
 
 ## ignore builds and outputs
-/out
-/build
-/bin
-/dist
+/out/
+/build/
+/bin/
+/dist/
 /manifest.mf
 # just a folder with compiled plugins
-/trustedPlugins
+/trustedPlugins/
 
 ## ignore backups
 *~
@@ -38,10 +38,11 @@
 
 ## various other potentially unwanted files and directories
 # custom server configuration files
-/config
+/config/
 # data created by the server
-/data
+/data/
 # just logs about what I've been working on, this should not be included
-/school
+/school/
 # don't include libraries, that would be against copyright (I think?)
-/lib
+/lib/
+/old/
