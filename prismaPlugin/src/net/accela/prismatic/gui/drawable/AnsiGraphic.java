@@ -6,16 +6,18 @@ import net.accela.prismatic.gui.Drawable;
 import net.accela.prismatic.gui.drawabletree.NodeNotFoundException;
 import net.accela.prismatic.gui.geometry.Point;
 import net.accela.prismatic.gui.geometry.Rect;
+import net.accela.prismatic.gui.geometry.Size;
 import net.accela.prismatic.gui.text.TextGrid;
 import org.jetbrains.annotations.NotNull;
 
 public class AnsiGraphic extends Drawable implements PointMutable {
     final AnsiFile ansiFile;
-
-    Point point = new Point();
+    final TextGrid textGrid;
 
     public AnsiGraphic(@NotNull AnsiFile ansiFile) {
+        super(new Rect(ansiFile.getTextGrid().getSize()));
         this.ansiFile = ansiFile;
+        this.textGrid = ansiFile.getTextGrid();
     }
 
     //
@@ -71,25 +73,11 @@ public class AnsiGraphic extends Drawable implements PointMutable {
      */
     @Override
     public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
-        Rect oldRect = getRelativeRect();
-        this.point = point;
-        Rect newRect = getRelativeRect();
-        paintAfterGeometryChange(oldRect, newRect);
+        internalSetPoint(point);
     }
 
-    /**
-     * @return This {@link Drawable}'s relative position.
-     */
     @Override
-    public @NotNull Point getRelativePoint() {
-        return point;
-    }
-
-    /**
-     * @return The size and relative position of this {@link Drawable}.
-     */
-    @Override
-    public @NotNull Rect getRelativeRect() throws NodeNotFoundException {
-        return new Rect(point, getTextGrid().getSize());
+    protected void onResizeBeforePainting(@NotNull Size oldSize, @NotNull Size newSize) {
+        textGrid.resize(newSize);
     }
 }

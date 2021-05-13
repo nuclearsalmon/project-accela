@@ -173,7 +173,7 @@ public class Branch extends Node {
     }
 
     //
-    // Priority
+    // NodePriority
     //
 
     /**
@@ -181,19 +181,19 @@ public class Branch extends Node {
      * @param top      True for top index, false for bottom index
      * @return -1 means not found, anything over that is a valid index.
      */
-    int getIndexByPriority(final @NotNull Priority priority, final boolean top) {
+    int getIndexByPriority(final @NotNull NodePriority priority, final boolean top) {
         synchronized (childNodeList) {
             int lastIndex = 0;
             if (top) {
                 for (int i = childNodeList.size() - 1; i >= 0; i--) {
-                    Priority currentPriority = childNodeList.get(i).priority;
+                    NodePriority currentPriority = childNodeList.get(i).priority;
 
                     if (currentPriority.ordinal() < priority.ordinal()) return lastIndex;
                     else lastIndex = i;
                 }
             } else {
                 for (int i = 0; i < childNodeList.size(); i++) {
-                    Priority currentPriority = childNodeList.get(i).priority;
+                    NodePriority currentPriority = childNodeList.get(i).priority;
 
                     if (currentPriority.ordinal() > priority.ordinal()) return lastIndex;
                     else lastIndex = i;
@@ -204,28 +204,28 @@ public class Branch extends Node {
     }
 
     /**
-     * Assigns a {@link Priority} to a {@link Node}, and moves it accordingly.
+     * Assigns a {@link NodePriority} to a {@link Node}, and moves it accordingly.
      *
-     * @param node     the {@link Node} to set a {@link Priority} for.
-     * @param priority the {@link Priority} to set.
+     * @param node     the {@link Node} to set a {@link NodePriority} for.
+     * @param priority the {@link NodePriority} to set.
      */
-    public void setPriority(@NotNull Node node, @NotNull Priority priority) {
+    public void setPriority(@NotNull Node node, @NotNull NodePriority priority) {
         setPriority(node, priority, false);
     }
 
     /**
-     * Assigns a {@link Priority} to a {@link Node}, and moves it accordingly.
+     * Assigns a {@link NodePriority} to a {@link Node}, and moves it accordingly.
      *
-     * @param node      the {@link Node} to set a {@link Priority} for.
-     * @param priority  the {@link Priority} to set.
+     * @param node      the {@link Node} to set a {@link NodePriority} for.
+     * @param priority  the {@link NodePriority} to set.
      * @param moveToTop whether to move to top or bottom.
      */
-    public void setPriority(@NotNull Node node, @NotNull Priority priority, boolean moveToTop) {
+    public void setPriority(@NotNull Node node, @NotNull NodePriority priority, boolean moveToTop) {
         synchronized (childNodeList) {
             if (priority.ordinal() < DrawableTree.PRIORITY_MIN_ALLOWED.ordinal()
                     || priority.ordinal() > DrawableTree.PRIORITY_MAX_ALLOWED.ordinal()) {
                 throw new IllegalArgumentException(String.format(
-                        "Priority %s is not within the allowed range of (%s - %s)",
+                        "NodePriority %s is not within the allowed range of (%s - %s)",
                         priority, DrawableTree.PRIORITY_MIN_ALLOWED, DrawableTree.PRIORITY_MAX_ALLOWED
                 ));
             } else {
@@ -245,14 +245,14 @@ public class Branch extends Node {
 
     /**
      * Adds a {@link Node} to the child {@link Node} list,
-     * at the correct index. The index is derived based on the {@link Node}'s {@link Priority}.
+     * at the correct index. The index is derived based on the {@link Node}'s {@link NodePriority}.
      *
      * @param node the node to add.
      * @param top  whether to prefer adding to the top or bottom of the matching priorities.
      */
     @SuppressWarnings("SameParameterValue")
     void addNodeCorrectly(@NotNull Node node, boolean top) {
-        Priority priority = node.getPriority();
+        NodePriority priority = node.getPriority();
 
         synchronized (childNodeList) {
             childNodeList.add(getIndexByPriority(priority, top), node);

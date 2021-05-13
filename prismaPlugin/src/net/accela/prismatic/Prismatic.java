@@ -211,10 +211,13 @@ public class Prismatic implements Container, Closeable {
             // Establish terminal boundaries
             final Size termSize = getTerminal().getSize();
             final Rect termBounds = new Rect(termSize);
-            // Get the intersection of the rect of this container vs the rect of the drawable(s)
-            final Rect targetRect = Rect.intersection(termBounds, rect);
+            // Update buffers if resized. Not doing this before drawing will result in exceptions.
             onTerminalResize(termSize);
 
+            // Get the intersection of the rect of this container vs the requested rect
+            final Rect targetRect = Rect.intersection(termBounds, rect);
+
+            // Check out of bounds behaviour
             if (targetRect == null) {
                 if (Main.DBG_RESPECT_TERMINAL_BOUNDS) {
                     throw new IllegalStateException(
@@ -230,9 +233,6 @@ public class Prismatic implements Container, Closeable {
                     backBuffer.setCharacterAt(x, y, TextCharacter.DEFAULT);
                 }
             }
-
-            // Hide the cursor before painting to prevent flickering
-            getTerminal().setCursorVisible(false);
 
             // Get drawable that intersect with the rectangle
             final List<Node> nodes = tree.getIntersectingChildNodes(targetRect);
@@ -267,9 +267,11 @@ public class Prismatic implements Container, Closeable {
                     );
                 } else {
                     // Warn and add Drawable to list of bad Drawables
-                    String warnMsg = drawable.toString() + "\n"
-                            + drawableTextGrid + "\n"
-                            + " tried to pass a BasicTextGrid with non-matching Size dimensions. The Drawable will be detached.";
+                    String warnMsg = "\n"
+                            + drawable.toString() + "\n"
+                            + "vs \n"
+                            + drawableTextGrid.getSize() + ".\n"
+                            + "Tried to pass a Drawable with non-matching Size dimensions. The Drawable will be detached.";
                     throw new IllegalStateException(warnMsg);
                 }
             }
@@ -300,6 +302,9 @@ public class Prismatic implements Container, Closeable {
 
             // If no updates are necessary
             if (updateMap.isEmpty()) return;
+
+            // Hide the cursor before painting to prevent flickering
+            getTerminal().setCursorVisible(false);
 
             // Set first values
             Point currentPosition = updateMap.keySet().iterator().next();

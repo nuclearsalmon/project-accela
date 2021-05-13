@@ -18,9 +18,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class MouseCursor extends Drawable implements PointMutable {
     final TextGrid textGrid;
-    @NotNull Point point = new Point(0, 0);
 
     public MouseCursor() {
+        super(new Rect());
         textGrid = new BasicTextGrid(getSize());
     }
 
@@ -57,26 +57,7 @@ public class MouseCursor extends Drawable implements PointMutable {
      */
     @Override
     public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
-        Rect oldRect = getRelativeRect();
-        this.point = point;
-        Rect newRect = getRelativeRect();
-        paintAfterGeometryChange(oldRect, newRect);
-    }
-
-    /**
-     * @return The size and relative position of this {@link Drawable}.
-     */
-    @Override
-    public @NotNull Rect getRelativeRect() throws NodeNotFoundException {
-        return new Rect(point);
-    }
-
-    /**
-     * @return This {@link Drawable}'s relative position.
-     */
-    @Override
-    public @NotNull Point getRelativePoint() {
-        return point;
+        internalSetPoint(point);
     }
 
     //

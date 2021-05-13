@@ -1,7 +1,7 @@
 package net.accela.prismatic.gui.drawabletree;
 
-public enum Priority {
+public enum NodePriority {
     LOW, LOWEST, NORMAL, HIGHEST, HIGH;
 
-    public static final Priority DEFAULT_VALUE = NORMAL;
+    public static final NodePriority DEFAULT_VALUE = NORMAL;
 }

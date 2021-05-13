@@ -25,6 +25,13 @@ public interface TextGrid extends Scrollable {
     /**
      * Resizes this {@link TextGrid}.
      *
+     * @param newSize The new {@link Size}.
+     */
+    void resize(@NotNull Size newSize);
+
+    /**
+     * Resizes this {@link TextGrid}.
+     *
      * @param newSize      The new {@link Size}.
      * @param newCharacter A {@link TextCharacter} to fill in empty areas caused by the resize.
      */

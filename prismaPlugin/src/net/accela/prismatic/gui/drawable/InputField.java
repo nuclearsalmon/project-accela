@@ -29,14 +29,13 @@ public class InputField extends Drawable implements RectMutable {
     protected TextEffect inactiveTextEffect = null;
 
     protected BasicTextGrid canvas;
-    protected Point point;
 
     int base = 0;
     int offset = 0;
 
     public InputField(@NotNull Rect rect) {
+        super(rect);
         this.canvas = new BasicTextGrid(rect.getSize());
-        this.point = rect.getStartPoint();
     }
 
     //
@@ -92,32 +91,15 @@ public class InputField extends Drawable implements RectMutable {
      */
     @Override
     public void setRelativePoint(@NotNull Point point) throws NodeNotFoundException {
-        this.point = point;
+        internalSetPoint(point);
     }
 
     @Override
     public void setRelativeRect(@NotNull Rect rect) {
         synchronized (this) {
             if (rect.getHeight() != 1) throw new RectOutOfBoundsException("Height must be 1");
-            point = rect.getStartPoint();
-            getTextGrid().resize(rect.getSize(), TextCharacter.DEFAULT);
+            internalSetRect(rect);
         }
-    }
-
-    /**
-     * @return The size and relative position of this {@link Drawable}.
-     */
-    @Override
-    public @NotNull Rect getRelativeRect() {
-        return new Rect(point, canvas.getSize());
-    }
-
-    /**
-     * @return This {@link Drawable}'s relative position.
-     */
-    @Override
-    public @NotNull Point getRelativePoint() {
-        return point;
     }
 
     //
@@ -291,14 +273,17 @@ public class InputField extends Drawable implements RectMutable {
         }
     }
 
-    @Override
+    @EventHandler
     public void onActivation(ActivationEvent event) throws NodeNotFoundException, IOException {
-        super.onActivation(event);
-
         DrawableIdentifier identifier = event.getTarget();
         isActive = identifier == this.identifier;
 
         apply();
         paint();
+    }
+
+    @Override
+    protected void onResizeBeforePainting(@NotNull Size oldSize, @NotNull Size newSize) {
+        getTextGrid().resize(newSize);
     }
 }

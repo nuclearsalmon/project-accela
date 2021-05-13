@@ -12,6 +12,7 @@ import net.accela.prismatic.gui.drawabletree.Node;
 import net.accela.prismatic.gui.drawabletree.NodeNotFoundException;
 import net.accela.prismatic.gui.geometry.Point;
 import net.accela.prismatic.gui.geometry.Rect;
+import net.accela.prismatic.gui.geometry.Size;
 import net.accela.prismatic.gui.text.TextGrid;
 import net.accela.server.event.EventChannel;
 import net.accela.server.event.EventHandler;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 public abstract class Drawable implements RectReadable, Listener, SelfPainter {
+
     /**
      * The EventChannel for this drawable.
      */
@@ -45,7 +47,10 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      */
     private @Nullable Node cachedNode;
 
-    public Drawable() {
+    private @NotNull Rect rect;
+
+    public Drawable(@NotNull Rect rect) {
+        this.rect = rect;
     }
 
     //
@@ -76,7 +81,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     }
 
     public @NotNull Point getAbsoluteCursorRestingPoint() throws NodeNotFoundException {
-        Rect absRect = getAbsoluteRect();
+        final Rect absRect = getAbsoluteRect();
         int x = absRect.getMinX(), y = absRect.getMinY();
         // Ensure that it's not negative, if it is then correct it
         if (x < 0) x = 0;
@@ -113,22 +118,10 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     @NotNull
     public abstract TextGrid getTextGrid() throws NodeNotFoundException;
 
+    // todo make abstract, don't favour certain implementations when equal
     @NotNull
     public TextGrid getTextGrid(@NotNull Rect rect) throws NodeNotFoundException {
         return getTextGrid().getCrop(rect);
-    }
-
-    protected final void paintAfterGeometryChange(@NotNull Rect oldRect, @NotNull Rect newRect) {
-        try {
-            ItemPainter painter = findPainter();
-            if (Rect.intersects(oldRect, newRect)) {
-                painter.paint(Rect.combine(oldRect, newRect));
-            } else {
-                painter.paint(oldRect);
-                painter.paint(newRect);
-            }
-        } catch (NodeNotFoundException | IOException ignored) {
-        }
     }
 
     //
@@ -153,8 +146,9 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      * Synonymous to {@link Container#detach(Drawable)}.
      */
     public final void detach() throws NodeNotFoundException, IOException {
-        Node selfNode = findNode();
-        Branch parentNode = selfNode.getParent();
+        final Node selfNode = findNode();
+        final Branch parentNode = selfNode.getParent();
+
         if (parentNode != null) parentNode.getDrawable().detach(this);
         else selfNode.getWindowManager().detach(this);
     }
@@ -201,21 +195,22 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     }
 
     public final @Nullable DrawableContainer findParentContainer() throws NodeNotFoundException {
-        Node selfNode = findNode();
-        Branch parentNode = selfNode.getParent();
+        final Node selfNode = findNode();
+        final Branch parentNode = selfNode.getParent();
+
         if (parentNode != null) return parentNode.getDrawable();
         else return null;
     }
 
     public final @NotNull ItemPainter findPainter() throws NodeNotFoundException {
-        Node selfNode = findNode();
-        Branch parentNode = selfNode.getParent();
+        final Node selfNode = findNode();
+        final Branch parentNode = selfNode.getParent();
 
         return parentNode == null ? selfNode.getWindowManager() : parentNode.getDrawable();
     }
 
     //
-    // Positioning
+    // Size and position (reading)
     //
 
     /**
@@ -223,11 +218,11 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      */
     @NotNull
     public final Rect getAbsoluteRect() throws NodeNotFoundException {
-        Rect thisRect = getRelativeRect();
+        final Rect thisRect = getRelativeRect();
 
         DrawableContainer parentContainer = findParentContainer();
         if (parentContainer != null) {
-            Rect absParentRect = parentContainer.getAbsoluteRect();
+            final Rect absParentRect = parentContainer.getAbsoluteRect();
             return new Rect(
                     absParentRect.getMinX() + thisRect.getMinX(),
                     absParentRect.getMinY() + thisRect.getMinY(),
@@ -243,11 +238,11 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      * @return This {@link Drawable}'s absolute position.
      */
     public final @NotNull Point getAbsolutePoint() throws NodeNotFoundException {
-        Point thisPoint = getRelativePoint();
+        final Point thisPoint = getRelativePoint();
 
-        DrawableContainer parentContainer = findParentContainer();
+        final DrawableContainer parentContainer = findParentContainer();
         if (parentContainer != null) {
-            Point absParentPoint = parentContainer.getAbsolutePoint();
+            final Point absParentPoint = parentContainer.getAbsolutePoint();
             return new Point(
                     absParentPoint.getX() + thisPoint.getX(),
                     absParentPoint.getY() + thisPoint.getY()
@@ -257,14 +252,79 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
         }
     }
 
+    /**
+     * @return The size and relative position of this {@link Drawable}.
+     */
+    @Override
+    public final @NotNull Rect getRelativeRect() throws NodeNotFoundException {
+        return rect;
+    }
+
+    /**
+     * @return This {@link Drawable}'s relative position.
+     */
+    @Override
+    public final @NotNull Point getRelativePoint() {
+        return rect.getStartPoint();
+    }
+
+    //
+    // Size and position (writing)
+    //
+
+    protected void internalSetPoint(@NotNull Point point) {
+        synchronized (this) {
+            internalSetRect(new Rect(point, this.rect.getSize()));
+        }
+    }
+
+    protected void internalSetSize(@NotNull Size size) {
+        synchronized (this) {
+            internalSetRect(new Rect(this.rect.getStartPoint(), size));
+        }
+    }
+
+    protected void internalSetRect(@NotNull Rect rect) {
+        synchronized (this) {
+            final Rect oldRect = this.rect;
+            this.rect = rect;
+
+            // Perform actions before painting (such as resizing buffers)
+            if (!oldRect.getSize().equals(rect.getSize())) {
+                onResizeBeforePainting(oldRect.getSize(), rect.getSize());
+            }
+
+            // Repaint
+            try {
+                ItemPainter painter = findPainter();
+
+                if (Rect.intersects(oldRect, rect)) {
+                    painter.paint(Rect.combine(oldRect, rect));
+                } else {
+                    painter.paint(oldRect);
+                    painter.paint(rect);
+                }
+            } catch (NodeNotFoundException | IOException ignored) {
+            }
+        }
+    }
+
+    /**
+     * Used for performing actions before painting (such as resizing buffers)
+     *
+     * @param oldSize The old size.
+     * @param newSize The new size.
+     */
+    protected void onResizeBeforePainting(@NotNull Size oldSize, @NotNull Size newSize) {
+    }
+
     //
     // Events
     //
 
     /**
-     * A default/built-in reaction to {@link ActivationEvent}s.
+     * A default reaction to {@link ActivationEvent}s.
      * It is used to track whether or not this {@link Drawable} is active or inactive.<br>
-     * Feel free to override it with custom code if so is desired.
      *
      * @param event An {@link ActivationEvent}.
      * @throws NodeNotFoundException If self node isn't found.
@@ -273,9 +333,9 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      * @see ActivationEvent
      */
     @EventHandler
-    protected void onActivation(ActivationEvent event) throws NodeNotFoundException, IOException {
+    private void onActivation(ActivationEvent event) throws NodeNotFoundException {
         DrawableIdentifier identifier = event.getTarget();
-        isActive = identifier == this.identifier || identifier == null;
+        this.isActive = identifier == this.identifier || identifier == null;
     }
 
     //
@@ -285,7 +345,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     @Override
     public String toString() {
         try {
-            return super.toString() + " : \nrect=" + getRelativeRect();
+            return super.toString() + "{rect=" + getRelativeRect() + "}";
         } catch (NodeNotFoundException e) {
             e.printStackTrace();
         }

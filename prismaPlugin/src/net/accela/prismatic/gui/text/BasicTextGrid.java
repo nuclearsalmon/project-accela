@@ -93,6 +93,11 @@ public class BasicTextGrid implements TextGrid {
     }
 
     @Override
+    public void resize(@NotNull Size newSize) {
+        resize(newSize, TextCharacter.DEFAULT);
+    }
+
+    @Override
     public void resize(@NotNull Size newSize, @NotNull TextCharacter filler) {
         if (newSize.getHeight() == buffer.length && newSize.getWidth() == buffer[0].length) {
             return;

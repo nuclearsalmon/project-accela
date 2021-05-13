@@ -30,8 +30,10 @@ public class Node {
     /** The {@link Plugin} that created this node */
     public final @NotNull Plugin plugin;
 
-    /** Represents layering and focus priority */
-    @NotNull Priority priority = Priority.DEFAULT_VALUE;
+    /**
+     * Represents layering and focus priority
+     */
+    @NotNull NodePriority priority = NodePriority.DEFAULT_VALUE;
 
     /**
      * DO NOT instantiate manually.
@@ -117,19 +119,19 @@ public class Node {
     }
 
     //
-    // Priority
+    // NodePriority
     //
 
     /**
      * Asks the parent or tree to set this {@link Node}'s priority.
      *
      * @param priority The priority requested
-     * @see Branch#setPriority(Node, Priority)
-     * @see Branch#setPriority(Node, Priority, boolean)
-     * @see DrawableTree#setPriority(Node, Priority)
-     * @see DrawableTree#setPriority(Node, Priority, boolean)
+     * @see Branch#setPriority(Node, NodePriority)
+     * @see Branch#setPriority(Node, NodePriority, boolean)
+     * @see DrawableTree#setPriority(Node, NodePriority)
+     * @see DrawableTree#setPriority(Node, NodePriority, boolean)
      */
-    public final void setPriority(@NotNull Priority priority) {
+    public final void setPriority(@NotNull NodePriority priority) {
         if (parent != null) {
             parent.setPriority(this, priority);
         } else {
@@ -137,7 +139,7 @@ public class Node {
         }
     }
 
-    public final @NotNull Priority getPriority() {
+    public final @NotNull NodePriority getPriority() {
         return priority;
     }
 }
