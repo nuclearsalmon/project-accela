@@ -169,11 +169,15 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
             this.cachedNode = DrawableTree.getNode(this);
         }
 
-        // Confirm that the node is not null (null = not found), and that it's alive.
-        if (!(cachedNode != null && this.cachedNode.isAlive())) {
+        // Confirm that the node is not null (null = not found)
+        if (cachedNode == null) {
+            throw new NodeNotFoundException("Self node not found (null)");
+        }
+        // Confirm that the node isn't dead.
+        if (!this.cachedNode.isAlive()) {
             // Set it to null so that we don't maintain any references to dead nodes.
             this.cachedNode = null;
-            throw new NodeNotFoundException("Self node not found");
+            throw new NodeNotFoundException("Self node not found (dead node)");
         }
 
         // All went smoothly, let's return the node
