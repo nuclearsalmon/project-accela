@@ -1,6 +1,6 @@
 package net.accela.prismatic.behaviour;
 
-import net.accela.prismatic.terminal.chars.C0ControlCode;
+import net.accela.prismatic.util.chars.C0ControlCode;
 
 /**
  * <a href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking">

@@ -1,4 +1,4 @@
-package net.accela.prismatic.terminal.chars;
+package net.accela.prismatic.util.chars;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

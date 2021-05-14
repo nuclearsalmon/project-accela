@@ -2,7 +2,7 @@ package net.accela.prismatic.sequence.advanced;
 
 import net.accela.prismatic.sequence.SGRAttribute;
 import net.accela.prismatic.sequence.SGRStatement;
-import net.accela.prismatic.terminal.chars.C0ControlCode;
+import net.accela.prismatic.util.chars.C0ControlCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
