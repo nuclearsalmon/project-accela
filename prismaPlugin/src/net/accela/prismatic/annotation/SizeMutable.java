@@ -1,7 +1,6 @@
 package net.accela.prismatic.annotation;
 
-import net.accela.prismatic.gui.drawabletree.NodeNotFoundException;
-import net.accela.prismatic.gui.geometry.Size;
+import net.accela.prismatic.ui.geometry.Size;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -9,13 +8,13 @@ public interface SizeMutable extends SizeReadable {
     /**
      * @param size The size of this.
      */
-    void setSize(@NotNull Size size) throws NodeNotFoundException;
+    void setSize(@NotNull Size size);
 
     /**
      * @param width  The width of this.
      * @param height The height of this.
      */
-    default void setSize(int width, int height) throws NodeNotFoundException {
+    default void setSize(int width, int height) {
         setSize(new Size(width, height));
     }
 

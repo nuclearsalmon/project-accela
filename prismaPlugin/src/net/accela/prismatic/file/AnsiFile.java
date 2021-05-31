@@ -1,11 +1,11 @@
 package net.accela.prismatic.file;
 
-import net.accela.prismatic.gui.geometry.Size;
-import net.accela.prismatic.gui.text.BasicTextGrid;
-import net.accela.prismatic.gui.text.TextCharacter;
-import net.accela.prismatic.gui.text.effect.StyleSet;
 import net.accela.prismatic.sequence.SGRStatement;
 import net.accela.prismatic.terminal.Terminal;
+import net.accela.prismatic.ui.geometry.Size;
+import net.accela.prismatic.ui.text.BasicTextGrid;
+import net.accela.prismatic.ui.text.TextCharacter;
+import net.accela.prismatic.ui.text.effect.StyleSet;
 import net.accela.prismatic.util.ANSIPatterns;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

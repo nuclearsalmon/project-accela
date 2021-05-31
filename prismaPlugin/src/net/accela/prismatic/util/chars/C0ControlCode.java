@@ -342,7 +342,7 @@ public enum C0ControlCode {
      * If used for hierarchical levels, US is the lowest level (dividing plain-text data items),
      * while RS, GS, and FS are of increasing level to divide groups made up of items of the level beneath it.
      * The Unix info format uses US, followed by an optional form-feed and a line break,
-     * to mark the beginning of a node.
+     * to mark the beginning of a tree.
      * MARC 21 uses US as a subfield delimiter, RS as a field terminator and GS as a record terminator.
      * In the current edition of IPTC 7901, if they are not used for other purposes,
      * US is recommended for use as a column separator in tables, FS as a "Central Field Separator" in tables,
@@ -360,7 +360,7 @@ public enum C0ControlCode {
      * If used for hierarchical levels, US is the lowest level (dividing plain-text data items),
      * while RS, GS, and FS are of increasing level to divide groups made up of items of the level beneath it.
      * The Unix info format uses US, followed by an optional form-feed and a line break,
-     * to mark the beginning of a node.
+     * to mark the beginning of a tree.
      * MARC 21 uses US as a subfield delimiter, RS as a field terminator and GS as a record terminator.
      * In the current edition of IPTC 7901, if they are not used for other purposes,
      * US is recommended for use as a column separator in tables, FS as a "Central Field Separator" in tables,
@@ -378,7 +378,7 @@ public enum C0ControlCode {
      * If used for hierarchical levels, US is the lowest level (dividing plain-text data items),
      * while RS, GS, and FS are of increasing level to divide groups made up of items of the level beneath it.
      * The Unix info format uses US, followed by an optional form-feed and a line break,
-     * to mark the beginning of a node.
+     * to mark the beginning of a tree.
      * MARC 21 uses US as a subfield delimiter, RS as a field terminator and GS as a record terminator.
      * In the current edition of IPTC 7901, if they are not used for other purposes,
      * US is recommended for use as a column separator in tables, FS as a "Central Field Separator" in tables,
@@ -397,7 +397,7 @@ public enum C0ControlCode {
      * If used for hierarchical levels, US is the lowest level (dividing plain-text data items),
      * while RS, GS, and FS are of increasing level to divide groups made up of items of the level beneath it.
      * The Unix info format uses US, followed by an optional form-feed and a line break,
-     * to mark the beginning of a node.
+     * to mark the beginning of a tree.
      * MARC 21 uses US as a subfield delimiter, RS as a field terminator and GS as a record terminator.
      * In the current edition of IPTC 7901, if they are not used for other purposes,
      * US is recommended for use as a column separator in tables, FS as a "Central Field Separator" in tables,

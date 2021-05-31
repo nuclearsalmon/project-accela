@@ -1,6 +1,5 @@
 package net.accela.prismatic;
 
-import net.accela.prismatic.gui.DrawableContainer;
 import net.accela.prismatic.session.TextGraphicsSession;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;

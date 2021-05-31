@@ -45,9 +45,14 @@ public final class TelnetSession extends TextGraphicsSession {
         try {
             // Close the deprecated WindowManager
             if (windowManager != null) {
-                windowManager.close();
-                // Remove object references
-                windowManager = null;
+                try {
+                    windowManager.close();
+                } catch (IOException e) {
+                    getLogger().log(Level.SEVERE, "Failed to close window manager", e);
+                } finally {
+                    // Remove object reference
+                    windowManager = null;
+                }
             }
 
             // Get a constructor

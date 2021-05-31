@@ -1,7 +1,5 @@
 package net.accela.prismatic.annotation;
 
-import net.accela.prismatic.gui.drawabletree.NodeNotFoundException;
-
 import java.io.IOException;
 
 /**
@@ -11,5 +9,5 @@ public interface SelfPainter {
     /**
      * Draws itself
      */
-    void paint() throws NodeNotFoundException, IOException;
+    void paint() throws IOException;
 }

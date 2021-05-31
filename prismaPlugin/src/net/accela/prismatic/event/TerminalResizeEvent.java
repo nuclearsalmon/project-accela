@@ -1,6 +1,6 @@
 package net.accela.prismatic.event;
 
-import net.accela.prismatic.gui.geometry.Size;
+import net.accela.prismatic.ui.geometry.Size;
 import net.accela.server.event.Event;
 import org.jetbrains.annotations.NotNull;
 

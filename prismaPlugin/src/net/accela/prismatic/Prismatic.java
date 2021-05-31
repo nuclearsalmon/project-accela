@@ -1,28 +1,21 @@
 package net.accela.prismatic;
 
-import net.accela.prismatic.annotation.Container;
 import net.accela.prismatic.behaviour.MouseCaptureMode;
-import net.accela.prismatic.event.ActivationEvent;
+import net.accela.prismatic.event.FocusEvent;
 import net.accela.prismatic.event.TerminalResizeEvent;
-import net.accela.prismatic.gui.Drawable;
-import net.accela.prismatic.gui.DrawableContainer;
-import net.accela.prismatic.gui.drawabletree.Branch;
-import net.accela.prismatic.gui.drawabletree.DrawableTree;
-import net.accela.prismatic.gui.drawabletree.Node;
-import net.accela.prismatic.gui.drawabletree.NodeNotFoundException;
-import net.accela.prismatic.gui.geometry.Point;
-import net.accela.prismatic.gui.geometry.Rect;
-import net.accela.prismatic.gui.geometry.Size;
-import net.accela.prismatic.gui.geometry.exception.RectOutOfBoundsException;
-import net.accela.prismatic.gui.text.BasicTextGrid;
-import net.accela.prismatic.gui.text.TextCharacter;
-import net.accela.prismatic.gui.text.TextGrid;
-import net.accela.prismatic.gui.text.color.TextColor;
-import net.accela.prismatic.gui.text.effect.TextEffect;
 import net.accela.prismatic.input.lanterna.actions.InputEvent;
 import net.accela.prismatic.session.TextGraphicsSession;
 import net.accela.prismatic.terminal.AbstractTerminal;
 import net.accela.prismatic.terminal.ModernTerminal;
+import net.accela.prismatic.ui.geometry.Point;
+import net.accela.prismatic.ui.geometry.Rect;
+import net.accela.prismatic.ui.geometry.Size;
+import net.accela.prismatic.ui.geometry.exception.RectOutOfBoundsException;
+import net.accela.prismatic.ui.text.BasicTextGrid;
+import net.accela.prismatic.ui.text.TextCharacter;
+import net.accela.prismatic.ui.text.TextGrid;
+import net.accela.prismatic.ui.text.color.TextColor;
+import net.accela.prismatic.ui.text.effect.TextEffect;
 import net.accela.server.AccelaAPI;
 import net.accela.server.event.Event;
 import net.accela.server.event.EventChannel;
@@ -30,6 +23,7 @@ import net.accela.server.event.EventHandler;
 import net.accela.server.event.Listener;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,7 +32,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
-public class Prismatic implements Container, Closeable {
+public class Prismatic implements ContainerInterface, Closeable {
     /**
      * The session hosting this
      */
@@ -56,10 +50,6 @@ public class Prismatic implements Container, Closeable {
 
     boolean isClosed = false;
 
-    /**
-     * The {@link DrawableTree} representing all {@link Drawable}s attached to {@link Prismatic}
-     */
-    final DrawableTree tree = new DrawableTree(this);
 
     final BroadcastListener broadcastListener = new BroadcastListener();
 
@@ -72,6 +62,14 @@ public class Prismatic implements Container, Closeable {
     final BasicTextGrid frontBuffer;
 
     private Size previousTerminalSize;
+
+    protected final List<@NotNull Drawable> childDrawables = new LinkedList<>();
+    protected @Nullable DrawableIdentifier focusTarget;
+
+    /**
+     * Whether new drawables are inserted on top
+     */
+    protected boolean insertNewDrawablesOnTop = true;
 
     public Prismatic(@NotNull TextGraphicsSession session) throws IOException {
         this.session = session;
@@ -99,7 +97,11 @@ public class Prismatic implements Container, Closeable {
                         break;
                     }
                 }
-                close();
+                try {
+                    close();
+                } catch (IOException e) {
+                    pluginInstance.getLogger().log(Level.SEVERE, "Failed to close Prismatic", e);
+                }
                 session.close(closeReason);
             }
         }.start();
@@ -125,60 +127,83 @@ public class Prismatic implements Container, Closeable {
     }
 
     //
-    // Container methods
+    // ContainerInterface methods
     //
 
     /**
-     * Attaches a {@link Drawable} to this {@link Container}
+     * Attaches a {@link Drawable} to this {@link ContainerInterface}
      *
      * @param drawable The {@link Drawable} to attach
      * @throws RectOutOfBoundsException when the rect is invalid
      */
-    public void attach(@NotNull Drawable drawable, @NotNull Plugin plugin)
-            throws RectOutOfBoundsException, NodeNotFoundException, IOException {
-        // Checks
-        checkClosed();
-        if (Main.DBG_RESPECT_TERMINAL_BOUNDS &&
-                !Rect.contains(new Rect(getTerminal().getSize()), drawable.getRelativeRect())) {
-            throw new RectOutOfBoundsException("Drawable does not fit within the terminal");
-        }
+    public synchronized void attach(final @NotNull Drawable drawable) throws RectOutOfBoundsException, IOException {
+        synchronized (this) {
+            // Confirm state
+            checkClosed();
 
-        // Attach
-        tree.newNode(drawable, plugin);
+            // Confirm attachment
+            if (childDrawables.contains(drawable)) {
+                throw new IllegalArgumentException("Drawable is already attached to this container");
+            }
 
-        // Register any events
-        AccelaAPI.getPluginManager().registerEvents(drawable, drawable.findPlugin(), drawable.getChannel());
+            if (Main.DBG_RESPECT_TERMINAL_BOUNDS
+                    && !Rect.contains(new Rect(getTerminal().getSize()), drawable.getRelativeRect())) {
+                throw new RectOutOfBoundsException("Drawable does not fit within the terminal");
+            }
 
-        // Focus
-        if (Main.DBG_FOCUS_ON_WM_ATTACHMENT) {
-            receiveEvent(new ActivationEvent(pluginInstance, drawable.getIdentifier()));
+            // Attach
+            synchronized (childDrawables) {
+                childDrawables.add(getInsertionIndex(drawable), drawable);
+            }
+            drawable.setAttached(this);
 
-            // Show/Hide cursor
-            //todo also move cursor
-            getTerminal().setCursorVisible(drawable.getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED);
+            // Register any events
+            registerDrawableEvents(drawable);
+
+            // Focus
+            if (Main.DBG_FOCUS_ON_WM_ATTACHMENT) {
+                setFocusedDrawable(drawable);
+            }
         }
     }
 
-    /**
-     * Detaches a {@link Drawable} from this {@link Container}
-     */
-    public void detach(@NotNull Drawable drawable) throws NodeNotFoundException, IOException {
-        pluginInstance.getLogger().log(Level.INFO, "Detaching drawable '" + drawable + "'");
+    protected int getInsertionIndex(@NotNull Drawable drawable) {
+        if (insertNewDrawablesOnTop) {
+            return childDrawables.size();
+        } else {
+            return 0;
+        }
+    }
 
-        // Get the rect before detaching, we're going to need it later
-        Rect rect = drawable.getAbsoluteRect();
+    @Override
+    public synchronized void detach(@NotNull Drawable drawable) throws IOException {
+        synchronized (this) {
+            // Confirm attachment
+            if (!childDrawables.contains(drawable)) {
+                throw new IllegalArgumentException("Drawable is not attached to this container");
+            }
 
-        // Detach
-        Node node = DrawableTree.getNode(drawable);
-        if (node != null) node.kill();
+            // Get the rect before detaching, we're going to need it later
+            Rect rect = drawable.getAbsoluteRect();
 
-        // Redraw the now empty rect
-        paint(rect);
+            // Detach
+            synchronized (childDrawables) {
+                childDrawables.remove(drawable);
+            }
+            drawable.setAttached(null);
 
-        // Attempt to grab a new drawable, if any are still attached.
-        // If yes, then focus that one. If it's null, then focus null instead to show the change.
-        List<Node> nodes = tree.getChildNodeList();
-        receiveEvent(new ActivationEvent(pluginInstance, nodes.size() > 0 ? nodes.get(0).getDrawable().getIdentifier() : null));
+            // Unregister events
+            unregisterDrawableEvents(drawable);
+
+            // Re-focus if needed
+            if (focusTarget != null && focusTarget.getDrawable() == drawable) {
+                Drawable newFocusedDrawable = childDrawables.size() > 0 ? childDrawables.get(0) : null;
+                setFocusedDrawable(newFocusedDrawable);
+            }
+
+            // Redraw the now empty rect
+            paint(rect);
+        }
     }
 
     //
@@ -202,7 +227,7 @@ public class Prismatic implements Container, Closeable {
      *
      * @param rect the {@link Rect} to draw.
      */
-    public void paint(@NotNull Rect rect) throws NodeNotFoundException, IOException {
+    public void paint(@NotNull Rect rect) throws IOException {
         sessionWriteLock.lock();
         try {
             // Confirm WM status
@@ -235,14 +260,14 @@ public class Prismatic implements Container, Closeable {
             }
 
             // Get drawable that intersect with the rectangle
-            final List<Node> nodes = tree.getIntersectingChildNodes(targetRect);
+            final List<Drawable> intersectingDrawables = getIntersectingDrawables(targetRect);
 
             // Paint the canvas
             // Iterate in reverse
-            ListIterator<Node> nodeIterator = nodes.listIterator(nodes.size());
-            while (nodeIterator.hasPrevious()) {
+            ListIterator<Drawable> drawableIterator = intersectingDrawables.listIterator(intersectingDrawables.size());
+            while (drawableIterator.hasPrevious()) {
                 // Get drawable
-                final Drawable drawable = nodeIterator.previous().getDrawable();
+                final Drawable drawable = drawableIterator.previous();
 
                 // Get rectangles and intersect them
                 final Rect drawableRect = drawable.getRelativeRect();
@@ -364,20 +389,58 @@ public class Prismatic implements Container, Closeable {
             // Update frontBuffer
             backBuffer.copyTo(frontBuffer);
 
-            Node focusedNode = tree.getTreeFocusNode();
-            if (focusedNode != null) {
+            // Focus actions
+            if (focusTarget != null) {
+                final Drawable focusedDrawable = focusTarget.getDrawable();
                 // The cursor has moved a lot during the drawing process,
                 // so move it back to where it's supposed to be.
-                getTerminal().setCursorPosition(focusedNode.getDrawable().getAbsoluteCursorRestingPoint());
+                getTerminal().setCursorPosition(focusedDrawable.getAbsoluteCursorRestingPoint());
 
                 // Show cursor if wanted
-                if (focusedNode.getDrawable().getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED) {
+                if (focusedDrawable.getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED) {
                     getTerminal().setCursorVisible(true);
                 }
             }
         } finally {
             sessionWriteLock.unlock();
         }
+    }
+
+    //
+    // Calculations
+    //
+
+    /**
+     * @param rect The {@link Rect} to look for {@link Drawable}s within. Relative.
+     * @return All {@link Drawable}s that are situated within the {@link Rect} provided
+     */
+    public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
+        synchronized (this.childDrawables) {
+            List<Drawable> drawables = new ArrayList<>();
+            for (Drawable drawable : this.childDrawables) {
+                if (rect.intersects(drawable.getRelativeRect())) {
+                    drawables.add(drawable);
+                }
+            }
+            return drawables;
+        }
+    }
+
+    //
+    // Focusing
+    //
+
+    void setFocusedDrawable(@Nullable Drawable drawable) throws IOException {
+        // Establish identifier and handle null condition
+        final DrawableIdentifier drawableIdentifier = drawable == null ? null : drawable.identifier;
+
+        // Push focus event
+        performEventBroadcast(new FocusEvent(pluginInstance, drawableIdentifier));
+
+        // Show/Hide cursor
+        boolean showTermCursor = drawable != null && drawable.getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED;
+        getTerminal().setCursorVisible(false);
+        //todo also move cursor
     }
 
     //
@@ -394,26 +457,19 @@ public class Prismatic implements Container, Closeable {
      */
     public void callEvent(@NotNull Event event, @NotNull Drawable drawable) {
         // A list of drawable to send the events to
-        List<Drawable> drawableList = new ArrayList<>();
+        final List<Drawable> drawableList = new ArrayList<>();
+
+        // Populate list
         drawableList.add(drawable);
+        if (drawable instanceof DrawableContainer) {
+            final DrawableContainer drawableContainer = (DrawableContainer) drawable;
+            drawableList.addAll(drawableContainer.getAllChildDrawables());
+        }
 
-        while (drawableList.size() > 0) {
-            Drawable subDrawable = drawableList.remove(0);
-
-            // Send the event to the drawable
+        // Send events
+        for (Drawable subDrawable : drawableList) {
             EventChannel channel = subDrawable.getChannel();
             AccelaAPI.getPluginManager().callEvent(event, channel);
-
-            // Check if it contains more drawables. If yes, then add those to the list
-            if (subDrawable instanceof DrawableContainer) {
-                try {
-                    // Add (immediate) child drawables to the list
-                    Branch branch = ((DrawableContainer) subDrawable).getBranch();
-                    drawableList.addAll(branch.getChildDrawables());
-                } catch (NodeNotFoundException ex) {
-                    session.getLogger().log(Level.WARNING, "Node not found", ex);
-                }
-            }
         }
     }
 
@@ -428,9 +484,8 @@ public class Prismatic implements Container, Closeable {
         try {
             pluginInstance.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
 
-            List<Node> childNodes = tree.getTreeNodeList();
-            for (Node node : childNodes) {
-                AccelaAPI.getPluginManager().callEvent(event, node.drawable.getChannel());
+            for (Drawable drawable : childDrawables) {
+                callEvent(event, drawable);
             }
         } finally {
             broadcastLock.unlock();
@@ -457,7 +512,7 @@ public class Prismatic implements Container, Closeable {
                     int index = nodes.indexOf(DrawableTree.getNode(focusedNode.getDrawable()));
                     if (index + 1 > nodes.size()) index = 0;
                     Drawable drawable = nodes.get(index).getDrawable();
-                    performEventBroadcast(new ActivationEvent(pluginInstance, drawable.getIdentifier()));
+                    performEventBroadcast(new FocusEvent(pluginInstance, drawable.getIdentifier()));
                 }
             }
         }
@@ -471,14 +526,14 @@ public class Prismatic implements Container, Closeable {
         if (isClosed) throw new IllegalStateException("Interaction with dead WM");
     }
 
-    public void close() {
-        isClosed = true;
-
-        // Detach all drawable
-        tree.killNodes();
+    public void close() throws IOException {
+        // Detach all drawables
+        detachAll(childDrawables.toArray(new Drawable[0]));
 
         // Unregister events
         AccelaAPI.getPluginManager().unregisterEvents(broadcastListener);
+
+        isClosed = true;
     }
 
     public void writeToSession(byte... by) throws IOException {
@@ -517,13 +572,18 @@ public class Prismatic implements Container, Closeable {
      */
     class BroadcastListener implements Listener {
         @EventHandler
-        public void onActivationEvent(ActivationEvent event) {
+        public void onActivationEvent(FocusEvent event) {
             receiveEvent(event);
         }
 
         @EventHandler
         public void onInputEvent(InputEvent event) {
             receiveEvent(event);
+        }
+
+        @EventHandler
+        public void onFocus(FocusEvent event) {
+            focusTarget = event.getTarget();
         }
     }
 

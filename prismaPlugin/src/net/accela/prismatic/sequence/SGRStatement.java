@@ -1,6 +1,6 @@
 package net.accela.prismatic.sequence;
 
-import net.accela.prismatic.gui.text.color.TextColor;
+import net.accela.prismatic.ui.text.color.TextColor;
 import net.accela.prismatic.util.ANSIPatterns;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

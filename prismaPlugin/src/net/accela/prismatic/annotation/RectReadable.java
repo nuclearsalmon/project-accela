@@ -1,9 +1,8 @@
 package net.accela.prismatic.annotation;
 
-import net.accela.prismatic.gui.Drawable;
-import net.accela.prismatic.gui.drawabletree.NodeNotFoundException;
-import net.accela.prismatic.gui.geometry.Rect;
-import net.accela.prismatic.gui.geometry.Size;
+import net.accela.prismatic.Drawable;
+import net.accela.prismatic.ui.geometry.Rect;
+import net.accela.prismatic.ui.geometry.Size;
 import org.jetbrains.annotations.NotNull;
 
 public interface RectReadable extends SizeReadable, PointReadable {
@@ -14,25 +13,25 @@ public interface RectReadable extends SizeReadable, PointReadable {
      * which is what this uses internally.
      */
     @NotNull
-    default Rect getZeroRect() throws NodeNotFoundException {
+    default Rect getZeroRect() {
         return getRelativeRect().zero();
     }
 
     /**
      * @return The size and relative position of this {@link Drawable}.
      */
-    @NotNull Rect getRelativeRect() throws NodeNotFoundException;
+    @NotNull Rect getRelativeRect();
 
     /**
      * @return The size and absolute position of this {@link Drawable}.
      */
     @NotNull
-    Rect getAbsoluteRect() throws NodeNotFoundException;
+    Rect getAbsoluteRect();
 
     /**
      * @return The size of this {@link Drawable}.
      */
-    default @NotNull Size getSize() throws NodeNotFoundException {
+    default @NotNull Size getSize() {
         return getRelativeRect().getSize();
     }
 }

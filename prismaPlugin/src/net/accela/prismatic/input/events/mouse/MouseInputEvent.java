@@ -1,8 +1,8 @@
 package net.accela.prismatic.input.events.mouse;
 
-import net.accela.prismatic.gui.geometry.Point;
 import net.accela.prismatic.input.InputType;
 import net.accela.prismatic.input.lanterna.actions.InputEvent;
+import net.accela.prismatic.ui.geometry.Point;
 import org.jetbrains.annotations.NotNull;
 
 /**
