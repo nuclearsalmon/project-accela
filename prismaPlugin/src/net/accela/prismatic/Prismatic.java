@@ -155,7 +155,7 @@ public class Prismatic implements ContainerInterface, Closeable {
             synchronized (childDrawables) {
                 childDrawables.add(getInsertionIndex(drawable), drawable);
             }
-            drawable.setAttached(this);
+            drawable.attachSelf(this);
 
             // Register any events
             registerDrawableEvents(drawable);
@@ -190,7 +190,7 @@ public class Prismatic implements ContainerInterface, Closeable {
             synchronized (childDrawables) {
                 childDrawables.remove(drawable);
             }
-            drawable.setAttached(null);
+            drawable.attachSelf(null);
 
             // Unregister events
             unregisterDrawableEvents(drawable);
@@ -430,17 +430,37 @@ public class Prismatic implements ContainerInterface, Closeable {
     // Focusing
     //
 
-    void setFocusedDrawable(@Nullable Drawable drawable) throws IOException {
-        // Establish identifier and handle null condition
-        final DrawableIdentifier drawableIdentifier = drawable == null ? null : drawable.identifier;
+    @Override
+    public void setFocusedDrawable(@NotNull Drawable drawable) {
+        if (!childDrawables.contains(drawable)) {
+            throw new IllegalArgumentException("Drawable not attached to this Container!");
+        }
+
+        // Move
+        synchronized (childDrawables) {
+            childDrawables.remove(drawable);
+            childDrawables.add(0, drawable);
+        }
 
         // Push focus event
-        performEventBroadcast(new FocusEvent(pluginInstance, drawableIdentifier));
+        callEvent(new FocusEvent(pluginInstance, drawable.identifier), drawable);
 
-        // Show/Hide cursor
-        boolean showTermCursor = drawable != null && drawable.getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED;
-        getTerminal().setCursorVisible(false);
-        //todo also move cursor
+        // Terminal cursor
+        boolean showTermCursor = drawable.getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED;
+        try {
+            // Show or hide terminal cursor
+            getTerminal().setCursorVisible(showTermCursor);
+        } catch (IOException e) {
+            session.getLogger().log(Level.WARNING, "Failed to make terminal cursor visible on Drawable focus", e);
+        }
+        if (showTermCursor) {
+            // Move terminal cursor
+            try {
+                getTerminal().setCursorPosition(drawable.getAbsoluteCursorRestingPoint());
+            } catch (IOException e) {
+                session.getLogger().log(Level.WARNING, "Failed to move cursor on Drawable focus", e);
+            }
+        }
     }
 
     //

@@ -32,7 +32,7 @@ interface ContainerInterface extends ItemPainter {
      * @param drawables The {@link Drawable}s to attach
      * @throws RectOutOfBoundsException when the rect is invalid
      */
-    default void attachAll(final @NotNull Drawable[] drawables) throws IOException {
+    default void attachAll(final @NotNull Drawable... drawables) throws IOException {
         for (Drawable drawable : drawables) {
             attach(drawable);
         }
@@ -51,7 +51,7 @@ interface ContainerInterface extends ItemPainter {
      *
      * @param drawables The {@link Drawable}s to detach
      */
-    default void detachAll(final @NotNull Drawable[] drawables) throws IOException {
+    default void detachAll(final @NotNull Drawable... drawables) throws IOException {
         for (Drawable drawable : drawables) {
             detach(drawable);
         }
@@ -63,6 +63,15 @@ interface ContainerInterface extends ItemPainter {
      * @param drawable The {@link Drawable} to detach
      */
     void detach(@NotNull Drawable drawable) throws IOException;
+
+    //
+    // Focus
+    //
+
+    /**
+     * @param drawable The {@link Drawable} to be focused.
+     */
+    void setFocusedDrawable(@NotNull Drawable drawable);
 
     //
     // Events

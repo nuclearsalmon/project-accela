@@ -3,8 +3,6 @@ package net.accela.prismatic;
 import net.accela.prismatic.event.FocusEvent;
 import net.accela.prismatic.ui.geometry.Rect;
 import net.accela.prismatic.ui.geometry.exception.RectOutOfBoundsException;
-import net.accela.server.AccelaAPI;
-import net.accela.server.event.EventHandler;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,10 +31,11 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
 
     //
     // Self Attachment
+    //
 
     @Override
-    synchronized void setAttached(@Nullable ContainerInterface parent) {
-        super.setAttached(parent);
+    synchronized void attachSelf(@Nullable ContainerInterface parent) {
+        super.attachSelf(parent);
         synchronized (childDrawables) {
             if (isAttached()) {
                 for (final Drawable drawable : childDrawables) {
@@ -52,17 +51,17 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
         }
     }
 
+    @Override
+    synchronized void detachSelf() {
+        attachSelf(null);
+    }
+
 
     //
     // Child Drawable Attachment
     //
 
-    public synchronized void attachAll(final @NotNull Drawable[] drawables) {
-        for (Drawable drawable : drawables) {
-            attach(drawable);
-        }
-    }
-
+    @Override
     public synchronized void attach(final @NotNull Drawable drawable) throws RectOutOfBoundsException {
         synchronized (this) {
             // Confirm attachment
@@ -79,7 +78,7 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
             synchronized (childDrawables) {
                 childDrawables.add(getInsertionIndex(drawable), drawable);
             }
-            drawable.setAttached(this);
+            drawable.attachSelf(this);
 
             if (isAttached()) {
                 // Register any events
@@ -88,12 +87,6 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
 
             // Focus
             setFocusedDrawable(drawable);
-        }
-    }
-
-    public synchronized void detachAll(final @NotNull Drawable[] drawables) throws IOException {
-        for (Drawable drawable : drawables) {
-            detach(drawable);
         }
     }
 
@@ -112,7 +105,7 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
             synchronized (childDrawables) {
                 childDrawables.remove(drawable);
             }
-            drawable.setAttached(null);
+            drawable.attachSelf(null);
 
             // Unregister events
             unregisterDrawableEvents(drawable);
@@ -141,21 +134,22 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
     /**
      * @param drawable The {@link Drawable} to be focused.
      */
-    protected void setFocusedDrawable(@Nullable Drawable drawable) {
+    @Override
+    public void setFocusedDrawable(@NotNull Drawable drawable) {
         if (!childDrawables.contains(drawable)) {
             throw new IllegalArgumentException("Drawable not attached to this Container!");
         }
 
-        Prismatic prismatic = getPrismatic();
-        if (prismatic != null) {
-            // Establish identifier and handle null condition
-            DrawableIdentifier drawableIdentifier = drawable == null ? null : drawable.identifier;
+        // Move
+        synchronized (childDrawables) {
+            childDrawables.remove(drawable);
+            childDrawables.add(0, drawable);
+        }
 
-            // Push focus event
-            AccelaAPI.getPluginManager().callEvent(
-                    new FocusEvent(getPlugin(), drawableIdentifier),
-                    prismatic.getBroadcastChannel()
-            );
+        // Push focus event
+        final Prismatic prismatic = getPrismatic();
+        if (prismatic != null) {
+            prismatic.callEvent(new FocusEvent(getPlugin(), drawable.identifier), drawable);
         }
     }
 
@@ -206,14 +200,5 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
         final List<Drawable> allChildDrawablesAndSelf = getAllChildDrawables();
         allChildDrawablesAndSelf.add(this);
         return allChildDrawablesAndSelf;
-    }
-
-    //
-    // Events
-    //
-
-    @EventHandler
-    private void onFocus(FocusEvent event) {
-        this.focusTarget = event.getTarget();
     }
 }

@@ -40,8 +40,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     private boolean attached;
     private @Nullable ContainerInterface parent;
     private final @NotNull Plugin plugin;
-
-    private int zindex;
+    private int zindex;  // Cached, stored in parent
 
     public Drawable(@NotNull Rect rect, @NotNull Plugin plugin) {
         this.rect = rect;
@@ -125,9 +124,13 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     // Node / Tree details
     //
 
-    void setAttached(@Nullable ContainerInterface parent) {
+    void attachSelf(@Nullable ContainerInterface parent) {
         this.parent = parent;
         this.attached = this.parent == null;
+    }
+
+    void detachSelf() {
+        attachSelf(null);
     }
 
     public boolean isAttached() {
@@ -287,7 +290,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      * @see FocusEvent
      */
     @EventHandler
-    private void onActivation(FocusEvent event) {
+    private void onFocus(FocusEvent event) {
         DrawableIdentifier identifier = event.getTarget();
         this.isEventActive = identifier == this.identifier || identifier == null;
     }
