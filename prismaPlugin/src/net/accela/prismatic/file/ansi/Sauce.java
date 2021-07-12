@@ -1,4 +1,4 @@
-package net.accela.prismatic.file;
+package net.accela.prismatic.file.ansi;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

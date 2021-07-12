@@ -1,4 +1,4 @@
-package net.accela.prismatic.file;
+package net.accela.prismatic.file.ansi;
 
 import net.accela.prismatic.sequence.SGRStatement;
 import net.accela.prismatic.terminal.Terminal;
@@ -106,6 +106,7 @@ public class AnsiFile {
                 final int commentsEndPos = (int) (realFileSize - SAUCE_BLOCK_SIZE);
                 byte[] commentBuffer = new byte[commentsEndPos - commentsStartPos];
                 fileInputStream.getChannel().position(0);
+                //noinspection ResultOfMethodCallIgnored
                 fileInputStream.read(commentBuffer, 0, commentBuffer.length);
 
                 comments = unsafeGetString(commentBuffer, 0, commentBuffer.length);

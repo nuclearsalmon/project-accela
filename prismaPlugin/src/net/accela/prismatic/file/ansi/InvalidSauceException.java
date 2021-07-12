@@ -1,4 +1,4 @@
-package net.accela.prismatic.file;
+package net.accela.prismatic.file.ansi;
 
 public class InvalidSauceException extends RuntimeException {
 

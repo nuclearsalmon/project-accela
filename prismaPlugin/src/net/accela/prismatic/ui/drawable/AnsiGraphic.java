@@ -2,7 +2,7 @@ package net.accela.prismatic.ui.drawable;
 
 import net.accela.prismatic.Drawable;
 import net.accela.prismatic.annotation.PointMutable;
-import net.accela.prismatic.file.AnsiFile;
+import net.accela.prismatic.file.ansi.AnsiFile;
 import net.accela.prismatic.ui.geometry.Point;
 import net.accela.prismatic.ui.geometry.Rect;
 import net.accela.prismatic.ui.geometry.Size;
