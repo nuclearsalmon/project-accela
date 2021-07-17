@@ -16,9 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public abstract class Drawable implements RectReadable, Listener, SelfPainter {
-
     /**
      * The EventChannel for this drawable.
      */
@@ -38,15 +38,16 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     private @NotNull Rect rect;
 
     private boolean attached;
-    private @Nullable ContainerInterface parent;
-    private final @NotNull Plugin plugin;
-    private int zindex;  // Cached, stored in parent
+    private @Nullable ContainerInterface parentContainer;
+    public final @NotNull Plugin plugin;
+    private @Nullable DrawableContainer parentDrawable;
 
     public Drawable(@NotNull Rect rect, @NotNull Plugin plugin) {
         this.rect = rect;
         this.plugin = plugin;
         this.identifier = new DrawableIdentifier(this);
     }
+
 
     //
     // Properties and flags
@@ -70,7 +71,6 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      * If the Drawable is marked as active, it will be selected to receive Events. It will be "focused".
      * It can still receive Events when inactive, but is less likely to.
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isEventActive() {
         return isEventActive;
     }
@@ -89,12 +89,6 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      */
     public abstract boolean isFocusable();
 
-    public enum CursorMode {
-        NONE,
-        TERMINAL_RENDERED,
-        RENDERED
-    }
-
     public abstract @NotNull CursorMode getCursorMode();
 
     @Deprecated
@@ -102,34 +96,38 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
 
     public abstract boolean transparent();
 
+
     //
     // Painting
     //
 
     public final void paint() throws IOException {
-        ContainerInterface parent = getParent();
+        ContainerInterface parent = getParentContainer();
         if (parent != null) parent.paint(this);
     }
 
     @NotNull
     public abstract TextGrid getTextGrid();
 
-    // todo make abstract, don't favour certain implementations when equal
     @NotNull
     public TextGrid getTextGrid(@NotNull Rect rect) {
         return getTextGrid().getCrop(rect);
     }
 
+
     //
-    // Node / Tree details
+    // Hierarchy
     //
 
-    void attachSelf(@Nullable ContainerInterface parent) {
-        this.parent = parent;
-        this.attached = this.parent == null;
+    synchronized void attachSelf(@Nullable ContainerInterface parentContainer) {
+        this.parentContainer = parentContainer;
+        this.attached = this.parentContainer == null;
+        if (parentContainer instanceof DrawableContainer) {
+            this.parentDrawable = (DrawableContainer) parentContainer;
+        }
     }
 
-    void detachSelf() {
+    synchronized void detachSelf() {
         attachSelf(null);
     }
 
@@ -143,31 +141,44 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
 
     @Nullable
     public Prismatic getPrismatic() {
-        ContainerInterface parent = getParent();
+        ContainerInterface parent = getParentContainer();
         if (parent instanceof Prismatic) return (Prismatic) parent;
-        else return getRoot().getPrismatic();
+        else {
+            Drawable rootDrawable = getRootDrawable(false);
+            if (rootDrawable == null) return null;
+            else return rootDrawable.getPrismatic();
+        }
     }
 
     @Nullable
-    public ContainerInterface getParent() {
-        return parent;
+    public ContainerInterface getParentContainer() {
+        return parentContainer;
     }
 
     @Nullable
-    public ItemPainter getPainter() {
-        return getParent();
+    public DrawableContainer getParentDrawable() {
+        return parentDrawable;
+    }
+
+    @Nullable
+    public Drawable getRootDrawable(boolean includeSelf) {
+        if (parentDrawable == null) return (includeSelf ? this : null);
+        else return parentDrawable.getRootDrawable(includeSelf);
+    }
+
+    @Nullable
+    public Drawable getRootDrawableExclusive() {
+        return getRootDrawable(false);
     }
 
     @NotNull
-    public Drawable getRoot() {
-        ContainerInterface parent = getParent();
-        if (parent == null || parent instanceof Prismatic) return this;
-        else if (parent instanceof Drawable) return ((Drawable) parent).getRoot();
-        else throw new IllegalStateException("Parent must be either a Drawable or Prismatic!");
+    public Drawable getRootDrawableInclusive() {
+        return Objects.requireNonNull(getRootDrawable(true));
     }
 
+
     //
-    // Size and position (reading)
+    // Size and positioning
     //
 
     /**
@@ -177,7 +188,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     public final Rect getAbsoluteRect() {
         final Rect thisRect = getRelativeRect();
 
-        final ContainerInterface parentContainer = getParent();
+        final ContainerInterface parentContainer = getParentContainer();
         if (parentContainer instanceof DrawableContainer) {
             final Rect absParentRect = ((DrawableContainer) parentContainer).getAbsoluteRect();
             return new Rect(
@@ -197,7 +208,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     public final @NotNull Point getAbsolutePoint() {
         final Point thisPoint = getRelativePoint();
 
-        final ContainerInterface parentContainer = getParent();
+        final ContainerInterface parentContainer = getParentContainer();
         if (parentContainer instanceof DrawableContainer) {
             final Point absParentPoint = ((DrawableContainer) parentContainer).getAbsolutePoint();
             return new Point(
@@ -225,10 +236,6 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
         return rect.getStartPoint();
     }
 
-    //
-    // Size and position (writing)
-    //
-
     protected void internalSetPoint(@NotNull Point point) {
         synchronized (this) {
             internalSetRect(new Rect(point, this.rect.getSize()));
@@ -253,7 +260,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
 
             // Repaint
             try {
-                ItemPainter painter = getParent();
+                ItemPainter painter = getParentContainer();
                 if (painter == null) return;
 
                 if (Rect.intersects(oldRect, rect)) {
@@ -267,6 +274,11 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
         }
     }
 
+
+    //
+    // Events
+    //
+
     /**
      * Used for performing actions before painting (such as resizing buffers)
      *
@@ -275,10 +287,6 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
      */
     protected void onResizeBeforePainting(@NotNull Size oldSize, @NotNull Size newSize) {
     }
-
-    //
-    // Events
-    //
 
     /**
      * A default reaction to {@link FocusEvent}s.
@@ -294,6 +302,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
         DrawableIdentifier identifier = event.getTarget();
         this.isEventActive = identifier == this.identifier || identifier == null;
     }
+
 
     //
     // Object overrides

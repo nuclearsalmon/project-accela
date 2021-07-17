@@ -1,5 +1,6 @@
 package net.accela.prismatic.ui.drawable.container;
 
+import net.accela.prismatic.CursorMode;
 import net.accela.prismatic.Drawable;
 import net.accela.prismatic.DrawableContainer;
 import net.accela.prismatic.Main;
@@ -263,7 +264,7 @@ public class BufferedContainer extends DrawableContainer implements RectMutable 
 
         // Paint
         Rect paintRect = rect.startPointAddition(getRelativeRect().getStartPoint());
-        ItemPainter painter = getPainter();
+        ItemPainter painter = getParentContainer();
         if (painter != null) painter.paint(paintRect);
     }
 

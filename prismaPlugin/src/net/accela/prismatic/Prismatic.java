@@ -153,7 +153,7 @@ public class Prismatic implements ContainerInterface, Closeable {
 
             // Attach
             synchronized (childDrawables) {
-                childDrawables.add(getInsertionIndex(drawable), drawable);
+                childDrawables.add(getInsertionIndex(), drawable);
             }
             drawable.attachSelf(this);
 
@@ -167,7 +167,7 @@ public class Prismatic implements ContainerInterface, Closeable {
         }
     }
 
-    protected int getInsertionIndex(@NotNull Drawable drawable) {
+    protected int getInsertionIndex() {
         if (insertNewDrawablesOnTop) {
             return childDrawables.size();
         } else {
@@ -175,15 +175,29 @@ public class Prismatic implements ContainerInterface, Closeable {
         }
     }
 
+    void detachAll(@NotNull Drawable... drawables) throws IOException {
+        detachAll(true, drawables);
+    }
+
+    void detachAll(boolean repaint, final @NotNull Drawable... drawables) throws IOException {
+        for (Drawable drawable : drawables) {
+            detach(drawable, repaint);
+        }
+    }
+
     @Override
     public synchronized void detach(@NotNull Drawable drawable) throws IOException {
+        detach(drawable, true);
+    }
+
+    public synchronized void detach(@NotNull Drawable drawable, boolean repaint) throws IOException {
         synchronized (this) {
             // Confirm attachment
             if (!childDrawables.contains(drawable)) {
                 throw new IllegalArgumentException("Drawable is not attached to this container");
             }
 
-            // Get the rect before detaching, we're going to need it later
+            // Get the rect before detaching, we're probably going to need it later
             Rect rect = drawable.getAbsoluteRect();
 
             // Detach
@@ -195,14 +209,16 @@ public class Prismatic implements ContainerInterface, Closeable {
             // Unregister events
             unregisterDrawableEvents(drawable);
 
-            // Re-focus if needed
-            if (focusTarget != null && focusTarget.getDrawable() == drawable) {
-                Drawable newFocusedDrawable = childDrawables.size() > 0 ? childDrawables.get(0) : null;
-                setFocusedDrawable(newFocusedDrawable);
-            }
+            if (repaint) {
+                // Re-focus if needed
+                if (focusTarget != null && focusTarget.getDrawable() == drawable) {
+                    Drawable newFocusedDrawable = childDrawables.size() > 0 ? childDrawables.get(0) : null;
+                    setFocusedDrawable(newFocusedDrawable);
+                }
 
-            // Redraw the now empty rect
-            paint(rect);
+                // Redraw the now empty rect
+                paint(rect);
+            }
         }
     }
 
@@ -397,7 +413,7 @@ public class Prismatic implements ContainerInterface, Closeable {
                 getTerminal().setCursorPosition(focusedDrawable.getAbsoluteCursorRestingPoint());
 
                 // Show cursor if wanted
-                if (focusedDrawable.getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED) {
+                if (focusedDrawable.getCursorMode() == CursorMode.TERMINAL_RENDERED) {
                     getTerminal().setCursorVisible(true);
                 }
             }
@@ -431,34 +447,39 @@ public class Prismatic implements ContainerInterface, Closeable {
     //
 
     @Override
-    public void setFocusedDrawable(@NotNull Drawable drawable) {
-        if (!childDrawables.contains(drawable)) {
-            throw new IllegalArgumentException("Drawable not attached to this Container!");
-        }
+    public void setFocusedDrawable(@Nullable Drawable drawable) {
+        if (drawable == null) {
+            focusTarget = null;
+            broadcastEvent(new FocusEvent(pluginInstance, null));
+        } else {
+            if (!childDrawables.contains(drawable)) {
+                throw new IllegalArgumentException("Drawable not attached to this Container!");
+            }
 
-        // Move
-        synchronized (childDrawables) {
-            childDrawables.remove(drawable);
-            childDrawables.add(0, drawable);
-        }
+            // Move
+            synchronized (childDrawables) {
+                childDrawables.remove(drawable);
+                childDrawables.add(0, drawable);
+            }
 
-        // Push focus event
-        callEvent(new FocusEvent(pluginInstance, drawable.identifier), drawable);
+            // Push focus event
+            broadcastEvent(new FocusEvent(pluginInstance, drawable.identifier));
 
-        // Terminal cursor
-        boolean showTermCursor = drawable.getCursorMode() == Drawable.CursorMode.TERMINAL_RENDERED;
-        try {
-            // Show or hide terminal cursor
-            getTerminal().setCursorVisible(showTermCursor);
-        } catch (IOException e) {
-            session.getLogger().log(Level.WARNING, "Failed to make terminal cursor visible on Drawable focus", e);
-        }
-        if (showTermCursor) {
-            // Move terminal cursor
+            // Terminal cursor
+            boolean showTermCursor = drawable.getCursorMode() == CursorMode.TERMINAL_RENDERED;
             try {
-                getTerminal().setCursorPosition(drawable.getAbsoluteCursorRestingPoint());
+                // Show or hide terminal cursor
+                getTerminal().setCursorVisible(showTermCursor);
             } catch (IOException e) {
-                session.getLogger().log(Level.WARNING, "Failed to move cursor on Drawable focus", e);
+                session.getLogger().log(Level.WARNING, "Failed to make terminal cursor visible on Drawable focus", e);
+            }
+            if (showTermCursor) {
+                // Move terminal cursor
+                try {
+                    getTerminal().setCursorPosition(drawable.getAbsoluteCursorRestingPoint());
+                } catch (IOException e) {
+                    session.getLogger().log(Level.WARNING, "Failed to move cursor on Drawable focus", e);
+                }
             }
         }
     }
@@ -499,7 +520,7 @@ public class Prismatic implements ContainerInterface, Closeable {
      *
      * @param event The event to broadcast
      */
-    private void performEventBroadcast(@NotNull Event event) {
+    private void broadcastEvent(@NotNull Event event) {
         broadcastLock.lock();
         try {
             pluginInstance.getLogger().log(Level.INFO, "Performing broadcast ..." + event);
@@ -539,7 +560,7 @@ public class Prismatic implements ContainerInterface, Closeable {
          */
 
         // Send the event so that it can be parsed "raw" if need be.
-        performEventBroadcast(event);
+        broadcastEvent(event);
     }
 
     private void checkClosed() {
@@ -548,7 +569,7 @@ public class Prismatic implements ContainerInterface, Closeable {
 
     public void close() throws IOException {
         // Detach all drawables
-        detachAll(childDrawables.toArray(new Drawable[0]));
+        detachAll(false, childDrawables.toArray(new Drawable[0]));
 
         // Unregister events
         AccelaAPI.getPluginManager().unregisterEvents(broadcastListener);

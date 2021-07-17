@@ -47,17 +47,6 @@ interface ContainerInterface extends ItemPainter {
     void attach(final @NotNull Drawable drawable) throws RectOutOfBoundsException, IOException;
 
     /**
-     * Detaches multiple {@link Drawable}s from this {@link ContainerInterface}
-     *
-     * @param drawables The {@link Drawable}s to detach
-     */
-    default void detachAll(final @NotNull Drawable... drawables) throws IOException {
-        for (Drawable drawable : drawables) {
-            detach(drawable);
-        }
-    }
-
-    /**
      * Detaches a {@link Drawable} from this {@link ContainerInterface}
      *
      * @param drawable The {@link Drawable} to detach

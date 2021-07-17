@@ -4,10 +4,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A security feature to be used as an ID for identifying {@link Drawable}s
- * without publicly referencing the {@link Drawable} objects.
+ * without directly referencing the actual {@link Drawable}s.
  * <p>
- * The {@link Drawable} this represents can be accessed by classes in the same package,
- * by using a package private method.
+ * The {@link Drawable}s that this {@link DrawableIdentifier} represents can only be retrieved
+ * by classes in the same package.
  */
 public class DrawableIdentifier {
     private final @NotNull Drawable drawable;
@@ -22,7 +22,7 @@ public class DrawableIdentifier {
      *
      * @return The {@link Drawable} this identifier represents.
      */
-    Drawable getDrawable() {
+    @NotNull Drawable getDrawable() {
         return drawable;
     }
 }

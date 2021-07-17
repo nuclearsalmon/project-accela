@@ -1,5 +1,6 @@
 package net.accela.prismatic.ui.drawable;
 
+import net.accela.prismatic.CursorMode;
 import net.accela.prismatic.Drawable;
 import net.accela.prismatic.DrawableIdentifier;
 import net.accela.prismatic.annotation.RectMutable;

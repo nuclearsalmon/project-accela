@@ -10,10 +10,10 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.*;
 
 /**
- * A hacked-together version of {@link InputStreamReader} and sun's {@code StreamDecoder}.
+ * A hacked-together version of {@code java.io.InputStreamReader} and sun's {@code StreamDecoder}.
  * It's able to decode streams with variable charset encodings,
  * meaning the decoding charset can be switched on the fly.
- *
+ * <p>
  * todo test if it works
  */
 @SuppressWarnings("SynchronizeOnNonFinalField")
@@ -68,7 +68,7 @@ public class StreamDecoder extends Reader {
     }
 
 
-    // -- Public methods corresponding to those in InputStreamReader --
+    // -- Public methods corresponding to those in java.io.InputStreamReader --
 
     // All synchronization and state/argument checking is done in these public
     // methods; the concrete stream-decoder subclasses defined below need not

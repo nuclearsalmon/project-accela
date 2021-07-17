@@ -1,5 +1,6 @@
 package net.accela.prismatic.ui.drawable;
 
+import net.accela.prismatic.CursorMode;
 import net.accela.prismatic.Drawable;
 import net.accela.prismatic.annotation.PointMutable;
 import net.accela.prismatic.file.ansi.AnsiFile;

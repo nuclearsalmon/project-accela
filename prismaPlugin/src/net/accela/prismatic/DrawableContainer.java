@@ -3,6 +3,7 @@ package net.accela.prismatic;
 import net.accela.prismatic.event.FocusEvent;
 import net.accela.prismatic.ui.geometry.Rect;
 import net.accela.prismatic.ui.geometry.exception.RectOutOfBoundsException;
+import net.accela.server.event.Event;
 import net.accela.server.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,9 +35,9 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
     //
 
     @Override
-    synchronized void attachSelf(@Nullable ContainerInterface parent) {
-        super.attachSelf(parent);
+    synchronized void attachSelf(@Nullable ContainerInterface parentContainer) {
         synchronized (childDrawables) {
+            super.attachSelf(parentContainer);
             if (isAttached()) {
                 for (final Drawable drawable : childDrawables) {
                     // Register any events
@@ -76,7 +77,7 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
 
             // Attach
             synchronized (childDrawables) {
-                childDrawables.add(getInsertionIndex(drawable), drawable);
+                childDrawables.add(insertNewDrawablesOnTop ? childDrawables.size() : 0, drawable);
             }
             drawable.attachSelf(this);
 
@@ -87,6 +88,17 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
 
             // Focus
             setFocusedDrawable(drawable);
+        }
+    }
+
+    /**
+     * Detaches multiple {@link Drawable}s from this {@link ContainerInterface}
+     *
+     * @param drawables The {@link Drawable}s to detach
+     */
+    public void detachAll(final @NotNull Drawable... drawables) throws IOException {
+        for (Drawable drawable : drawables) {
+            detach(drawable);
         }
     }
 
@@ -119,14 +131,6 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
         }
     }
 
-    protected int getInsertionIndex(@NotNull Drawable drawable) {
-        if (insertNewDrawablesOnTop) {
-            return childDrawables.size();
-        } else {
-            return 0;
-        }
-    }
-
     //
     // Focusing
     //
@@ -135,21 +139,23 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
      * @param drawable The {@link Drawable} to be focused.
      */
     @Override
-    public void setFocusedDrawable(@NotNull Drawable drawable) {
-        if (!childDrawables.contains(drawable)) {
-            throw new IllegalArgumentException("Drawable not attached to this Container!");
-        }
+    public void setFocusedDrawable(@Nullable Drawable drawable) {
+        if (drawable == null) {
+            focusTarget = null;
+            broadcastEvent(new FocusEvent(getPlugin(), null));
+        } else {
+            if (!childDrawables.contains(drawable)) {
+                throw new IllegalArgumentException("Drawable not attached to this Container!");
+            }
 
-        // Move
-        synchronized (childDrawables) {
-            childDrawables.remove(drawable);
-            childDrawables.add(0, drawable);
-        }
+            // Move
+            synchronized (childDrawables) {
+                childDrawables.remove(drawable);
+                childDrawables.add(0, drawable);
+            }
 
-        // Push focus event
-        final Prismatic prismatic = getPrismatic();
-        if (prismatic != null) {
-            prismatic.callEvent(new FocusEvent(getPlugin(), drawable.identifier), drawable);
+            // Push focus event
+            broadcastEvent(new FocusEvent(getPlugin(), drawable.identifier));
         }
     }
 
@@ -200,5 +206,18 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
         final List<Drawable> allChildDrawablesAndSelf = getAllChildDrawables();
         allChildDrawablesAndSelf.add(this);
         return allChildDrawablesAndSelf;
+    }
+
+
+    //
+    // Events
+    //
+    void broadcastEvent(@NotNull Event event) {
+        Prismatic prismatic = getPrismatic();
+        if (prismatic != null) {
+            for (Drawable drawable : getAllChildDrawables()) {
+                prismatic.callEvent(event, drawable);
+            }
+        }
     }
 }
