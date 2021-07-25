@@ -22,7 +22,7 @@ interface ContainerInterface extends ItemPainter {
      * Attaches multiple {@link Drawable}s to this {@link ContainerInterface}
      *
      * @param drawables The {@link Drawable}s to attach
-     * @throws RectOutOfBoundsException when the rect is invalid
+     * @throws RectOutOfBoundsException If the rect is out of bounds or otherwise invalid
      */
     default void attachAll(final @NotNull Drawable... drawables) throws IOException {
         for (Drawable drawable : drawables) {
@@ -34,7 +34,7 @@ interface ContainerInterface extends ItemPainter {
      * Attaches a {@link Drawable} to this {@link ContainerInterface}
      *
      * @param drawable The {@link Drawable} to attach
-     * @throws RectOutOfBoundsException when the rect is invalid
+     * @throws RectOutOfBoundsException If the rect is out of bounds or otherwise invalid
      */
     void attach(final @NotNull Drawable drawable) throws RectOutOfBoundsException, IOException;
 

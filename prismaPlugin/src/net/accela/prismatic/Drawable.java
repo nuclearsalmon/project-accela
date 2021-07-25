@@ -41,7 +41,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     private @Nullable ContainerInterface parentContainer;
     public final @NotNull Plugin plugin;
     private @Nullable DrawableContainer parentDrawable;
-    public boolean show;
+    public boolean show = true;
     private int depth = 0;
 
     public Drawable(@NotNull Rect rect, @NotNull Plugin plugin) {

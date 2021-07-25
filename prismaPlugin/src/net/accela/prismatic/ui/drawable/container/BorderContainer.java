@@ -31,16 +31,16 @@ public class BorderContainer extends BufferedContainer {
         this.rightBorder = rightBorder;
 
         if (topBorder == null) topBorder = new PrefilledBox(
-                new Rect(0, 0, 20, 1), plugin, TextCharacter.fromCharacter(
+                new Rect(0, 0, rect.getWidth(), 1), plugin, TextCharacter.fromCharacter(
                 CP437Symbols.SINGLE_LINE_HORIZONTAL, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK));
         if (bottomBorder == null) bottomBorder = new PrefilledBox(
-                new Rect(0, 0, 20, 1), plugin, TextCharacter.fromCharacter(
+                new Rect(0, rect.getHeight() - 1, rect.getWidth(), 1), plugin, TextCharacter.fromCharacter(
                 CP437Symbols.SINGLE_LINE_HORIZONTAL, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK));
         if (leftBorder == null) leftBorder = new PrefilledBox(
-                new Rect(0, 0, 20, 1), plugin, TextCharacter.fromCharacter(
+                new Rect(0, 1, 1, rect.getHeight() - 2), plugin, TextCharacter.fromCharacter(
                 CP437Symbols.SINGLE_LINE_VERTICAL, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK));
         if (rightBorder == null) rightBorder = new PrefilledBox(
-                new Rect(0, 0, 20, 1), plugin, TextCharacter.fromCharacter(
+                new Rect(rect.getWidth() - 1, 1, 1, rect.getHeight() - 2), plugin, TextCharacter.fromCharacter(
                 CP437Symbols.SINGLE_LINE_VERTICAL, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK));
 
         attach(topBorder);

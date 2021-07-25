@@ -134,7 +134,7 @@ public class Prismatic implements ContainerInterface, Closeable {
      * Attaches a {@link Drawable} to this {@link ContainerInterface}
      *
      * @param drawable The {@link Drawable} to attach
-     * @throws RectOutOfBoundsException when the rect is invalid
+     * @throws RectOutOfBoundsException If the rect is out of bounds or otherwise invalid
      */
     public synchronized void attach(final @NotNull Drawable drawable) throws RectOutOfBoundsException, IOException {
         synchronized (this) {

@@ -187,8 +187,9 @@ public class BufferedContainer extends DrawableContainer implements RectMutable 
      * Pushes backBuffer into frontBuffer and refreshes recursively to apply
      * any changes, thus displaying the drawable.
      */
-    public void refreshBuffer() {
+    public void refreshBuffer() throws IOException {
         backBuffer.copyTo(frontBuffer);
+        render();
     }
 
     @Override

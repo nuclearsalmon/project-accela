@@ -6,6 +6,7 @@ import net.accela.prismatic.sequence.annotation.NotWidelySupported;
 import net.accela.prismatic.sequence.annotation.RequiresArgument;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -1005,7 +1006,7 @@ public enum SGRAttribute {
 
     public final int index;
 
-    SGRAttribute(int index) {
+    SGRAttribute(final int index) {
         this.index = index;
     }
 
@@ -1017,9 +1018,8 @@ public enum SGRAttribute {
         return index;
     }
 
-    public byte getByte() {
-        //return String.valueOf(index).getBytes();
-        return (byte) Character.forDigit(index, 10);
+    public byte[] getBytes(@NotNull Charset charset) {
+        return String.valueOf(index).getBytes(charset);
     }
 
     //
