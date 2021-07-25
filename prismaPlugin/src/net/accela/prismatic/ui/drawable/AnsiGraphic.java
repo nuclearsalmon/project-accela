@@ -39,11 +39,6 @@ public class AnsiGraphic extends Drawable implements PointMutable {
     }
 
     @Override
-    public boolean cursorEnabled() {
-        return false;
-    }
-
-    @Override
     public boolean transparent() {
         return false;
     }

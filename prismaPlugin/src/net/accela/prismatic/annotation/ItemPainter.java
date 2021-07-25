@@ -15,8 +15,8 @@ public interface ItemPainter {
      *
      * @param drawable the {@link Drawable} to draw.
      */
-    default void paint(@NotNull Drawable drawable) throws IOException {
-        paint(drawable.getRelativeRect());
+    default void render(@NotNull Drawable drawable) throws IOException {
+        render(drawable.getRelativeRect());
     }
 
     /**
@@ -24,5 +24,5 @@ public interface ItemPainter {
      *
      * @param rect the {@link Rect} to draw.
      */
-    void paint(@NotNull Rect rect) throws IOException;
+    void render(@NotNull Rect rect) throws IOException;
 }

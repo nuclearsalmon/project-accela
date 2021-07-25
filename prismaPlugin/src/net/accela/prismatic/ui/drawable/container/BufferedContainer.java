@@ -52,11 +52,6 @@ public class BufferedContainer extends DrawableContainer implements RectMutable 
     }
 
     @Override
-    public boolean cursorEnabled() {
-        return true;
-    }
-
-    @Override
     public boolean transparent() {
         return false;
     }
@@ -107,7 +102,7 @@ public class BufferedContainer extends DrawableContainer implements RectMutable 
     }
 
     //
-    // Painting
+    // Rendering
     //
 
     /**
@@ -154,6 +149,9 @@ public class BufferedContainer extends DrawableContainer implements RectMutable 
             // Get drawable
             final Drawable drawable = nodeIterator.previous();
 
+            // Skip hidden
+            if (!drawable.show) continue;
+
             // Get rectangles and intersect them
             final Rect drawableRect = drawable.getRelativeRect();
             final Rect targetIntersection = Rect.intersection(targetRect, drawableRect);
@@ -194,7 +192,7 @@ public class BufferedContainer extends DrawableContainer implements RectMutable 
     }
 
     @Override
-    public synchronized void paint(@NotNull Rect rect) throws IOException {
+    public synchronized void render(@NotNull Rect rect) throws IOException {
         // Establish current boundaries
         final Rect containerBounds = getZeroRect();
 
@@ -265,7 +263,7 @@ public class BufferedContainer extends DrawableContainer implements RectMutable 
         // Paint
         Rect paintRect = rect.startPointAddition(getRelativeRect().getStartPoint());
         ItemPainter painter = getParentContainer();
-        if (painter != null) painter.paint(paintRect);
+        if (painter != null) painter.render(paintRect);
     }
 
     @Override

@@ -9,5 +9,5 @@ public interface SelfPainter {
     /**
      * Draws itself
      */
-    void paint() throws IOException;
+    void render() throws IOException;
 }

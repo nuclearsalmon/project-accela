@@ -217,7 +217,7 @@ public class Prismatic implements ContainerInterface, Closeable {
                 }
 
                 // Redraw the now empty rect
-                paint(rect);
+                render(rect);
             }
         }
     }
@@ -243,7 +243,7 @@ public class Prismatic implements ContainerInterface, Closeable {
      *
      * @param rect the {@link Rect} to draw.
      */
-    public void paint(@NotNull Rect rect) throws IOException {
+    public void render(@NotNull Rect rect) throws IOException {
         sessionWriteLock.lock();
         try {
             // Confirm WM status
@@ -443,8 +443,40 @@ public class Prismatic implements ContainerInterface, Closeable {
     }
 
     //
-    // Focusing
+    // Positioning
     //
+
+    @Override
+    public int getDepth(@NotNull Drawable drawable) {
+        return childDrawables.indexOf(drawable);
+    }
+
+    /**
+     * @param relDepth The relative depth.
+     */
+    public void setRelativeDepth(int relDepth, @NotNull Drawable drawable) {
+        synchronized (childDrawables) {
+            setAbsoluteDepth(childDrawables.size() - relDepth, drawable);
+        }
+    }
+
+    /**
+     * @param absDepth The absolute depth.
+     */
+    public void setAbsoluteDepth(int absDepth, @NotNull Drawable drawable) {
+        synchronized (childDrawables) {
+            if (!childDrawables.contains(drawable)) {
+                throw new IllegalArgumentException("Drawable not attached to this Container!");
+            }
+
+            // Adjust to be within limits
+            absDepth = Math.max(Math.min(absDepth, childDrawables.size()), 0);
+
+            // Re-insert at desired depth
+            childDrawables.remove(drawable);
+            childDrawables.add(absDepth, drawable);
+        }
+    }
 
     @Override
     public void setFocusedDrawable(@Nullable Drawable drawable) {
@@ -485,7 +517,7 @@ public class Prismatic implements ContainerInterface, Closeable {
     }
 
     //
-    // Events
+    // Events and I/O
     //
 
     /**
@@ -604,6 +636,7 @@ public class Prismatic implements ContainerInterface, Closeable {
         }
     }
 
+
     //
     // Event listeners
     //
@@ -651,7 +684,7 @@ public class Prismatic implements ContainerInterface, Closeable {
                 getTerminal().clear();
                 backBuffer.setAllCharacters(TextCharacter.DEFAULT);
                 frontBuffer.setAllCharacters(TextCharacter.DEFAULT);
-                paint(new Rect(size));
+                render(new Rect(size));
             }
         } catch (IOException e) {
             session.getLogger().log(Level.WARNING, "Exception when clearing terminal after resize event", e);

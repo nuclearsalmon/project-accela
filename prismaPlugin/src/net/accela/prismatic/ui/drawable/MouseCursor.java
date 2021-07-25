@@ -40,11 +40,6 @@ public class MouseCursor extends Drawable implements PointMutable {
     }
 
     @Override
-    public boolean cursorEnabled() {
-        return false;
-    }
-
-    @Override
     public boolean transparent() {
         return true;
     }

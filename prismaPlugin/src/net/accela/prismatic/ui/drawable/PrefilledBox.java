@@ -35,11 +35,6 @@ public class PrefilledBox extends Drawable {
     }
 
     @Override
-    public boolean cursorEnabled() {
-        return false;
-    }
-
-    @Override
     public boolean transparent() {
         return false;
     }

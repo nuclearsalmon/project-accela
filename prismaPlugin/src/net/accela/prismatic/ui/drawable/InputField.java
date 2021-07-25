@@ -53,12 +53,6 @@ public class InputField extends Drawable implements RectMutable {
         return CursorMode.TERMINAL_RENDERED;
     }
 
-
-    @Override
-    public boolean cursorEnabled() {
-        return true;
-    }
-
     @Override
     public @NotNull Point getAbsoluteCursorRestingPoint() {
         // The starting point
@@ -235,38 +229,38 @@ public class InputField extends Drawable implements RectMutable {
                 Character character = inputEvent.getCharacter();
                 if (character != null) {
                     write(character);
-                    paint();
+                    render();
                 }
             }
             case Backspace -> {
                 deleteLeft(1);
                 apply();
-                paint();
+                render();
             }
             case Delete -> {
                 deleteRight(1);
                 apply();
-                paint();
+                render();
             }
             case ArrowLeft -> {
                 scrollLeft(1);
                 apply();
-                paint();
+                render();
             }
             case ArrowRight -> {
                 scrollRight(1);
                 apply();
-                paint();
+                render();
             }
             case Home -> {
                 scrollToStart();
                 apply();
-                paint();
+                render();
             }
             case End -> {
                 scrollToEnd();
                 apply();
-                paint();
+                render();
             }
             case Insert -> insert = !insert;
         }
@@ -278,7 +272,7 @@ public class InputField extends Drawable implements RectMutable {
         isEventActive = identifier == this.identifier;
 
         apply();
-        paint();
+        render();
     }
 
     @Override

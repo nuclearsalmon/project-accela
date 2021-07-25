@@ -14,14 +14,6 @@ import java.io.IOException;
  * Implemented in {@link DrawableContainer} and {@link Prismatic}.
  */
 interface ContainerInterface extends ItemPainter {
-    /*
-    //
-    // Node methods
-    //
-
-    @NotNull Branch getBranch() throws
-     */
-
     //
     // Attachment and detachment methods
     //
@@ -53,14 +45,31 @@ interface ContainerInterface extends ItemPainter {
      */
     void detach(@NotNull Drawable drawable) throws IOException;
 
+
     //
-    // Focus
+    // Positioning
     //
+
+    /**
+     * @param relDepth The relative depth.
+     */
+    void setRelativeDepth(int relDepth, @NotNull Drawable drawable);
+
+    /**
+     * @param absDepth The absolute depth.
+     */
+    void setAbsoluteDepth(int absDepth, @NotNull Drawable drawable);
 
     /**
      * @param drawable The {@link Drawable} to be focused.
      */
     void setFocusedDrawable(@NotNull Drawable drawable);
+
+    /**
+     * @return The absolute depth.
+     */
+    int getDepth(@NotNull Drawable drawable);
+
 
     //
     // Events

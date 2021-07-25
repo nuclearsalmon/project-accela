@@ -20,7 +20,8 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
     /**
      * Whether new drawables are inserted on top
      */
-    protected boolean insertNewDrawablesOnTop = true;
+    protected boolean insertNewDrawablesOnTop = false;
+
 
     //
     // Constructor
@@ -29,6 +30,20 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
     public DrawableContainer(@NotNull Rect rect, @NotNull Plugin plugin) {
         super(rect, plugin);
     }
+
+
+    //
+    // Properties
+    //
+
+    public boolean isInsertNewDrawablesOnTop() {
+        return insertNewDrawablesOnTop;
+    }
+
+    public void setInsertNewDrawablesOnTop(boolean insertNewDrawablesOnTop) {
+        this.insertNewDrawablesOnTop = insertNewDrawablesOnTop;
+    }
+
 
     //
     // Self Attachment
@@ -77,7 +92,7 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
 
             // Attach
             synchronized (childDrawables) {
-                childDrawables.add(insertNewDrawablesOnTop ? childDrawables.size() : 0, drawable);
+                childDrawables.add(insertNewDrawablesOnTop ? 0 : drawable.getDepth(), drawable);
             }
             drawable.attachSelf(this);
 
@@ -127,13 +142,46 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
             setFocusedDrawable(newFocusedDrawable);
 
             // Redraw the now empty rect
-            paint(rect);
+            render(rect);
         }
     }
 
+
     //
-    // Focusing
+    // Positioning
     //
+
+    @Override
+    public int getDepth(@NotNull Drawable drawable) {
+        return childDrawables.indexOf(drawable);
+    }
+
+    /**
+     * @param relDepth The relative depth.
+     */
+    public void setRelativeDepth(int relDepth, @NotNull Drawable drawable) {
+        synchronized (childDrawables) {
+            setAbsoluteDepth(getDepth(drawable) + relDepth, drawable);
+        }
+    }
+
+    /**
+     * @param absDepth The absolute depth.
+     */
+    public void setAbsoluteDepth(int absDepth, @NotNull Drawable drawable) {
+        synchronized (childDrawables) {
+            if (!childDrawables.contains(drawable)) {
+                throw new IllegalArgumentException("Drawable not attached to this Container!");
+            }
+
+            // Adjust to be within limits
+            absDepth = Math.max(Math.min(absDepth, childDrawables.size()), 0);
+
+            // Re-insert at desired depth
+            childDrawables.remove(drawable);
+            childDrawables.add(absDepth, drawable);
+        }
+    }
 
     /**
      * @param drawable The {@link Drawable} to be focused.
@@ -144,12 +192,12 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
             focusTarget = null;
             broadcastEvent(new FocusEvent(getPlugin(), null));
         } else {
-            if (!childDrawables.contains(drawable)) {
-                throw new IllegalArgumentException("Drawable not attached to this Container!");
-            }
-
             // Move
             synchronized (childDrawables) {
+                if (!childDrawables.contains(drawable)) {
+                    throw new IllegalArgumentException("Drawable not attached to this Container!");
+                }
+
                 childDrawables.remove(drawable);
                 childDrawables.add(0, drawable);
             }
@@ -158,6 +206,7 @@ public abstract class DrawableContainer extends Drawable implements ContainerInt
             broadcastEvent(new FocusEvent(getPlugin(), drawable.identifier));
         }
     }
+
 
     //
     // Calculations

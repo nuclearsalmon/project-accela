@@ -41,6 +41,8 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     private @Nullable ContainerInterface parentContainer;
     public final @NotNull Plugin plugin;
     private @Nullable DrawableContainer parentDrawable;
+    public boolean show;
+    private int depth = 0;
 
     public Drawable(@NotNull Rect rect, @NotNull Plugin plugin) {
         this.rect = rect;
@@ -52,6 +54,10 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
     //
     // Properties and flags
     //
+
+    public void setShow(boolean show) {
+        this.show = show;
+    }
 
     /**
      * @return The {@link DrawableIdentifier} for this {@link Drawable}.
@@ -69,7 +75,7 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
 
     /**
      * If the Drawable is marked as active, it will be selected to receive Events. It will be "focused".
-     * It can still receive Events when inactive, but is less likely to.
+     * It can still receive Events when inactive, if specifically targeted, but no broadcasts.
      */
     public boolean isEventActive() {
         return isEventActive;
@@ -91,19 +97,17 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
 
     public abstract @NotNull CursorMode getCursorMode();
 
-    @Deprecated
-    public abstract boolean cursorEnabled();
-
     public abstract boolean transparent();
 
 
     //
-    // Painting
+    // Rendering
     //
 
-    public final void paint() throws IOException {
+    public final void render() throws IOException {
+        this.show = true;
         ContainerInterface parent = getParentContainer();
-        if (parent != null) parent.paint(this);
+        if (parent != null) parent.render(this);
     }
 
     @NotNull
@@ -264,14 +268,36 @@ public abstract class Drawable implements RectReadable, Listener, SelfPainter {
                 if (painter == null) return;
 
                 if (Rect.intersects(oldRect, rect)) {
-                    painter.paint(Rect.combine(oldRect, rect));
+                    painter.render(Rect.combine(oldRect, rect));
                 } else {
-                    painter.paint(oldRect);
-                    painter.paint(rect);
+                    painter.render(oldRect);
+                    painter.render(rect);
                 }
             } catch (IOException ignored) {
             }
         }
+    }
+
+    protected void internalSetRelativeDepth(int relDepth) {
+        ContainerInterface parent = getParentContainer();
+        if (parent != null) {
+            parent.setRelativeDepth(relDepth, this);
+            this.depth = parent.getDepth(this);
+        } else this.depth = this.depth + relDepth;
+    }
+
+    protected void internalSetAbsoluteDepth(int absDepth) {
+        ContainerInterface parent = getParentContainer();
+        if (parent != null) {
+            parent.setAbsoluteDepth(absDepth, this);
+            this.depth = parent.getDepth(this);
+        } else this.depth = absDepth;
+    }
+
+    public int getDepth() {
+        ContainerInterface parent = getParentContainer();
+        if (parent != null) this.depth = parent.getDepth(this);
+        return this.depth;
     }
 
 
