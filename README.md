@@ -40,7 +40,7 @@ However, as I'm currently only using it for local testing, unencrypted telnet is
 ---
 
 ## Dependencies
-* JetBrains annotations (optional)
+* JetBrains annotations (@NotNull & @Nullable)
 * SnakeYAML
 * Apache Commons Lang
 * Google Guava
