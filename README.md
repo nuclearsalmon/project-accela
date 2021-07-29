@@ -6,6 +6,11 @@ allowing for a consistent and easy-to-use means of handling concurrent IO to and
 
 Feel free to check out the [wiki].
 
+<br>
+
+---
+
+<br>
 
 ## Table of Contents
 - [Background](#background)
@@ -17,7 +22,7 @@ Feel free to check out the [wiki].
   - [Server Core](#server-core)
   - [Prismatic (Window manager)](#prismatic-window-manager)
   - [Telnet Provider](#telnet-provider)
-
+- [Credits](#credits)
 
 ## Background
 My end goal with Project Accela is to utilize the framework to create a sandboxed virtual network "game"
@@ -28,16 +33,11 @@ It will look and behave somewhat similarly to a [BBS][out_bbs] or a [MUD][out_mu
 The plugins that will be used to create said environment will be publicly available along with the rest of the project 
 (though probably in a separate repository). I have plenty of plans for this "game", but that is outside the scope of this README.
 
-
 ## Notes
 * The full code for the [server core][repo_server] and [Prismatic][repo_prismatic] will be uploaded at a later date,
 as it's not quite ready yet and I'm dissatisfied with the current code quality.
 * I plan on adding support for more protocols than just telnet, as well as implementing encryption for all protocols. 
 However, as I'm currently only using it for local testing, unencrypted telnet is more than sufficient.
-
-<br>
-
----
 
 ## Dependencies
 * JetBrains annotations (@NotNull & @Nullable)
@@ -45,23 +45,16 @@ However, as I'm currently only using it for local testing, unencrypted telnet is
 * Apache Commons Lang
 * Google Guava
 
-
 ## Install
 TBD.
 
-
 ## Usage
 TBD.
-
-<br>
-
----
 
 ## Modules and Plugins
 Plugins are loadable modules that come in the form of `.jar` files. They provide additional functionality on top of the server core.
 Plugins can be loaded into the server at any point during runtime 
 and will run in a sandboxed environment where they are only allowed access to certain parts of the framework.
-
 
 ### Server Core
 The server core provides the essential frameworks and functionality behind the project.
@@ -76,10 +69,6 @@ through various client-server protocols (such as [Telnet][repo_telnet_provider])
 This is so that any future protocols can be easily implemented and interacted with in a standardized fashion.
 - Logging.
 
-
-<!--Repo link: [Server (Core)][repo_server]-->
-
-
 ### Prismatic Window Manager
 Prismatic lets multiple plugins simultaneously provide terminal-based I/O to and from users, 
 without the plugins interfering with each other.
@@ -88,7 +77,6 @@ It lets you build an interactive user interface similar to how one would do for 
 This includes buttons, dropdown menus, input boxes, etc.
 
 Repo link: [Prismatic Window Manager][repo_prismatic]
-
 
 ### Telnet Provider
 A plugin that adds support for communication through the telnet protocol.
@@ -100,18 +88,21 @@ The plugin can also be configured to listen on multiple ports if needed.
 
 Repo link: [Telnet Provider][repo_telnet_provider]
 
+## Credits
+Thanks to:
+- SqZ / Ozz Nixon - My main source of advice, insights and [documentation][out_ryobbs].
 
+<br>
 
-<!-- Links -->
+<!-- LINKS -->
+<!-- Repos -->
 [repo_server]: ./server/src "Server Core"
-
-[repo_ansi_library]: prismaPlugin/src/net/accela/prisma/ansi "ANSI EscSeq library"
-
 [repo_prismatic]: ./prismaPlugin/src "Prismatic Window Manager"
 [repo_telnet_provider]: ./telnetProviderPlugin/src "Telnet Provider"
-
+<!-- Misc -->
 [wiki]: https://github.com/gustavdersjo/project-accela/wiki
-
+<!-- External -->
 [out_ansi]: https://en.wikipedia.org/wiki/ANSI_escape_code "ANSI Escape Code"
 [out_bbs]: https://sv.wikipedia.org/wiki/Bulletin_board_system "Bulletin Board System"
 [out_mud]: https://sv.wikipedia.org/wiki/MUD "Multi User Dungeon"
+[out_ryobbs]: http://ryobbs.com/doku.php/terminal "Terminal documentation"
