@@ -123,4 +123,12 @@ public final class ArrayUtils {
         }
         return false;
     }
+
+    public static int[] convertStringToInt(@NotNull String[] strArr) {
+        int[] intArr = new int[strArr.length];
+        for (int i = 0; i < intArr.length; i++) {
+            intArr[i] = Integer.parseInt(strArr[i]);
+        }
+        return intArr;
+    }
 }

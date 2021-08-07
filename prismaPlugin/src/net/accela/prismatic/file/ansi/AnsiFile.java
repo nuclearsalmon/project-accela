@@ -27,13 +27,13 @@ public class AnsiFile {
     /** The size of the Sauce block, excluding comments */
     static final int SAUCE_BLOCK_SIZE = 128;
 
-    private static class ANSIMatch {
+    private static class MatchInfo {
         public final int start;
         public final int end;
         public final String group;
         public final int length;
 
-        ANSIMatch(int start, int end, String group) {
+        MatchInfo(int start, int end, String group) {
             this.start = start;
             this.end = end;
             this.group = group;
@@ -179,31 +179,31 @@ public class AnsiFile {
                 // A list of textCharacters in this row
                 List<TextCharacter> textCharacterRow = new ArrayList<>();
 
-                // ANSIMatch sequences in this line
-                List<ANSIMatch> ANSIMatches = new ArrayList<>();
+                // MatchInfo sequences in this line
+                List<MatchInfo> MatchInfo = new ArrayList<>();
                 Matcher ANSIMatcher = ANSIPatterns.ANSI8Bit.matcher(line);
                 while (ANSIMatcher.find()) {
-                    ANSIMatches.add(new ANSIMatch(ANSIMatcher.start(), ANSIMatcher.end(), ANSIMatcher.group()));
+                    MatchInfo.add(new MatchInfo(ANSIMatcher.start(), ANSIMatcher.end(), ANSIMatcher.group()));
                 }
 
-                // Use the ANSIMatches to distinguish between ANSI sequences and regular characters and separate them
-                ANSIMatch nextANSIMatch = null;
-                if (ANSIMatches.size() > 0) nextANSIMatch = ANSIMatches.remove(0);
+                // Use the MatchInfo to distinguish between ANSI sequences and regular characters and separate them
+                MatchInfo nextMatchInfo = null;
+                if (MatchInfo.size() > 0) nextMatchInfo = MatchInfo.remove(0);
 
                 int fileLineCursor = 0;
                 while (fileLineCursor < line.length()) {
                     // If there's a match waiting, and the lineCursor has reached the start of it, do this
-                    if (nextANSIMatch != null && fileLineCursor == nextANSIMatch.start) {
-                        styleSet.consume(SGRStatement.fromSGRString(nextANSIMatch.group));
+                    if (nextMatchInfo != null && fileLineCursor == nextMatchInfo.start) {
+                        styleSet.consume(SGRStatement.fromSGRString(nextMatchInfo.group));
 
                         // Step forward the proper amount of characters
-                        fileLineCursor += nextANSIMatch.length;
+                        fileLineCursor += nextMatchInfo.length;
 
                         // Grab the next match, if any
-                        if (ANSIMatches.size() > 0) {
-                            nextANSIMatch = ANSIMatches.remove(0);
+                        if (MatchInfo.size() > 0) {
+                            nextMatchInfo = MatchInfo.remove(0);
                         } else {
-                            nextANSIMatch = null;
+                            nextMatchInfo = null;
                         }
 
                         // Don't execute the character part below,

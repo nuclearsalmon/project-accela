@@ -188,7 +188,7 @@ public enum SGRAttribute {
      */
     @NonStandard(info = "Implemented by Kitty, VTE, mintty, and iTerm2. Not in standard.")
     @RequiresArgument(info = "5;n or 2;r;g;b")
-    UNDERLINE_COLOR(58),
+    UNDERLINE_COLOR(58, 2, 4),
 
     /**
      * Resets the underline color. Nonstandard; not always supported.
@@ -516,7 +516,7 @@ public enum SGRAttribute {
      */
     @RequiresArgument(info = "5;n or 2;r;g;b")
     @NotWidelySupported
-    FG_RGB(38),
+    FG_RGB(38, 2, 4),
 
     /**
      * Enables default foreground color.
@@ -678,7 +678,7 @@ public enum SGRAttribute {
      */
     @RequiresArgument(info = "5;n or 2;r;g;b")
     @NotWidelySupported
-    BG_RGB(48),
+    BG_RGB(48, 2, 4),
 
     /**
      * Enables default background color.
@@ -1002,69 +1002,115 @@ public enum SGRAttribute {
     @NonStandard(info = "Extension by mintty, not in standard.")
     SUPERSCRIPT(74);
 
-    private final static Map<@NotNull Integer, @NotNull SGRAttribute> indexMap = new HashMap<>();
+    // Global properties
+    // Map of all attributes
+    private final static Map<@NotNull Integer, @NotNull SGRAttribute> codeMap = new HashMap<>();
 
-    public final int index;
+    // Attribute properties
+    public final int code;
+    final int minArgAmount;
+    final int maxArgAmount;
 
-    SGRAttribute(final int index) {
-        this.index = index;
+    //
+    // Constructors
+    //
+
+    SGRAttribute(int code) {
+        this(code, 0, 0);
+    }
+
+    SGRAttribute(int code, int minArgAmount, int maxArgAmount) {
+        this.code = code;
+        this.minArgAmount = minArgAmount;
+        this.maxArgAmount = maxArgAmount;
+
+        // Verify
+        if (minArgAmount < 0 || minArgAmount > 4 || maxArgAmount < 0 || maxArgAmount > 4)
+            throw new IndexOutOfBoundsException("Min/Max argument amounts must be within 0 and 4.");
+        if (minArgAmount > maxArgAmount)
+            throw new IndexOutOfBoundsException("Min argument amount must be lower than Max argument amount.");
     }
 
     //
-    // Getters
+    // Getters and Inquiries
     //
 
-    public int getIndex() {
-        return index;
+    public int getCode() {
+        return code;
     }
 
     public byte[] getBytes(@NotNull Charset charset) {
-        return String.valueOf(index).getBytes(charset);
+        return String.valueOf(code).getBytes(charset);
     }
-
-    //
-    // Inquiry
-    //
 
     /**
      * @return Whether this requires arguments to be used
      */
     public boolean requiresArguments() {
-        return index == 38 || index == 48 || index == 58;
+        return minArgAmount > 0;
+        //return code == 38 || code == 48 || code == 58;
+    }
+
+    /**
+     * @return Whether this can use arguments or not
+     */
+    public boolean usesArguments() {
+        return maxArgAmount > 0;
+        //return code == 38 || code == 48 || code == 58;
+    }
+
+    /**
+     * @return Minimum allowed number of arguments
+     */
+    public int getMinArgAmount() {
+        return minArgAmount;
+    }
+
+    /**
+     * @return Maximum allowed number of arguments
+     */
+    public int getMaxArgAmount() {
+        return maxArgAmount;
     }
 
     /**
      * @return if this is a color. Does not include underline colors.
      */
     public boolean isTextColor() {
-        return ((index >= 30 && index <= 49) ||
-                (index >= 90 && index <= 97) ||
-                (index >= 100 && index <= 107));
+        return ((code >= 30 && code <= 49) ||
+                (code >= 90 && code <= 97) ||
+                (code >= 100 && code <= 107));
     }
 
     /**
      * @return if this is an underline color.
      */
     public boolean isUnderlineColor() {
-        return index == UNDERLINE_COLOR.getIndex() || index == UNDERLINE_COLOR_DEFAULT.getIndex();
+        return code == 58 || code == 59;
     }
 
     /**
      * @return if this is a color. Includes underline colors.
      */
     public boolean isAnyColor() {
-        return ((index >= 30 && index <= 49) ||
-                (index >= 90 && index <= 97) ||
-                (index >= 58 && index <= 59) ||
-                (index >= 100 && index <= 107));
+        return ((code >= 30 && code <= 49) ||
+                (code >= 90 && code <= 97) ||
+                (code >= 100 && code <= 107)) ||
+                (code == 58 || code == 59);
     }
 
+    /**
+     * @return if this is a foreground color.
+     */
     public boolean isForegroundColor() {
-        return index >= FG_BLK.index && index <= FG_DEFAULT.index;
+        return code >= FG_BLK.code && code <= FG_DEFAULT.code;
     }
 
+    /**
+     * @return if this is a background color.
+     */
     public boolean isBackgroundColor() {
-        return index >= BG_BLK.index && index <= BG_DEFAULT.index;
+        return code >= BG_BLK.code && code <= BG_DEFAULT.code;
     }
 
     //
@@ -1075,67 +1121,24 @@ public enum SGRAttribute {
      * This is better to use than values()[index],
      * as this uses the actual SGR indices instead of array indices.
      *
-     * @param index The index to look for
+     * @param code The index to look for
      * @return The matching {@link SGRAttribute}, or null if not found.
      */
-    public static @NotNull SGRAttribute fromIndex(int index) {
+    public static @NotNull SGRAttribute fromInt(int code) {
         // Populate the hashmap if that's not been dealt with already.
-        synchronized (indexMap) {
-            if (indexMap.size() < 1) {
+        synchronized (codeMap) {
+            if (codeMap.size() < 1) {
                 for (SGRAttribute value : values()) {
-                    indexMap.put(value.getIndex(), value);
+                    codeMap.put(value.getCode(), value);
                 }
             }
         }
 
         // Return the SGR at this index
-        SGRAttribute attribute = indexMap.get(index);
+        SGRAttribute attribute = codeMap.get(code);
         if (attribute == null) {
-            throw new IndexOutOfBoundsException(String.format("Unknown SGRAttribute index '%s'", index));
+            throw new IllegalArgumentException(String.format("Unknown SGRAttribute code '%s'", code));
         }
         return attribute;
-    }
-
-    public static @NotNull SGRAttribute disable(final @NotNull SGRAttribute sgrAttribute) {
-        switch (sgrAttribute) {
-            case INTENSITY_BRIGHT_OR_BOLD:
-            case INTENSITY_DIM_OR_THIN:
-                return INTENSITY_OFF;
-            case EMPHASIS_ITALIC:
-            case EMPHASIS_FRAKTUR:
-                return EMPHASIS_OFF;
-            case INVERT_ON:
-                return INVERT_OFF;
-            case CONCEAL_ON:
-                return CONCEAL_OFF;
-            case STRIKE_THROUGH_ON:
-                return STRIKE_THROUGH_OFF;
-            case BLINK_SLOW:
-            case BLINK_FAST:
-                return BLINK_OFF;
-            case UNDERLINE_SINGLE:
-            case UNDERLINE_DOUBLE:
-                return UNDERLINE_OFF;
-            case FONT_1:
-            case FONT_2:
-            case FONT_3:
-            case FONT_4:
-            case FONT_5:
-            case FONT_6:
-            case FONT_7:
-            case FONT_8:
-            case FONT_9:
-                return FONT_DEFAULT;
-            case SUBSCRIPT:
-                return SUPERSCRIPT;
-            case SUPERSCRIPT:
-                return SUBSCRIPT;
-            default:
-                //fixme fully implement this
-                throw new UnsupportedOperationException(String.format(
-                        "Cancel method for SGRAttribute '%s' has not been implemented yet",
-                        sgrAttribute
-                ));
-        }
     }
 }

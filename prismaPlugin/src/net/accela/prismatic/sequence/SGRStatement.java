@@ -2,10 +2,10 @@ package net.accela.prismatic.sequence;
 
 import net.accela.prismatic.ui.text.color.TextColor;
 import net.accela.prismatic.util.ANSIPatterns;
+import net.accela.prismatic.util.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
@@ -18,141 +18,131 @@ public class SGRStatement {
     // Constructors
     //
 
-    public SGRStatement(@NotNull SGRAttribute attribute) {
+    SGRStatement(@NotNull SGRAttribute attribute) {
         this(attribute, null);
     }
 
-    public SGRStatement(@NotNull SGRAttribute attribute, int[] arguments) {
+    SGRStatement(@NotNull SGRAttribute attribute, int[] arguments) {
         this.attribute = attribute;
         this.arguments = arguments;
-
-        int index = attribute.getIndex();
-
-        // Validation
-
-        // Prep some common strings since they're the same across all exceptions.
-        final String typeExStr = String.format("SGR attribute '%s' ('%d')", attribute, index);
-        final String argsExStr = String.format("Provided arguments: '%s'", Arrays.toString(arguments));
-
-        // If it requires arguments
-        if (attribute.requiresArguments()) {
-            if (attribute.isAnyColor()) {
-                if (arguments == null) throw new IllegalArgumentException(
-                        String.format("%s requires arguments. %s", typeExStr, argsExStr));
-
-                // Validate arguments length
-                try {
-                    // Figure out which length is valid
-                    int validArgumentsLength;
-                    int initiator = arguments[0];
-                    switch (initiator) {
-                        case 5:
-                            validArgumentsLength = 1;
-                            break;
-                        case 2:
-                            validArgumentsLength = 3;
-                            break;
-                        default:
-                            throw new IllegalArgumentException(
-                                    String.format("Unknown colour type '%d' for %s", initiator, typeExStr));
-                    }
-
-                    // Calculate length
-                    for (int i = 1; i <= validArgumentsLength; i++) {
-                        int rgbArg = arguments[i];
-                        if (rgbArg < 0 || rgbArg > 255)
-                            throw new IllegalArgumentException(
-                                    String.format("Invalid RGBStandard value: '%s'", rgbArg));
-                    }
-                } catch (IndexOutOfBoundsException ignored) {
-                    throw new IllegalArgumentException(
-                            String.format("Too few arguments for %s. %s", typeExStr, argsExStr));
-                }
-            }
-            // If it requires arguments but isn't a color then we don't know what to do with it
-            // (At the time of writing there's no such thing in the spec), so we should throw an exception.
-            else {
-                throw new IllegalArgumentException(String.format(
-                        "SGRAttribute '%s' requires argument(s) but isn't a color", attribute
-                ));
-            }
-        }
-        // Anything else that does not accept arguments
-        else if (arguments != null) throw new IllegalArgumentException(String.format(
-                "%s does not support arguments. %s", typeExStr, argsExStr
-        ));
     }
 
-    public static @NotNull Set<@NotNull SGRStatement> fromSGRString(@NotNull String sequence) {
-        // Filter out ESC (\x1B) and/or '[' at the start, as well as 'm' at the end
+    //
+    // Factory methods
+    //
+
+    public static @NotNull SGRStatement[] fromSGRIntArray(final int[] sequence) {
+        // Convert to SGRStatements
+        // Catch ESC[m (no integers), which is a short form of ESC[0m
+        if (sequence.length == 0) {
+            return new SGRStatement[]{new SGRStatement(SGRAttribute.RESET)};
+        }
+        // Single statement with no argument
+        else if (sequence.length == 1) {
+            return new SGRStatement[]{new SGRStatement(SGRAttribute.fromInt(sequence[0]))};
+        }
+        // A single statement with arguments, or multiple statements, possibly with arguments
+        else {
+            SGRStatement[] statements = new SGRStatement[0];
+            for (int i = 0; i < sequence.length; i++) {
+                // Create attribute
+                final SGRAttribute attribute = SGRAttribute.fromInt(sequence[i]);
+
+                // If it has arguments
+                if (attribute.usesArguments()) {
+                    try {
+                        // If it's a color
+                        if (attribute.isAnyColor()) {
+                            // Advance by one
+                            i++;
+                            int rgbType = sequence[i];
+
+                            // Decide on argument array length
+                            final int[] args;
+                            args = switch (rgbType) {
+                                case 5 -> new int[2];
+                                case 2 -> new int[4];
+                                default -> throw new IllegalArgumentException(String.format(
+                                        "Unknown RGB color type '%s' for attribute '%s'",
+                                        rgbType, attribute
+                                ));
+                            };
+
+                            // Populate the argument array
+                            int argsEndIndex = i + args.length - 1;
+                            int argsArrayIndex = 0;
+                            while (i <= argsEndIndex) {
+                                int rgbValue = sequence[i];
+
+                                // Verify
+                                if (rgbValue < 0 || rgbValue > 255)
+                                    throw new IllegalArgumentException(
+                                            String.format("Invalid RGBStandard value: '%s'", rgbValue));
+
+                                // Add
+                                args[argsArrayIndex] = rgbValue;
+                                i++;
+                                argsArrayIndex++;
+                            }
+
+                            // Form a statement
+                            SGRStatement statement = new SGRStatement(attribute, args);
+
+                            // Extend and add to array
+                            statements = Arrays.copyOf(statements, statement.arguments.length + 1);
+                            statements[statements.length - 1] = statement;
+
+                        } else {
+                            // If it has arguments but is not a color
+                            throw new IllegalStateException(String.format(
+                                    "SGRAttribute '%s' requires argument(s) but isn't a color. Not implemented; " +
+                                            "According to the SGR sequence standard at the time of writing, " +
+                                            "this should never occur.", attribute));
+                        }
+                    } catch (IndexOutOfBoundsException ex) {
+                        throw new IllegalArgumentException(String.format(
+                                "Invalid amount of arguments for attribute '%s'", attribute), ex);
+                    }
+                }
+                // If it has no arguments
+                else {
+                    // Form a statement
+                    SGRStatement statement = new SGRStatement(attribute);
+
+                    // Extend and add to array
+                    statements = Arrays.copyOf(statements, statements.length + 1);
+                    statements[statements.length - 1] = statement;
+                }
+            }
+            return statements;
+        }
+    }
+
+    public static @NotNull SGRStatement[] fromSGRString(@NotNull final String sequence) {
+        // Match and capture any SGR sequences
         final String[] sgrSeqMatches = ANSIPatterns.SGR_sequenceCapture
                 .matcher(sequence)
                 .results()
                 .map(MatchResult::group)
                 .toArray(String[]::new);
-        if (sgrSeqMatches.length == 0) return new HashSet<>();
 
-        final String[] intMatches = Pattern.compile("(\\d+)")
-                .matcher(sequence)
+        // Confirm input
+        if (sgrSeqMatches.length < 1) throw new IllegalArgumentException("String was not an SGR sequence.");
+        if (sgrSeqMatches.length > 1 || sgrSeqMatches[0].length() != sequence.length())
+            throw new IllegalArgumentException("String must consist of a single Sequence, with no extra characters.");
+
+        // Extract integers
+        final String[] strIntMatches = Pattern.compile("\\d+")
+                .matcher(sgrSeqMatches[0])
                 .results()
                 .map(MatchResult::group)
                 .toArray(String[]::new);
-        if (intMatches.length == 0) return new HashSet<>() {{
-            add(new SGRStatement(SGRAttribute.RESET));
-        }};
 
         // Convert to integers
-        final List<Integer> intValues = new ArrayList<>();
-        for (String string : intMatches) {
-            intValues.add(Integer.parseInt(string));
-        }
+        final int[] intValues = ArrayUtils.convertStringToInt(strIntMatches);
 
-        // Parse values into a List of SGRStatements
-        Set<SGRStatement> statements = new HashSet<>();
-        try {
-            for (int index = 0; index < intValues.size(); index++) {
-                final int typeAsInt = intValues.get(index);
-                // If it has arguments
-                // todo migrate to using the methods provided by SGRAttribute for arguments.
-                if (typeAsInt == 38 | typeAsInt == 48 | typeAsInt == 58) {
-                    // Advance by one
-                    index++;
-                    int rgbType = intValues.get(index);
-
-                    // Decide on argument array length
-                    final int[] args;
-                    if (rgbType == 2) args = new int[4];
-                    else if (rgbType == 5) args = new int[2];
-                    else throw new IllegalArgumentException("Unknown rgb color type: '" + rgbType + "'");
-
-                    // Populate the argument array
-                    int argsEndIndex = index + args.length - 1;
-                    int argsArrayIndex = 0;
-                    while (index <= argsEndIndex) {
-                        int rgbValue = intValues.get(index);
-                        // Note that we do not need to check whether the arguments are valid -
-                        // that is done automatically upon SGRStatement creation.
-                        args[argsArrayIndex] = rgbValue;
-
-                        index++;
-                        argsArrayIndex++;
-                    }
-
-                    // Form a statement
-                    SGRStatement statement = new SGRStatement(SGRAttribute.fromIndex(typeAsInt), args);
-                    statements.add(statement);
-                }
-                // If it has no arguments
-                else {
-                    statements.add(new SGRStatement(SGRAttribute.fromIndex(typeAsInt)));
-                }
-            }
-        } catch (IndexOutOfBoundsException ex) {
-            throw new IllegalArgumentException(String.format(
-                    "Invalid amount of arguments for sequence type. Sequence: %s", sequence
-            ), ex);
-        }
-        return statements;
+        // Parse
+        return fromSGRIntArray(intValues);
     }
 
     //
@@ -171,7 +161,7 @@ public class SGRStatement {
     }
 
     public @NotNull String getStatementAsString() {
-        StringBuilder statementSB = new StringBuilder(attribute.getIndex());
+        StringBuilder statementSB = new StringBuilder(attribute.getCode());
 
         for (int argument : arguments) {
             statementSB.append(';').append(argument);
@@ -185,13 +175,12 @@ public class SGRStatement {
     }
 
     /**
-     * If this {@link SGRStatement}'s {@link SGRAttribute} isn't a color,
-     * or if the color is default then null will be returned.
+     * Converts the {@link SGRStatement} to a {@link TextColor} if supported.
      *
      * @return A {@link TextColor} if this {@link SGRStatement}'s {@link SGRAttribute} is a color.
-     * Null if it's not a color, or if the color is default.
+     * @throws UnsupportedOperationException If the {@link SGRStatement} is not a color.
      */
-    public @Nullable TextColor toColor() {
+    public @NotNull TextColor toColor() {
         switch (attribute) {
             case FG_BLK:
             case BG_BLK:
@@ -252,8 +241,10 @@ public class SGRStatement {
             case FG_DEFAULT:
             case BG_DEFAULT:
             case UNDERLINE_COLOR_DEFAULT:
+                return TextColor.ANSI.DEFAULT;
             default:
-                return null;
+                throw new UnsupportedOperationException(
+                        "This SGRStatement is not a color, or it has not been implemented yet.");
         }
     }
 }

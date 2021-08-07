@@ -102,7 +102,7 @@ public class ANSIPatterns {
     public static final Pattern RIS = Pattern.compile("\u001Bc");
 
     /**
-     * Matches CSI (Control ANSISequence Introducer)
+     * Matches CSI (Control ANSI Sequence Introducer)
      */
     public static final Pattern CSI = Pattern.compile("\u001B\\[[^\u001B]+");
 
@@ -237,17 +237,10 @@ public class ANSIPatterns {
     //
 
     /**
-     * Matches SGR (Select Graphic Rendition)
+     * Matches and captures SGR (Select Graphic Rendition)
      */
     public static final Pattern SGR_sequenceCapture = Pattern.compile(
-            "([\\x1B\\x9B]\\[(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[m])"
-    );
-
-    /**
-     *
-     */
-    public static final Pattern SGR_statementCapture = Pattern.compile(
-            "([\\x1B\\x9B]\\[(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[m])"
+            "([\\x1B\\x9B]\\[(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?m)"
     );
 
     /**
