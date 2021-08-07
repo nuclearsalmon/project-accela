@@ -2,7 +2,6 @@ package net.accela.prismatic.sequence;
 
 import net.accela.prismatic.ui.text.color.TextColor;
 import net.accela.prismatic.util.ANSIPatterns;
-import net.accela.prismatic.util.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -139,7 +138,10 @@ public class SGRStatement {
                 .toArray(String[]::new);
 
         // Convert to integers
-        final int[] intValues = ArrayUtils.convertStringToInt(strIntMatches);
+        final int[] intValues = new int[strIntMatches.length];
+        for (int i = 0; i < intValues.length; i++) {
+            intValues[i] = Integer.parseInt(strIntMatches[i]);
+        }
 
         // Parse
         return fromSGRIntArray(intValues);
