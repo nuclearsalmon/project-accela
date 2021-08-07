@@ -84,7 +84,6 @@ public class StreamDecoder extends Reader {
         return read0();
     }
 
-    @SuppressWarnings("fallthrough")
     private int read0() throws IOException {
         synchronized (lock) {
 
@@ -113,7 +112,7 @@ public class StreamDecoder extends Reader {
         }
     }
 
-    public int read(char[] cbuf, int offset, int length) throws IOException {
+    public int read(char @NotNull [] cbuf, int offset, int length) throws IOException {
         int off = offset;
         int len = length;
         synchronized (lock) {

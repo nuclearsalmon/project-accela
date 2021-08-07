@@ -81,7 +81,7 @@ public class SwitchableCharsetReader extends Reader {
         }
     }
 
-    public synchronized int read(char[] cbuf, int offset, int length) throws IOException {
+    public synchronized int read(char @NotNull [] cbuf, int offset, int length) throws IOException {
         int off = offset;
         int len = length;
         synchronized (lock) {

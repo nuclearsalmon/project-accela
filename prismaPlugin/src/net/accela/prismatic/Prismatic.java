@@ -86,9 +86,8 @@ public class Prismatic implements ContainerInterface, Closeable {
             public void run() {
                 String closeReason = "Unknown";
                 while (!isInterrupted()) {
-                    InputEvent inputEvent = null;
                     try {
-                        inputEvent = getTerminal().pollInput();
+                        InputEvent inputEvent = getTerminal().pollInput();
                         if (inputEvent == null) continue;
                         receiveEvent(inputEvent);
                     } catch (IOException ex) {

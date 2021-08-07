@@ -59,15 +59,15 @@ public class Sauce {
         validateExactStringLength(date, "Date", 8);
          */
 
-        validateintAsByte(dataType, "DataType", 1);
-        validateintAsByte(fileType, "FileType", 1);
+        validateIntAsByte(dataType, "DataType", 1);
+        validateIntAsByte(fileType, "FileType", 1);
 
-        validateintAsByte(typeInfo1, "TypeInfo1", 2);
-        validateintAsByte(typeInfo2, "TypeInfo2", 2);
-        validateintAsByte(typeInfo3, "TypeInfo3", 2);
-        validateintAsByte(typeInfo4, "TypeInfo4", 2);
+        validateIntAsByte(typeInfo1, "TypeInfo1", 2);
+        validateIntAsByte(typeInfo2, "TypeInfo2", 2);
+        validateIntAsByte(typeInfo3, "TypeInfo3", 2);
+        validateIntAsByte(typeInfo4, "TypeInfo4", 2);
 
-        validateintAsByte(typeFlags, "TypeFlags", 1);
+        validateIntAsByte(typeFlags, "TypeFlags", 1);
 
         if (typeInfoString.length() > 22) throw new InvalidSauceException("TypeInfoString parameter length < 22");
         if (comments != null && comments.length() / 64 > 255) throw new InvalidSauceException("More than 255 comments");
@@ -79,7 +79,7 @@ public class Sauce {
         }
     }
 
-    private static void validateintAsByte(int parameter, @NotNull String parameterName, int byteCount) {
+    private static void validateIntAsByte(int parameter, @NotNull String parameterName, int byteCount) {
         final int boundsStart = 0, boundsEnd = 255 * byteCount;
         if (!(parameter >= boundsStart && parameter <= boundsEnd)) {
             throw new InvalidSauceException(String.format(
@@ -109,27 +109,27 @@ public class Sauce {
         return date;
     }
 
-    public @Range(from = 0, to = 255) int getDataType() {
+    public int getDataType() {
         return dataType;
     }
 
-    public @Range(from = 0, to = 255) int getFileType() {
+    public int getFileType() {
         return fileType;
     }
 
-    public @Range(from = 0, to = 255) int getTypeInfo1() {
+    public int getTypeInfo1() {
         return typeInfo1;
     }
 
-    public @Range(from = 0, to = 255) int getTypeInfo2() {
+    public int getTypeInfo2() {
         return typeInfo1;
     }
 
-    public @Range(from = 0, to = 255) int getTypeInfo3() {
+    public int getTypeInfo3() {
         return typeInfo1;
     }
 
-    public @Range(from = 0, to = 255) int getTypeInfo4() {
+    public int getTypeInfo4() {
         return typeInfo1;
     }
 }

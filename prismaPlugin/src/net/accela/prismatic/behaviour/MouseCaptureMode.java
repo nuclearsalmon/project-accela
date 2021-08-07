@@ -1,6 +1,9 @@
 package net.accela.prismatic.behaviour;
 
 import net.accela.prismatic.util.chars.C0ControlCode;
+import org.jetbrains.annotations.NotNull;
+
+import java.nio.charset.Charset;
 
 /**
  * <a href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking">
@@ -29,15 +32,15 @@ public enum MouseCaptureMode {
         return index;
     }
 
-    public byte[] getEnablingSequence() {
-        return getSequence(true);
+    public byte[] getEnablingSequence(@NotNull Charset charset) {
+        return getSequence(true, charset);
     }
 
-    public byte[] getDisablingSequence() {
-        return getSequence(false);
+    public byte[] getDisablingSequence(@NotNull Charset charset) {
+        return getSequence(false, charset);
     }
 
-    public byte[] getSequence(boolean enable) {
-        return (C0ControlCode.ESC + "[?" + index + (enable ? "h" : "l")).getBytes();
+    public byte[] getSequence(boolean enable, @NotNull Charset charset) {
+        return (C0ControlCode.ESC + "[?" + index + (enable ? "h" : "l")).getBytes(charset);
     }
 }

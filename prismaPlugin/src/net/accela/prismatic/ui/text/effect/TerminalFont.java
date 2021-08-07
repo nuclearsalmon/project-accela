@@ -176,7 +176,7 @@ public enum TerminalFont {
     @NotWidelySupported
     FONT_9(SGRAttribute.FONT_9);
 
-    final SGRAttribute attribute;
+    public final SGRAttribute attribute;
 
     TerminalFont(@NotNull SGRAttribute attribute) {
         switch (attribute) {
@@ -199,29 +199,18 @@ public enum TerminalFont {
 
     @NotNull
     public static TerminalFont fromSGRAttribute(@NotNull SGRAttribute attribute) {
-        switch (attribute) {
-            case FONT_DEFAULT:
-                return FONT_DEFAULT;
-            case FONT_1:
-                return FONT_1;
-            case FONT_2:
-                return FONT_2;
-            case FONT_3:
-                return FONT_3;
-            case FONT_4:
-                return FONT_4;
-            case FONT_5:
-                return FONT_5;
-            case FONT_6:
-                return FONT_6;
-            case FONT_7:
-                return FONT_7;
-            case FONT_8:
-                return FONT_8;
-            case FONT_9:
-                return FONT_9;
-            default:
-                throw new IllegalArgumentException("Not a font");
-        }
+        return switch (attribute) {
+            case FONT_DEFAULT -> FONT_DEFAULT;
+            case FONT_1 -> FONT_1;
+            case FONT_2 -> FONT_2;
+            case FONT_3 -> FONT_3;
+            case FONT_4 -> FONT_4;
+            case FONT_5 -> FONT_5;
+            case FONT_6 -> FONT_6;
+            case FONT_7 -> FONT_7;
+            case FONT_8 -> FONT_8;
+            case FONT_9 -> FONT_9;
+            default -> throw new IllegalArgumentException("Not a font");
+        };
     }
 }

@@ -14,6 +14,7 @@ public class Main extends JavaPlugin {
     //
     // Debug Flags
     //
+    // todo migrate these into Prismatic.java
 
     /**
      * Whether to focus a Drawable when it gets attached to {@link Prismatic}
@@ -21,12 +22,7 @@ public class Main extends JavaPlugin {
     public static final boolean DBG_FOCUS_ON_WM_ATTACHMENT = true;
 
     /**
-     * Whether to focus a Drawable when it gets attached to a {@link DrawableContainer}
-     */
-    public static final boolean DBG_FOCUS_ON_DRAWABLE_CONTAINER_ATTACHMENT = true;
-
-    /**
-     * Whether to throw exception when out of lowlevel bounds or not.
+     * Whether to throw exception when out of low level bounds or not.
      * Disabling it makes the logs more easily readable.
      */
     public static final boolean DBG_RESPECT_TERMINAL_BOUNDS = false;

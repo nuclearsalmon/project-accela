@@ -29,6 +29,7 @@ public class AnsiFile {
 
     private static class MatchInfo {
         public final int start;
+        @SuppressWarnings("unused")
         public final int end;
         public final String group;
         public final int length;
@@ -49,7 +50,7 @@ public class AnsiFile {
     /**
      * Sauce
      */
-    final Sauce sauce;
+    public final Sauce sauce;
 
     /**
      * Source file
@@ -153,7 +154,7 @@ public class AnsiFile {
          */
     }
 
-    public AnsiFile(final @NotNull File source, final @NotNull Terminal terminal) throws IOException {
+    public AnsiFile(final @NotNull File source) throws IOException {
         this.source = source;
 
         // Read sauce and comments data

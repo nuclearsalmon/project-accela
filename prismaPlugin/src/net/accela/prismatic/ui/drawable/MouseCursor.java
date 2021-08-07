@@ -84,21 +84,11 @@ public class MouseCursor extends Drawable implements PointMutable {
     @EventHandler
     void onKeyStroke(@NotNull InputEvent inputEvent) {
         switch (inputEvent.getKeyType()) {
-            case MouseEvent:
-                setRelativePoint(((MouseInputEvent) inputEvent).getPosition());
-                break;
-            case ArrowUp:
-                setRelativePoint(getRelativePoint().withRelative(0, -1));
-                break;
-            case ArrowDown:
-                setRelativePoint(getRelativePoint().withRelative(0, 1));
-                break;
-            case ArrowLeft:
-                setRelativePoint(getRelativePoint().withRelative(-1, 0));
-                break;
-            case ArrowRight:
-                setRelativePoint(getRelativePoint().withRelative(1, 0));
-                break;
+            case MouseEvent -> setRelativePoint(((MouseInputEvent) inputEvent).getPosition());
+            case ArrowUp -> setRelativePoint(getRelativePoint().withRelative(0, -1));
+            case ArrowDown -> setRelativePoint(getRelativePoint().withRelative(0, 1));
+            case ArrowLeft -> setRelativePoint(getRelativePoint().withRelative(-1, 0));
+            case ArrowRight -> setRelativePoint(getRelativePoint().withRelative(1, 0));
         }
     }
 }
