@@ -2,12 +2,11 @@ package net.accela.prismatic.util;
 
 import java.util.PrimitiveIterator;
 
-/**
- * Source repo:
- * <a href="https://github.com/jline/jline2/blob/master/src/main/java/jline/console/WCWidth.java">jline/WCWidth.java</a>
- * <br>
- */
-public class WCWidth {
+public class TerminalTextUtils {
+    //
+    // WCWidth
+    //
+
     /**
      * <h4>Short summary</h4>
      * -1 : Indeterminate (not printable or C0/C1 control characters).<br>
@@ -160,19 +159,106 @@ public class WCWidth {
     }
 
     //
-    // Custom extensions to wcwidth
+    // Custom extensions to WCWidth
     //
+
+    @SuppressWarnings("SpellCheckingInspection")
     public static int stringWidth(String string) {
         if (string == null) return 0;
 
         int width = 0;
         for (PrimitiveIterator.OfInt it = string.codePoints().iterator(); it.hasNext(); ) {
             int codePoint = it.next();
-            int wcwidth = WCWidth.wcwidth(codePoint);
-            if (wcwidth > 0) {
-                width += wcwidth;
-            }
+
+            int wcwidth = wcwidth(codePoint);
+            // wcwidth can return -1, which isn't a real value, so let's ignore it.
+            if (wcwidth > 0) width += wcwidth;
         }
         return width;
+    }
+
+    //
+    // Other
+    //
+
+    /**
+     * Given a character, is this character considered to be a CJK character?
+     * Shamelessly stolen from
+     * <a href="http://stackoverflow.com/questions/1499804/how-can-i-detect-japanese-text-in-a-java-string">StackOverflow</a>
+     * where it was contributed by user Rakesh N
+     *
+     * @param c Character to test
+     * @return {@code true} if the character is a CJK character
+     */
+    public static boolean isCharCJK(final char c) {
+        Character.UnicodeBlock unicodeBlock = Character.UnicodeBlock.of(c);
+        return (unicodeBlock == Character.UnicodeBlock.HIRAGANA)
+                || (unicodeBlock == Character.UnicodeBlock.KATAKANA)
+                || (unicodeBlock == Character.UnicodeBlock.KATAKANA_PHONETIC_EXTENSIONS)
+                || (unicodeBlock == Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO)
+                || (unicodeBlock == Character.UnicodeBlock.HANGUL_JAMO)
+                || (unicodeBlock == Character.UnicodeBlock.HANGUL_SYLLABLES)
+                || (unicodeBlock == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS)
+                || (unicodeBlock == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A)
+                || (unicodeBlock == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B)
+                || (unicodeBlock == Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS)
+                || (unicodeBlock == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS)
+                || (unicodeBlock == Character.UnicodeBlock.CJK_RADICALS_SUPPLEMENT)
+                || (unicodeBlock == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION)
+                || (unicodeBlock == Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS)
+                || (unicodeBlock == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS && c < 0xFF61);    //The magic number here is the separating index between full-width and half-width
+    }
+
+    /**
+     * Given a character, is this character considered to be a Thai character?
+     *
+     * @param c Character to test
+     * @return {@code true} if the character is a Thai character
+     */
+    public static boolean isCharThai(char c) {
+        Character.UnicodeBlock unicodeBlock = Character.UnicodeBlock.of(c);
+        return unicodeBlock == Character.UnicodeBlock.THAI;
+    }
+
+    /**
+     * Checks if a character is expected to be taking up two columns if printed to a terminal. This will generally be
+     * {@code true} for CJK (Chinese, Japanese and Korean) characters.
+     *
+     * @param c Character to test if it's double-width when printed to a terminal
+     * @return {@code true} if this character is expected to be taking up two columns when printed to the terminal,
+     * otherwise {@code false}
+     */
+    public static boolean isCharDoubleWidth(final char c) {
+        return isCharCJK(c);
+    }
+
+    /**
+     * Checks if a particular character is a control character, in Lanterna this currently means it's 0-31 or 127 in the
+     * ascii table.
+     *
+     * @param c character to test
+     * @return {@code true} if the character is a control character, {@code false} otherwise
+     */
+    public static boolean isControlCharacter(char c) {
+        return c < 32 || c == 127;
+    }
+
+    /**
+     * Checks if a particular character is printable. This generally means that the code is not a control character that
+     * isn't able to be printed to the terminal properly. For example, NULL, ENQ, BELL and ESC and all control codes
+     * that has no proper character associated with it so the behaviour is undefined and depends completely on the
+     * terminal what happens if you try to print them. However, certain control characters have a particular meaning to
+     * the terminal and are as such considered printable. In Lanterna, we consider these control characters printable:
+     * <ul>
+     *     <li>Backspace</li>
+     *     <li>Horizontal Tab</li>
+     *     <li>Line feed</li>
+     * </ul>
+     *
+     * @param c character to test
+     * @return {@code true} if the character is considered printable, {@code false} otherwise
+     */
+    public static boolean isPrintableCharacter(char c) {
+        return !isControlCharacter(c) || c == '\t' || c == '\n' || c == '\b';
     }
 }

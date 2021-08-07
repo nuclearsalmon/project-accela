@@ -1,9 +1,8 @@
 package net.accela.prismatic.ui.text;
 
-import net.accela.prismatic.input.lanterna.TerminalTextUtils;
 import net.accela.prismatic.ui.text.color.TextColor;
 import net.accela.prismatic.ui.text.effect.TextEffect;
-import net.accela.prismatic.util.WCWidth;
+import net.accela.prismatic.util.TerminalTextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.BreakIterator;
@@ -327,7 +326,7 @@ public class TextCharacter {
      * @return Whether this TextCharacter is double or single width
      * @deprecated Use #width() instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public boolean isDoubleWidth() {
         // TODO: make this better to work properly with emoji and other complicated "characters"
         return TerminalTextUtils.isCharDoubleWidth(character.charAt(0)) ||
@@ -336,7 +335,7 @@ public class TextCharacter {
     }
 
     public int width() {
-        return WCWidth.stringWidth(character);
+        return TerminalTextUtils.stringWidth(character);
     }
 
     //
