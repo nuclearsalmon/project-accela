@@ -250,6 +250,13 @@ public interface StyleSet<T extends StyleSet<T>> {
             return consume(statementSet.toArray(SGRStatement[]::new));
         }
 
+        public Set consume(Iterable<SGRStatement> statements) {
+            for (SGRStatement statement : statements) {
+                consume(statement);
+            }
+            return this;
+        }
+
         @SuppressWarnings("UnusedReturnValue")
         public Set consume(SGRStatement statement) {
             SGRAttribute attribute = statement.getAttribute();

@@ -1,11 +1,11 @@
 package net.accela.prismatic.ui.drawable.container;
 
-import net.accela.prismatic.CursorMode;
 import net.accela.prismatic.Drawable;
 import net.accela.prismatic.DrawableContainer;
 import net.accela.prismatic.Main;
 import net.accela.prismatic.annotation.ItemPainter;
 import net.accela.prismatic.annotation.RectMutable;
+import net.accela.prismatic.behaviour.CursorMode;
 import net.accela.prismatic.ui.geometry.Point;
 import net.accela.prismatic.ui.geometry.Rect;
 import net.accela.prismatic.ui.geometry.Size;

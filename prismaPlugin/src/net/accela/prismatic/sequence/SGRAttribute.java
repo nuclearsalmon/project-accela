@@ -1074,12 +1074,20 @@ public enum SGRAttribute {
     }
 
     /**
-     * @return if this is a color. Does not include underline colors.
+     * @return if this is a color. Only includes standard ANSI colors. Does not include bright or underline colors.
      */
-    public boolean isTextColor() {
-        return ((code >= 30 && code <= 49) ||
+    public boolean isANSITextColor() {
+        return (code >= 30 && code <= 39 && code != 38) ||
+                (code >= 40 && code <= 49 && code != 48);
+    }
+
+    /**
+     * @return if this is a color. Includes bright colors. Does not include underline colors.
+     */
+    public boolean isAnyTextColor() {
+        return (code >= 30 && code <= 49) ||
                 (code >= 90 && code <= 97) ||
-                (code >= 100 && code <= 107));
+                (code >= 100 && code <= 107);
     }
 
     /**

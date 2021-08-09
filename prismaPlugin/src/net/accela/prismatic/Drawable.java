@@ -3,6 +3,7 @@ package net.accela.prismatic;
 import net.accela.prismatic.annotation.ItemPainter;
 import net.accela.prismatic.annotation.RectReadable;
 import net.accela.prismatic.annotation.SelfPainter;
+import net.accela.prismatic.behaviour.CursorMode;
 import net.accela.prismatic.event.FocusEvent;
 import net.accela.prismatic.ui.geometry.Point;
 import net.accela.prismatic.ui.geometry.Rect;

@@ -317,7 +317,7 @@ public class TelnetNegotiator {
                     ));
                 }
 
-                // Resize the terminal acccordingly
+                // Resize the terminal accordingly
                 session.getTerminal().onResized(
                         convertTwoBytesToInt2(arguments[1], arguments[0]),
                         convertTwoBytesToInt2(arguments[3], arguments[2])

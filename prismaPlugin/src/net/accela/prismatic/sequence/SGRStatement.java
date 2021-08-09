@@ -17,11 +17,11 @@ public class SGRStatement {
     // Constructors
     //
 
-    SGRStatement(@NotNull SGRAttribute attribute) {
+    private SGRStatement(@NotNull SGRAttribute attribute) {
         this(attribute, null);
     }
 
-    SGRStatement(@NotNull SGRAttribute attribute, int[] arguments) {
+    private SGRStatement(@NotNull SGRAttribute attribute, int[] arguments) {
         this.attribute = attribute;
         this.arguments = arguments;
     }
@@ -29,6 +29,17 @@ public class SGRStatement {
     //
     // Factory methods
     //
+
+    public static @NotNull SGRStatement[] fromSGRAttribute(final SGRAttribute attribute) {
+        return fromSGRIntArray(new int[]{attribute.getCode()});
+    }
+
+    public static @NotNull SGRStatement[] fromSGRAttribute(final SGRAttribute attribute, int[] arguments) {
+        int[] sequence = new int[1 + arguments.length];
+        sequence[0] = attribute.getCode();
+        System.arraycopy(arguments, 0, sequence, 1, sequence.length - 1);
+        return fromSGRIntArray(sequence);
+    }
 
     public static @NotNull SGRStatement[] fromSGRIntArray(final int[] sequence) {
         // Convert to SGRStatements

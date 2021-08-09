@@ -1,7 +1,7 @@
 package net.accela.prismatic.ui.drawable;
 
-import net.accela.prismatic.CursorMode;
 import net.accela.prismatic.Drawable;
+import net.accela.prismatic.behaviour.CursorMode;
 import net.accela.prismatic.ui.geometry.Rect;
 import net.accela.prismatic.ui.text.BasicTextGrid;
 import net.accela.prismatic.ui.text.TextCharacter;

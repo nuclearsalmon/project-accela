@@ -1,9 +1,9 @@
 package net.accela.prismatic.ui.drawable;
 
-import net.accela.prismatic.CursorMode;
 import net.accela.prismatic.Drawable;
 import net.accela.prismatic.DrawableIdentifier;
 import net.accela.prismatic.annotation.RectMutable;
+import net.accela.prismatic.behaviour.CursorMode;
 import net.accela.prismatic.event.FocusEvent;
 import net.accela.prismatic.input.lanterna.actions.InputEvent;
 import net.accela.prismatic.ui.geometry.Point;

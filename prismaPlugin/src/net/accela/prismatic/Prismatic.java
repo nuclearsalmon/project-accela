@@ -1,5 +1,6 @@
 package net.accela.prismatic;
 
+import net.accela.prismatic.behaviour.CursorMode;
 import net.accela.prismatic.behaviour.MouseCaptureMode;
 import net.accela.prismatic.event.FocusEvent;
 import net.accela.prismatic.event.TerminalResizeEvent;
@@ -329,6 +330,8 @@ public class Prismatic implements ContainerInterface, Closeable {
                     }
 
                     // Multi-width characters
+                    x += backBufferCharacter.width() - 1;  // Cancels out to 0 if it doesn't need extra space.
+                    /*
                     if (backBufferCharacter.isDoubleWidth()) {
                         // Skip the trailing padding
                         x++;
@@ -337,6 +340,7 @@ public class Prismatic implements ContainerInterface, Closeable {
                             updateMap.put(new Point(x + 1, y), frontBufferCharacter.withCharacter(' '));
                         }
                     }
+                    */
                 }
             }
 
@@ -392,6 +396,8 @@ public class Prismatic implements ContainerInterface, Closeable {
 
                 getTerminal().putString(newCharacter.getCharacter());
 
+                currentPosition = currentPosition.withRelativeX(newCharacter.width());
+                /*
                 if (newCharacter.isDoubleWidth()) {
                     // Double-width characters advances two columns
                     currentPosition = currentPosition.withRelativeX(2);
@@ -399,6 +405,7 @@ public class Prismatic implements ContainerInterface, Closeable {
                     // Normal characters advances one column
                     currentPosition = currentPosition.withRelativeX(1);
                 }
+                 */
             }
 
             // Update frontBuffer

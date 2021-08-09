@@ -3,6 +3,7 @@ package net.accela.prismatic.ui.text.color;
 import net.accela.prismatic.ui.text.color.standard.RGBStandard;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
 /**
@@ -20,7 +21,7 @@ public interface TextColor {
      *
      * @return Byte array out data to output in between of CSI and 'm'
      */
-    byte[] getForegroundSGRBytes();
+    byte[] getForegroundSGRBytes(@NotNull Charset charset);
 
     /**
      * Returns the byte sgr in between CSI and character 'm' that is used to enable this color as the background
@@ -28,7 +29,7 @@ public interface TextColor {
      *
      * @return Byte array out data to output in between of CSI and 'm'
      */
-    byte[] getBackgroundSGRBytes();
+    byte[] getBackgroundSGRBytes(@NotNull Charset charset);
 
     /**
      * @return Red intensity of this color, from 0 to 255
@@ -76,34 +77,40 @@ public interface TextColor {
         CYAN_BRIGHT(6, true, 85, 255, 255),
         WHITE_BRIGHT(7, true, 255, 255, 255);
 
+        private final int indexPart;
         private final boolean bright;
         private final int red;
         private final int green;
         private final int blue;
-        private final byte[] foregroundSGR;
-        private final byte[] backgroundSGR;
+        private final @NotNull String foregroundSGR;
+        private final @NotNull String backgroundSGR;
 
-        ANSI(int index, int red, int green, int blue) {
-            this(index, false, red, green, blue);
+        ANSI(int indexPart, int red, int green, int blue) {
+            this(indexPart, false, red, green, blue);
         }
 
-        ANSI(int index, boolean bright, int red, int green, int blue) {
+        ANSI(int indexPart, boolean bright, int red, int green, int blue) {
+            this.indexPart = indexPart;
             this.bright = bright;
             this.red = red;
             this.green = green;
             this.blue = blue;
-            foregroundSGR = String.format("%d%d", bright ? 9 : 3, index).getBytes();
-            backgroundSGR = String.format("%d%d", bright ? 10 : 4, index).getBytes();
+            foregroundSGR = String.format("%d%d", bright ? 9 : 3, indexPart);
+            backgroundSGR = String.format("%d%d", bright ? 10 : 4, indexPart);
         }
 
         @Override
-        public byte[] getForegroundSGRBytes() {
-            return foregroundSGR.clone();
+        public byte[] getForegroundSGRBytes(@NotNull Charset charset) {
+            return foregroundSGR.getBytes(charset);
         }
 
         @Override
-        public byte[] getBackgroundSGRBytes() {
-            return backgroundSGR.clone();
+        public byte[] getBackgroundSGRBytes(@NotNull Charset charset) {
+            return backgroundSGR.getBytes(charset);
+        }
+
+        public int getIndexPart() {
+            return indexPart;
         }
 
         public boolean isBright() {
@@ -139,7 +146,7 @@ public interface TextColor {
          * @param rgb The rgb value to try and approximate
          * @return The closest ANSI color match
          */
-        public static @NotNull ANSI fromRGB(@NotNull RGBStandard rgb) {
+        public static @NotNull ANSI fromRGB(final @NotNull RGBStandard rgb) {
             ANSI closestANSI = ANSI.BLACK;
             float closestDifference = Float.MAX_VALUE;
 
@@ -154,6 +161,39 @@ public interface TextColor {
             }
 
             return closestANSI;
+        }
+
+        public static @NotNull ANSI fromIndexPart(final int indexPart, final boolean isBright) {
+            for (ANSI color : values()) {
+                if (indexPart == color.getIndexPart() && color.isBright() == isBright) return color;
+            }
+            throw new IllegalArgumentException(String.format("No color with index %s", indexPart));
+        }
+
+        public static @NotNull ANSI asBright(final @NotNull ANSI color) {
+            if (color.isBright()) return color;           // Already bright
+            if (color.getIndexPart() == 9) return color;  // Default color
+            for (ANSI value : values()) {
+                if (value.getIndexPart() == color.getIndexPart() && value.isBright()) return value;
+            }
+            throw new IllegalStateException("No matching color was found. This should never occur.");
+        }
+
+        public static @NotNull ANSI asDark(final @NotNull ANSI color) {
+            if (!color.isBright()) return color;           // Already bright
+            if (color.getIndexPart() == 9) return color;  // Default color
+            for (ANSI value : values()) {
+                if (value.getIndexPart() == color.getIndexPart() && !value.isBright()) return value;
+            }
+            throw new IllegalStateException("No matching color was found. This should never occur.");
+        }
+
+        public static @NotNull ANSI reverseBrightness(final @NotNull ANSI color) {
+            if (color.getIndexPart() == 9) return color;  // Default color
+            for (ANSI value : values()) {
+                if (value.getIndexPart() == color.getIndexPart() && value.isBright() == !color.isBright()) return value;
+            }
+            throw new IllegalStateException("No color was found. This should never occur.");
         }
     }
 
@@ -456,13 +496,13 @@ public interface TextColor {
         }
 
         @Override
-        public byte[] getForegroundSGRBytes() {
-            return ("38;5;" + colorIndex).getBytes();
+        public byte[] getForegroundSGRBytes(@NotNull Charset charset) {
+            return ("38;5;" + colorIndex).getBytes(charset);
         }
 
         @Override
-        public byte[] getBackgroundSGRBytes() {
-            return ("48;5;" + colorIndex).getBytes();
+        public byte[] getBackgroundSGRBytes(@NotNull Charset charset) {
+            return ("48;5;" + colorIndex).getBytes(charset);
         }
 
         @Override
@@ -604,13 +644,13 @@ public interface TextColor {
         }
 
         @Override
-        public byte[] getForegroundSGRBytes() {
-            return ("38;2;" + getRed() + ";" + getGreen() + ";" + getBlue()).getBytes();
+        public byte[] getForegroundSGRBytes(@NotNull Charset charset) {
+            return ("38;2;" + getRed() + ";" + getGreen() + ";" + getBlue()).getBytes(charset);
         }
 
         @Override
-        public byte[] getBackgroundSGRBytes() {
-            return ("48;2;" + getRed() + ";" + getGreen() + ";" + getBlue()).getBytes();
+        public byte[] getBackgroundSGRBytes(@NotNull Charset charset) {
+            return ("48;2;" + getRed() + ";" + getGreen() + ";" + getBlue()).getBytes(charset);
         }
 
         @Override

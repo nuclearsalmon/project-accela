@@ -1,4 +1,4 @@
-package net.accela.prismatic;
+package net.accela.prismatic.behaviour;
 
 public enum CursorMode {
     NONE,

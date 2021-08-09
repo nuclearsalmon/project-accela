@@ -133,8 +133,10 @@ public class BasicTextGrid implements TextGrid {
 
     @Override
     public void setCharacterAt(int column, int row, @NotNull TextCharacter character) {
+        // Verify bounds
         if (column < 0 || row < 0 || row >= buffer.length || column >= buffer[0].length) {
-            return;
+            //return;
+            throw new IndexOutOfBoundsException();
         }
 
         // Double width character adjustments
@@ -220,11 +222,11 @@ public class BasicTextGrid implements TextGrid {
             destinationRowOffset = 0;
         }
 
-        //Make sure we can't copy more than is available
+        // Make sure we can't copy more than is available
         rows = Math.min(buffer.length - startRowIndex, rows);
         columns = rows > 0 ? Math.min(buffer[0].length - startColumnIndex, columns) : 0;
 
-        //Adjust target lengths as well
+        // Adjust target lengths as well
         columns = Math.min(destination.getSize().getWidth() - destinationColumnOffset, columns);
         rows = Math.min(destination.getSize().getHeight() - destinationRowOffset, rows);
 
@@ -239,7 +241,7 @@ public class BasicTextGrid implements TextGrid {
                 System.arraycopy(buffer[y], startColumnIndex, ((BasicTextGrid) destination).buffer[targetRow++], destinationColumnOffset, columns);
             }
         } else {
-            //Manually copy character by character
+            // Manually copy character by character
             for (int y = startRowIndex; y < startRowIndex + rows; y++) {
                 for (int x = startColumnIndex; x < startColumnIndex + columns; x++) {
                     TextCharacter character = buffer[y][x];
@@ -260,9 +262,9 @@ public class BasicTextGrid implements TextGrid {
                             x - startColumnIndex + destinationColumnOffset,
                             y - startRowIndex + destinationRowOffset,
                             character);
-                    if (character.isDoubleWidth()) {
-                        x++;
-                    }
+
+                    //if (character.isDoubleWidth()) x++;
+                    x += character.width() - 1;
                 }
             }
         }
