@@ -1,5 +1,6 @@
 package net.accela.prismatic.file.ansi;
 
+import net.accela.prismatic.sequence.SGRAttribute;
 import net.accela.prismatic.sequence.SGRStatement;
 import net.accela.prismatic.terminal.Terminal;
 import net.accela.prismatic.ui.geometry.Size;
@@ -154,7 +155,7 @@ public class AnsiFile {
          */
     }
 
-    public AnsiFile(final @NotNull File source) throws IOException {
+    public AnsiFile(final @NotNull File source, final boolean boldAsBright) throws IOException {
         this.source = source;
 
         // Read sauce and comments data
@@ -191,11 +192,58 @@ public class AnsiFile {
                 MatchInfo nextMatchInfo = null;
                 if (MatchInfo.size() > 0) nextMatchInfo = MatchInfo.remove(0);
 
-                int fileLineCursor = 0;
+                boolean brightModifier = false;  // For filtering bold colors
+                int fileLineCursor = 0;  // The cursor for the current line
                 while (fileLineCursor < line.length()) {
                     // If there's a match waiting, and the lineCursor has reached the start of it, do this
                     if (nextMatchInfo != null && fileLineCursor == nextMatchInfo.start) {
-                        styleSet.consume(SGRStatement.fromSGRString(nextMatchInfo.group));
+                        // Convert to statements
+                        final SGRStatement[] statements = SGRStatement.fromSGRString(nextMatchInfo.group);
+
+                        // Filter bold if asked to
+                        if (boldAsBright) {
+                            for (SGRStatement statement : statements) {
+                                final SGRAttribute attribute = statement.getAttribute();
+                                switch (attribute) {
+                                    case INTENSITY_BRIGHT_OR_BOLD -> brightModifier = true;
+                                    case RESET, INTENSITY_OFF, INTENSITY_DIM_OR_THIN -> brightModifier = false;
+                                    default -> {
+                                        // Only do the below code if the attribute is an ANSI color
+                                        if (!attribute.isANSITextColor()) break;
+
+                                        // Extract codes
+                                        int colorPrefix = attribute.getCode() / 10;
+                                        int colorIndex = attribute.getCode() % 10;
+
+                                        // If it's the default color
+                                        if (colorIndex == 9) break;
+
+                                        // If it's not already bright and the bright modifier is enabled, modify.
+                                        boolean isBackgroundColor = colorPrefix == 4 || colorPrefix == 10;
+                                        boolean isBrightByDefault = colorPrefix == 9 || colorPrefix == 10;
+                                        if (!isBackgroundColor && !isBrightByDefault && brightModifier) {
+                                            // Create a modified statement
+                                            int newAttributeIndex = (colorPrefix + 6) * 10 + colorIndex;
+                                            SGRAttribute newAttribute = SGRAttribute.fromInt(newAttributeIndex);
+                                            SGRStatement[] newStatements = SGRStatement.fromSGRAttribute(newAttribute);
+
+                                            // Verify
+                                            if (newStatements.length > 1)
+                                                throw new IllegalStateException("Returned more SGRStatements than expected.");
+
+                                            // Replace with modified statement
+                                            statement = newStatements[0];
+                                        }
+                                    }
+                                }
+
+                                // Consume statement
+                                styleSet.consume(statement);
+                            }
+                        } else {
+                            // Consume statements as-is
+                            styleSet.consume(statements);
+                        }
 
                         // Step forward the proper amount of characters
                         fileLineCursor += nextMatchInfo.length;
@@ -206,25 +254,26 @@ public class AnsiFile {
                         } else {
                             nextMatchInfo = null;
                         }
-
-                        // Don't execute the character part below,
-                        // instead just continue to the next iteration of this loop
-                        continue;
                     }
-
                     // Just characters left
-                    char chr = line.charAt(fileLineCursor);
-                    if (chr == SAUCE_INIT_CHAR) break;
+                    else {
+                        // Parse character
+                        char chr = line.charAt(fileLineCursor);
 
-                    textCharacterRow.addAll(Arrays.asList(TextCharacter.fromString(
-                            Character.toString(line.codePointAt(fileLineCursor)),
-                            styleSet.getForegroundColor(),
-                            styleSet.getBackgroundColor(),
-                            styleSet.getActiveModifiers()
-                    )));
+                        // Verify that we did not reach the SAUCE record. If we did, then break.
+                        if (chr == SAUCE_INIT_CHAR) break;
 
-                    // Step forward one character
-                    fileLineCursor++;
+                        // Create TextCharacter and add to the row
+                        textCharacterRow.addAll(Arrays.asList(TextCharacter.fromString(
+                                Character.toString(line.codePointAt(fileLineCursor)),
+                                styleSet.getForegroundColor(),
+                                styleSet.getBackgroundColor(),
+                                styleSet.getActiveModifiers()
+                        )));
+
+                        // Step forward one character
+                        fileLineCursor++;
+                    }
                 }
 
                 // Add to the list of rows;
