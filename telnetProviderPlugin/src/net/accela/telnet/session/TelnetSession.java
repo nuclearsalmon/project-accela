@@ -2,7 +2,6 @@ package net.accela.telnet.session;
 
 import net.accela.prismatic.Prismatic;
 import net.accela.prismatic.session.TextGraphicsSession;
-import net.accela.prismatic.terminal.Terminal;
 import net.accela.server.AccelaAPI;
 import net.accela.server.Server;
 import net.accela.server.event.server.SessionAssignedEngineEvent;
@@ -34,7 +33,6 @@ public final class TelnetSession extends TextGraphicsSession {
 
         // Configure terminal
         terminal = new TelnetTerminal(this, socket);
-        terminal.setCharset(Terminal.UTF8_CHARSET);
     }
 
     @Override

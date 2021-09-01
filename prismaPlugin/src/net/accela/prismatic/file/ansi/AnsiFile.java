@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,7 +67,20 @@ public class AnsiFile {
      * @throws IOException           If exception occurs when reading file.
      * @throws InvalidSauceException If the sauce is invalid or malformed.
      */
-    public static @Nullable Sauce readSauce(@NotNull File source) throws IOException, InvalidSauceException {
+    public static @Nullable Sauce readSauce(final @NotNull File source) throws IOException {
+        return readSauce(source, Terminal.IBM437_CHARSET);
+    }
+
+    /**
+     * Reads a sauce record and any comments data if available.
+     *
+     * @param source  The file to read from.
+     * @param charset The charset to use. IBM_437 is recommended unless explicitly specified.
+     * @return A {@link Sauce} instance, or null if no sauce records was found.
+     * @throws IOException           If exception occurs when reading file.
+     * @throws InvalidSauceException If the sauce is invalid or malformed.
+     */
+    public static @Nullable Sauce readSauce(final @NotNull File source, final @NotNull Charset charset) throws IOException, InvalidSauceException {
         long realFileSize = source.length();
 
         // No sauce
@@ -81,15 +95,15 @@ public class AnsiFile {
             if (read < SAUCE_BLOCK_SIZE) throw new InvalidSauceException("Bad sauce block length");
 
             // Read and validate ID
-            String id = unsafeGetString(sauceBuffer, 0, 5);
+            String id = unsafeGetString(sauceBuffer, 0, 5, charset);
             if (!id.equals("SAUCE")) throw new InvalidSauceException(String.format("Bad SAUCE ID '%s'", id));
 
             // Read other character data
-            String version = unsafeGetString(sauceBuffer, 5, 7);
-            String title = unsafeGetString(sauceBuffer, 7, 42);
-            String author = unsafeGetString(sauceBuffer, 42, 62);
-            String group = unsafeGetString(sauceBuffer, 62, 82);
-            String date = unsafeGetString(sauceBuffer, 82, 90);
+            String version = unsafeGetString(sauceBuffer, 5, 7, charset);
+            String title = unsafeGetString(sauceBuffer, 7, 42, charset);
+            String author = unsafeGetString(sauceBuffer, 42, 62, charset);
+            String group = unsafeGetString(sauceBuffer, 62, 82, charset);
+            String date = unsafeGetString(sauceBuffer, 82, 90, charset);
             //int fileSize = unsafeGetByteBuffer(buffer, 90, 94).getInt();
             int dataType = unsafeGetInt(sauceBuffer, 94, 95);
             int fileType = unsafeGetInt(sauceBuffer, 95, 96);
@@ -100,7 +114,7 @@ public class AnsiFile {
             int commentsAmount = unsafeGetInt(sauceBuffer, 106, 107);
             String comments = null;
             int typeFlags = (byte) unsafeGetInt(sauceBuffer, 107, 108);
-            String typeInfoString = unsafeGetString(sauceBuffer, 108, 130);
+            String typeInfoString = unsafeGetString(sauceBuffer, 108, 130, charset);
 
             // Calculate and read any comments
             if (commentsAmount > 0) {
@@ -111,7 +125,7 @@ public class AnsiFile {
                 //noinspection ResultOfMethodCallIgnored
                 fileInputStream.read(commentBuffer, 0, commentBuffer.length);
 
-                comments = unsafeGetString(commentBuffer, 0, commentBuffer.length);
+                comments = unsafeGetString(commentBuffer, 0, commentBuffer.length, charset);
             }
 
             // Create a new Sauce data object from the gathered parameters
@@ -124,7 +138,8 @@ public class AnsiFile {
     /**
      * No validation.
      */
-    private static @NotNull String unsafeGetString(byte[] buffer, int startIncl, int endExcl) {
+    private static @NotNull String unsafeGetString(byte[] buffer, int startIncl, int endExcl,
+                                                   final @NotNull Charset charset) {
         byte[] stringBytes = Arrays.copyOfRange(buffer, startIncl, endExcl);
 
         // Precautionary measure taken to both handle ZStrings as well as poorly padded String(s).
@@ -137,7 +152,7 @@ public class AnsiFile {
         }
 
         // Convert to a String using the correct charset and remove trailing spaces if needed
-        return new String(stringBytes, Terminal.IBM437_CHARSET).stripTrailing();
+        return new String(stringBytes, charset).stripTrailing();
     }
 
     /**
@@ -155,7 +170,7 @@ public class AnsiFile {
          */
     }
 
-    public AnsiFile(final @NotNull File source, final boolean boldAsBright) throws IOException {
+    public AnsiFile(final @NotNull File source, final @NotNull Charset charset, final boolean boldAsBright) throws IOException {
         this.source = source;
 
         // Read sauce and comments data
@@ -165,7 +180,7 @@ public class AnsiFile {
         final List<List<TextCharacter>> textCharacterRows = new ArrayList<>();
 
         // Trying with resources, this way the reader always gets closed at the end.
-        try (BufferedReader reader = new BufferedReader((new FileReader(source, Terminal.IBM437_CHARSET)))) {
+        try (BufferedReader reader = new BufferedReader((new FileReader(source, charset)))) {
             // For keeping track of the various SGRStatements
             StyleSet.Set styleSet = new StyleSet.Set();
 
