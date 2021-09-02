@@ -21,7 +21,7 @@ import java.util.Objects;
  * Some noteworthy differences between {@link SGRAttribute} and {@link TextEffect}:
  * <ul>
  *     <li>{@link TextEffect} is simplified, meaning it does not contain all {@link SGRAttribute}s.</li>
- *     <li>{@link TextEffect} excludes colour sequences.</li>
+ *     <li>{@link TextEffect} excludes color sequences.</li>
  *     <li>{@link TextEffect} does not specify "_ON"/"_OFF" methods.</li>
  *     <li>{@link TextEffect} can have custom extensions which are not a part of the SGR spec
  *     and are only used in the GUI.</li>

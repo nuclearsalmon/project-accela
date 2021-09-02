@@ -7,6 +7,15 @@ import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
 /**
+ * Represents the various color formats that text can be colored with in a terminal,
+ * including 3/4-bit (16 colors), 8-bit (256 colors) and 24-bit ("true" color) color formats.
+ * It also has methods for performing various conversions.
+ *
+ * <p>
+ * Note: The below comment is funny as heck, so I'm keeping it for now.
+ * <p>
+ * ---
+ * <p>
  * This is based on Lanterna's TextColor (by Martin Berglund).
  * <p>
  * If my original color system was about as intelligent as a small mossy pebble,
@@ -16,16 +25,16 @@ import java.util.regex.Pattern;
  */
 public interface TextColor {
     /**
-     * Returns the byte sgr in between CSI and character 'm' that is used to enable this color as the foreground
-     * color on an ANSI-compatible lowlevel.
+     * Returns the byte SGR in between CSI and character 'm' that is used to enable this color as the foreground
+     * color on an ANSI-compatible terminal.
      *
      * @return Byte array out data to output in between of CSI and 'm'
      */
     byte[] getForegroundSGRBytes(@NotNull Charset charset);
 
     /**
-     * Returns the byte sgr in between CSI and character 'm' that is used to enable this color as the background
-     * color on an ANSI-compatible lowlevel.
+     * Returns the byte SGR in between CSI and character 'm' that is used to enable this color as the background
+     * color on an ANSI-compatible terminal.
      *
      * @return Byte array out data to output in between of CSI and 'm'
      */
@@ -52,22 +61,22 @@ public interface TextColor {
     @NotNull RGBStandard getRBG();
 
     /**
-     * This class represent classic ANSI colors that are likely to be very compatible with most lowlevel
+     * This class represent classic ANSI colors that are likely to be very compatible with most terminal
      * implementations. It is limited to 8 colors (plus the 'default' color) but as a norm, using bold mode (SGR code)
      * will slightly alter the color, giving it a bit brighter tone, so in total this will give you 16 (+1) colors.
      * <p>
      * For more information, see http://en.wikipedia.org/wiki/File:Ansi.png
      */
     enum ANSI implements TextColor {
-        BLACK(0, 0, 0, 0),
-        RED(1, 170, 0, 0),
-        GREEN(2, 0, 170, 0),
-        YELLOW(3, 170, 85, 0),
-        BLUE(4, 0, 0, 170),
-        MAGENTA(5, 170, 0, 170),
-        CYAN(6, 0, 170, 170),
-        WHITE(7, 170, 170, 170),
-        DEFAULT(9, 0, 0, 0),
+        BLACK(0, false, 0, 0, 0),
+        RED(1, false, 170, 0, 0),
+        GREEN(2, false, 0, 170, 0),
+        YELLOW(3, false, 170, 85, 0),
+        BLUE(4, false, 0, 0, 170),
+        MAGENTA(5, false, 170, 0, 170),
+        CYAN(6, false, 0, 170, 170),
+        WHITE(7, false, 170, 170, 170),
+        DEFAULT(9, false, 0, 0, 0),
         BLACK_BRIGHT(0, true, 85, 85, 85),
         RED_BRIGHT(1, true, 255, 85, 85),
         GREEN_BRIGHT(2, true, 85, 255, 85),
@@ -84,10 +93,6 @@ public interface TextColor {
         private final int blue;
         private final @NotNull String foregroundSGR;
         private final @NotNull String backgroundSGR;
-
-        ANSI(int indexPart, int red, int green, int blue) {
-            this(indexPart, false, red, green, blue);
-        }
 
         ANSI(int indexPart, boolean bright, int red, int green, int blue) {
             this.indexPart = indexPart;
@@ -109,12 +114,36 @@ public interface TextColor {
             return backgroundSGR.getBytes(charset);
         }
 
+        /**
+         * Returns the legacy version (bold = bright) of the byte SGR in between CSI and character 'm'
+         * that is used to enable this color as the foreground color on an ANSI-compatible terminal.
+         *
+         * @return Byte array out data to output in between of CSI and 'm'
+         */
+        public byte[] getForegroundLegacyBrightSGRBytes(@NotNull Charset charset) {
+            return ("1;3" + indexPart).getBytes(charset);
+        }
+
+        /**
+         * Returns the legacy version (bold = bright) of the byte SGR in between CSI and character 'm'
+         * that is used to enable this color as the background color on an ANSI-compatible terminal.
+         *
+         * @return Byte array out data to output in between of CSI and 'm'
+         */
+        public byte[] getBackgroundLegacyBrightSGRBytes(@NotNull Charset charset) {
+            return ("1;4" + indexPart).getBytes(charset);
+        }
+
         public int getIndexPart() {
             return indexPart;
         }
 
         public boolean isBright() {
             return bright;
+        }
+
+        public boolean isDark() {
+            return !bright;
         }
 
         @Override
@@ -180,10 +209,10 @@ public interface TextColor {
         }
 
         public static @NotNull ANSI asDark(final @NotNull ANSI color) {
-            if (!color.isBright()) return color;           // Already bright
+            if (color.isDark()) return color;           // Already bright
             if (color.getIndexPart() == 9) return color;  // Default color
             for (ANSI value : values()) {
-                if (value.getIndexPart() == color.getIndexPart() && !value.isBright()) return value;
+                if (value.getIndexPart() == color.getIndexPart() && value.isDark()) return value;
             }
             throw new IllegalStateException("No matching color was found. This should never occur.");
         }
@@ -203,7 +232,7 @@ public interface TextColor {
      * table at hand, or you can use the two static helper methods which can help you convert from three 8-bit
      * RGBStandard values to the closest approximate indexed color number. If you are interested, the 256 index values are
      * actually divided like this:<br>
-     * 0 .. 15 - System colors, same as ANSI, but the actual rendered color depends on the lowlevel emulators color scheme<br>
+     * 0 .. 15 - System colors, same as ANSI, but the actual rendered color depends on the terminal emulators color scheme<br>
      * 16 .. 231 - Forms a 6x6x6 RGBStandard color cube<br>
      * 232 .. 255 - A gray scale ramp (without black and white endpoints)<br>
      * <p>
@@ -607,7 +636,7 @@ public interface TextColor {
 
     /**
      * This class can be used to specify a color in 24-bit color space (RGBStandard with 8-bit resolution per color). Please be
-     * aware that only a few lowlevel support 24-bit color control codes, please avoid using this class unless you know
+     * aware that only a few terminal support 24-bit color control codes, please avoid using this class unless you know
      * all users will have compatible terminals. For details, please see
      * <a href="https://github.com/robertknight/konsole/blob/master/user-doc/README.moreColors">
      * this</a> commit log. Behavior on terminals that don't support these codes is undefined.
@@ -619,7 +648,7 @@ public interface TextColor {
 
         /**
          * This class can be used to specify a color in 24-bit color space (RGBStandard with 8-bit resolution per color). Please be
-         * aware that only a few lowlevel support 24-bit color control codes, please avoid using this class unless you know
+         * aware that only a few terminal support 24-bit color control codes, please avoid using this class unless you know
          * all users will have compatible terminals. For details, please see
          * <a href="https://github.com/robertknight/konsole/blob/master/user-doc/README.moreColors">
          * this</a> commit log. Behavior on terminals that don't support these codes is undefined.

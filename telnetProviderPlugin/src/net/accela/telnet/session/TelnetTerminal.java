@@ -51,7 +51,7 @@ public class TelnetTerminal extends ModernTerminal {
         synchronized (this) {
             try {
                 // Prepare and clear
-                super.setCharset(UTF8_CHARSET);
+                setCharsetWithoutNegotiation(UTF8_CHARSET);
                 saveCursorPosition();
                 resetCursorPosition();
 
