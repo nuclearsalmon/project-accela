@@ -437,9 +437,9 @@ public class Prismatic implements ContainerInterface, Closeable {
      * @return All {@link Drawable}s that are situated within the {@link Rect} provided
      */
     public @NotNull List<@NotNull Drawable> getIntersectingDrawables(@NotNull Rect rect) {
-        synchronized (this.childDrawables) {
+        synchronized (childDrawables) {
             List<Drawable> drawables = new ArrayList<>();
-            for (Drawable drawable : this.childDrawables) {
+            for (Drawable drawable : childDrawables) {
                 if (rect.intersects(drawable.getRelativeRect())) {
                     drawables.add(drawable);
                 }
@@ -678,24 +678,26 @@ public class Prismatic implements ContainerInterface, Closeable {
     }
 
     private synchronized void onTerminalResize(Size size) {
-        try {
-            sessionWriteLock.lock();
+        synchronized (this) {
+            try {
+                sessionWriteLock.lock();
 
-            if (!previousTerminalSize.equals(size)) {
-                previousTerminalSize = size;
-                backBuffer.resize(size, TextCharacter.DEFAULT);
-                frontBuffer.resize(size, TextCharacter.DEFAULT);
+                if (!previousTerminalSize.equals(size)) {
+                    previousTerminalSize = size;
+                    backBuffer.resize(size, TextCharacter.DEFAULT);
+                    frontBuffer.resize(size, TextCharacter.DEFAULT);
 
-                getTerminal().resetColorAndSGR();
-                getTerminal().clear();
-                backBuffer.setAllCharacters(TextCharacter.DEFAULT);
-                frontBuffer.setAllCharacters(TextCharacter.DEFAULT);
-                render(new Rect(size));
+                    getTerminal().resetColorAndSGR();
+                    getTerminal().clear();
+                    backBuffer.setAllCharacters(TextCharacter.DEFAULT);
+                    frontBuffer.setAllCharacters(TextCharacter.DEFAULT);
+                    render(new Rect(size));
+                }
+            } catch (IOException e) {
+                session.getLogger().log(Level.WARNING, "Exception when clearing terminal after resize event", e);
+            } finally {
+                sessionWriteLock.unlock();
             }
-        } catch (IOException e) {
-            session.getLogger().log(Level.WARNING, "Exception when clearing terminal after resize event", e);
-        } finally {
-            sessionWriteLock.unlock();
         }
     }
 }

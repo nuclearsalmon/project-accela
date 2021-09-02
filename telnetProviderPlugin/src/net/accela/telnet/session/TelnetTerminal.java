@@ -12,13 +12,14 @@ public class TelnetTerminal extends ModernTerminal {
     final Socket socket;
     final TelnetNegotiator negotiator;
 
-    public TelnetTerminal(@NotNull TelnetSession session, @NotNull Socket socket) throws IOException {
+    public TelnetTerminal(final @NotNull TelnetSession session,
+                          final @NotNull Socket socket) throws IOException {
         this(new TelnetNegotiator(socket, session), session, socket);
     }
 
-    private TelnetTerminal(@NotNull TelnetNegotiator negotiator,
-                           @NotNull TelnetSession session,
-                           @NotNull Socket socket) throws IOException {
+    private TelnetTerminal(final @NotNull TelnetNegotiator negotiator,
+                           final @NotNull TelnetSession session,
+                           final @NotNull Socket socket) throws IOException {
         super(session, negotiator.getInputStream(), negotiator.getOutputStream(), UTF8_CHARSET);
         this.socket = socket;
         this.negotiator = negotiator;
@@ -32,39 +33,59 @@ public class TelnetTerminal extends ModernTerminal {
         negotiator.setLineMode0Negotiation();
         negotiator.charsetNegotiation();
 
-        // Figure out charset support
         // Test for unicode charset support
-        try {
-            // Prep and clear
-            super.setCharset(UTF8_CHARSET);
-            resetCursorPosition();
+        testUnicode();
+    }
 
-            // Run support test
-            writeToTerminal("ΔΩÔ".getBytes(UTF8_CHARSET));
-            Point curPos = getCursorPosition();
+    /**
+     * Warning: Potentially destructive operation.
+     * <p>
+     * Clears the terminal and tests for unicode support,
+     * then switches to either UTF-8 or IBM_437 depending on the test result.
+     */
+    private synchronized void testUnicode() {
+        // todo non-destructive operation
+        //  - save and restore buffer
+        //  - save and restore cursor position
+        // todo migrate this method to one of the parent classes
+        synchronized (this) {
+            try {
+                // Prepare and clear
+                super.setCharset(UTF8_CHARSET);
+                saveCursorPosition();
+                resetCursorPosition();
 
-            // Restore terminal
-            resetColorAndSGR();
-            clear();
-            resetCursorPosition();
+                // Run support test
+                writeToTerminal("ΔΩÔ".getBytes(UTF8_CHARSET));
+                Point curPos = getCursorPosition();
 
-            // Apply charset
-            //fixme remove print dbg
-            System.out.println("CHARTEST POS: " + curPos);
-            boolean supportsUnicode = curPos.getX() == 3 && curPos.getY() == 0;
-            if (!supportsUnicode) super.setCharset(IBM437_CHARSET);
-        } catch (IOException e) {
-            new IOException("Failed to test charset", e).printStackTrace();
+                // Restore terminal
+                clear();
+                restoreCursorPosition();
+
+                // Apply charset
+                boolean supportsUnicode = curPos.getX() == 3 && curPos.getY() == 0;
+                if (!supportsUnicode) super.setCharset(IBM437_CHARSET);
+            } catch (IOException e) {
+                new IOException("Failed unicode support detection.", e).printStackTrace();
+            }
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Unlike normal charset switching, it will attempt negotiation with the client.
+     *
+     * @param charset The {@link Charset} to switch to.
+     * @throws IOException
+     */
     @Override
     public void setCharset(@NotNull Charset charset) throws IOException {
-        // fixme dangerous
         negotiator.charsetNegotiation();
     }
 
-    void setCharsetInternal(@NotNull Charset charset) throws IOException {
+    void setCharsetWithoutNegotiation(@NotNull Charset charset) throws IOException {
         super.setCharset(charset);
     }
 }

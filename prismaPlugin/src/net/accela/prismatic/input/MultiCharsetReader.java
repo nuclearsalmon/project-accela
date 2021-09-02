@@ -14,51 +14,61 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 
 /**
- * A hacked-together version of {@link InputStreamReader} and sun's {@code StreamDecoder}.
- * It's able to decode streams with variable charset encodings,
- * meaning the decoding charset can be switched on the fly.
+ * The {@link MultiCharsetReader} acts much like {@link java.io.InputStreamReader},
+ * except that the decoding charset can be switched on the fly.
  * <p>
- * todo test if it works
+ * This allows it to be used in network communication protocols
+ * that switch charset after client/server negotiation.
  * <p>
- * todo figure out/try and remember why I didn't end up using this (I'm using {@link StreamDecoder} instead),
- * and if it's safe to delete. The code is clearly different from {@link StreamDecoder},
- * but I'm not sure what is functionally different.
+ * It is based off of a hacked-together version of
+ * {@link InputStreamReader} and Sun's {@code StreamDecoder}.
  */
-@SuppressWarnings("SynchronizeOnNonFinalField")
-public class SwitchableCharsetReader extends Reader {
+public class MultiCharsetReader extends Reader {
     public static final int BYTE_BUFFER_SIZE = 8192;
     public static final int CHAR_BUFFER_SIZE = 8192;
 
-    private final InputStream inputStream;
-    private CharsetDecoder decoder;
     private final ByteBuffer byteBuffer = ByteBuffer.allocate(BYTE_BUFFER_SIZE);
     private final CharBuffer charBuffer = CharBuffer.allocate(CHAR_BUFFER_SIZE);
+    private final Object lock = new Object();
+
+    private final InputStream inputStream;
+    private volatile CharsetDecoder decoder;
     private volatile boolean isOpen = true;
 
-    public SwitchableCharsetReader(@NotNull InputStream inputStream) {
-        this(inputStream, Charset.defaultCharset());
-    }
-
-    public SwitchableCharsetReader(@NotNull InputStream inputStream, @NotNull Charset charset) {
+    public MultiCharsetReader(final @NotNull InputStream inputStream,
+                              final @NotNull Charset charset) {
         super(inputStream);
         this.inputStream = inputStream;
-        this.decoder = newDecoder(charset);
+        this.decoder = createDecoder(charset);
     }
 
-    public synchronized void setCharset(Charset charset) {
-        flush();
-        this.decoder = newDecoder(charset);
-    }
+    //
+    // Charset operations
+    //
 
     public Charset getCharset() {
         return decoder.charset();
     }
 
-    public synchronized int read() throws IOException {
-        return read0();
+    public synchronized void setCharset(@NotNull Charset charset) {
+        synchronized (this) {
+            flush();
+            this.decoder = createDecoder(charset);
+        }
     }
 
-    private synchronized int read0() throws IOException {
+    private @NotNull CharsetDecoder createDecoder(@NotNull Charset charset) {
+        return charset.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPLACE)
+                .onUnmappableCharacter(CodingErrorAction.REPLACE);
+    }
+
+    //
+    // Reading
+    //
+
+    @Override
+    public synchronized int read() throws IOException {
         synchronized (lock) {
             // Return the leftover char, if there is one
             if (hasLeftoverChar()) return charBuffer.get();
@@ -81,6 +91,7 @@ public class SwitchableCharsetReader extends Reader {
         }
     }
 
+    @Override
     public synchronized int read(char @NotNull [] cbuf, int offset, int length) throws IOException {
         int off = offset;
         int len = length;
@@ -108,7 +119,7 @@ public class SwitchableCharsetReader extends Reader {
 
             if (len == 1) {
                 // Treat single-character array reads just like read()
-                int c = read0();
+                int c = read();
                 if (c == -1)
                     return (n == 0) ? -1 : n;
                 cbuf[off] = (char) c;
@@ -198,6 +209,10 @@ public class SwitchableCharsetReader extends Reader {
         return charBufferWrap.position();
     }
 
+    //
+    // Readiness
+    //
+
     private boolean inputStreamReady() {
         try {
             return inputStream.available() > 0;
@@ -210,6 +225,7 @@ public class SwitchableCharsetReader extends Reader {
         return byteBuffer.hasRemaining() || inputStreamReady();
     }
 
+    @Override
     public synchronized boolean ready() throws IOException {
         synchronized (lock) {
             ensureOpen();
@@ -217,7 +233,11 @@ public class SwitchableCharsetReader extends Reader {
         }
     }
 
-    boolean hasLeftoverChar() {
+    //
+    // Internals, flushing and closing
+    //
+
+    private boolean hasLeftoverChar() {
         return charBuffer.hasRemaining();
     }
 
@@ -225,22 +245,16 @@ public class SwitchableCharsetReader extends Reader {
         if (!isOpen) throw new IOException("Stream closed");
     }
 
-    private @NotNull CharsetDecoder newDecoder(@NotNull Charset charset) {
-        return charset.newDecoder()
-                .onMalformedInput(CodingErrorAction.REPLACE)
-                .onUnmappableCharacter(CodingErrorAction.REPLACE);
-    }
-
     private void flush() {
         decoder.decode(byteBuffer, charBuffer, true);
         decoder.flush(charBuffer);
     }
 
-
     public boolean isOpen() {
         return isOpen;
     }
 
+    @Override
     public synchronized void close() throws IOException {
         synchronized (lock) {
             if (!isOpen) return;

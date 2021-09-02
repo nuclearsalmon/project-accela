@@ -209,7 +209,7 @@ public class TelnetNegotiator {
                     System.arraycopy(arguments, 1, stringArguments, 0, arguments.length - 1);
 
                     String argString = new String(stringArguments, Terminal.ASCII_CHARSET);
-                    session.getTerminal().setCharsetInternal(Charset.forName(argString));
+                    session.getTerminal().setCharsetWithoutNegotiation(Charset.forName(argString));
                 }
                 break;
             default:
@@ -227,13 +227,11 @@ public class TelnetNegotiator {
         final byte[] arguments = sequence.arguments;
 
         switch (command) {
-            case DO:
-            case DONT:
+            case DO, DONT -> {
                 suppressGoAhead = (command == DO);
                 replyBooleanNegotiation(command == DO, option);
-                break;
-            default:
-                onUnsupportedCommandForOption(command, option);
+            }
+            default -> onUnsupportedCommandForOption(command, option);
         }
     }
 
@@ -247,13 +245,11 @@ public class TelnetNegotiator {
         final byte[] arguments = sequence.arguments;
 
         switch (command) {
-            case DO:
-            case DONT:
+            case DO, DONT -> {
                 extendedAscii = (command == DO);
                 replyBooleanNegotiation(command == DO, option);
-                break;
-            default:
-                onUnsupportedCommandForOption(command, option);
+            }
+            default -> onUnsupportedCommandForOption(command, option);
         }
     }
 
@@ -267,12 +263,8 @@ public class TelnetNegotiator {
         final byte[] arguments = sequence.arguments;
 
         switch (command) {
-            case WILL:
-            case WONT:
-                clientEcho = (command == WILL);
-                break;
-            default:
-                onUnsupportedCommandForOption(command, option);
+            case WILL, WONT -> clientEcho = (command == WILL);
+            default -> onUnsupportedCommandForOption(command, option);
         }
     }
 
@@ -286,12 +278,8 @@ public class TelnetNegotiator {
         final byte[] arguments = sequence.arguments;
 
         switch (command) {
-            case WILL:
-            case WONT:
-                clientLineMode0 = (command == WILL);
-                break;
-            default:
-                onUnsupportedCommandForOption(command, option);
+            case WILL, WONT -> clientLineMode0 = (command == WILL);
+            default -> onUnsupportedCommandForOption(command, option);
         }
     }
 
@@ -304,11 +292,8 @@ public class TelnetNegotiator {
         final byte[] arguments = sequence.arguments;
 
         switch (command) {
-            case WILL:
-            case WONT:
-                clientResizeNotification = (command == WILL);
-                break;
-            case SB:
+            case WILL, WONT -> clientResizeNotification = (command == WILL);
+            case SB -> {
                 // Bad argument length
                 if (arguments.length != 4) {
                     throw new UnsupportedOperationException(String.format(
@@ -322,9 +307,8 @@ public class TelnetNegotiator {
                         convertTwoBytesToInt2(arguments[1], arguments[0]),
                         convertTwoBytesToInt2(arguments[3], arguments[2])
                 );
-                break;
-            default:
-                onUnsupportedCommandForOption(command, option);
+            }
+            default -> onUnsupportedCommandForOption(command, option);
         }
     }
 

@@ -111,6 +111,6 @@ public class MouseInputEvent extends InputEvent {
 
     @Override
     public String toString() {
-        return "MouseInputEvent{actionType=" + actionType + ", button=" + button + ", position=" + position + '}';
+        return "MouseInputEvent{actionType=" + actionType + ", button=" + button + ", x=" + position.getX() + ", y=" + position.getY() + '}';
     }
 }
