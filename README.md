@@ -12,12 +12,6 @@ allowing for a consistent and easy-to-use means of handling concurrent IO to and
 
 Feel free to check out the [wiki].
 
-<br>
-
----
-
-<br>
-
 ## Table of Contents
 - [Background](#background)
 - [Notes](#notes)
@@ -48,8 +42,6 @@ However, as I'm currently only using it for local testing, unencrypted telnet is
 ## Dependencies
 * JetBrains annotations (@NotNull & @Nullable)
 * SnakeYAML
-* Apache Commons Lang
-* Google Guava
 
 ## Install
 TBD.
