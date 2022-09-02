@@ -88,7 +88,7 @@ Repo link: [Telnet Provider][repo_telnet_provider]
 
 ## Credits
 Thanks to:
-- SqZ / Ozz Nixon - My main source of advice, insights and [documentation][out_ryobbs].
+- SqZ / Ozz Nixon - My main source of advice and insights.
 
 <br>
 
@@ -103,4 +103,3 @@ Thanks to:
 [out_ansi]: https://en.wikipedia.org/wiki/ANSI_escape_code "ANSI Escape Code"
 [out_bbs]: https://sv.wikipedia.org/wiki/Bulletin_board_system "Bulletin Board System"
 [out_mud]: https://sv.wikipedia.org/wiki/MUD "Multi User Dungeon"
-[out_ryobbs]: http://ryobbs.com/doku.php/terminal "Terminal documentation"
